@@ -1,0 +1,10 @@
+python==
+setuptools == 
+pyyaml==
+h5py==
+pytest==
+mendeleev==
+numpy==
+scipy==
+molmod== 
+

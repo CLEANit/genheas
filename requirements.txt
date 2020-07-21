@@ -1,3 +1,6 @@
+scipy
+numpy
+pymatgen
 python==
 setuptools == 
 pyyaml==

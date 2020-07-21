@@ -1,24 +1,28 @@
 #!/usr/bin/env python3
 import pymatgen as mg
-
+from Tools import Properties
 from optparse import OptionParser
 import os.path
 
 
 
-si = mg.Element("Si")
-si.atomic_mass
 
-inputfile = 'tests/tests_files/water.xyz'
 
-#structure = mg.Structure.from_str(open(inputfile).read(), fmt="xyz")
+
 molecule = mg.Molecule.from_file('tests/tests_files/water.xyz')
-structure = mg.Composition(molecule.formula)
-comp = mg.Composition("Fe2O3")
-#print(structure.cart_coords)
-print(structure.to_data_dict
-#structure2 = mg.Structure.from_file('tests/tests_files/Fe_mp-13_primitive.cif')
-#print(structure.get_atomic_fraction("H"))
+#structure = mg.Composition(molecule.formula)
+comp = mg.Composition("Al0.25NbTaTiV")
+#comp = mg.Composition("CoCrFeNi")
 
-structure.
+properties = Properties.Property(comp)
+
+props = ["melting_point", "atomic_size_difference", "mixing_entropy", "electronegativity", "VEC"]
+structure_prop = {}
+for prop in props:
+    structure_prop[prop] = properties.get_property(prop)
+
+print(structure_prop)
+
+
+
 

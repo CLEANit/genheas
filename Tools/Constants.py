@@ -3,7 +3,13 @@ import numpy
 
 from scipy.constants import codata
 
-#from . import codata
+import scipy
+
+
+#Molar gas constant
+
+R = codata.value("molar gas constant") # J/K/mol.
+#scipy.constants.R
 
 # speed of light in atomic units
 
@@ -76,3 +82,4 @@ def boltz(freq, T=298.15):
     """
     fact = 1.0-numpy.exp(-freq*Hartree_in_Joule/(Boltzman_constant*T))
     return 1.0/fact
+

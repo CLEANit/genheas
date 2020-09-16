@@ -1,9 +1,12 @@
 import numpy as np
 from Tools import valence_electron
 from Tools import Constants
+from Tools import miedema
 
 PROPERTIES = ["atomic_size_difference", "mixing_entropy", "mixing_enthalpy", "VEC",
-              "electronegativity", "melting_point", "omega", "phi"]
+              "electronegativity", "melting_point", "omega", "phi", "miedema_energy"]
+
+__all__ = ["Property"]
 
 
 class Property(object):
@@ -69,7 +72,7 @@ class Property(object):
     #   return delta_H
 
     def get_VEC(self):
-        atom_list = self.structure.elements
+        atom_list = self.structure.elements  # [Element Fe, Element Ni]
 
         VEC = 0.0
 
@@ -89,8 +92,6 @@ class Property(object):
 
         return np.sqrt(X_d)
 
-
-
     # def get_omega(self):
     #    natoms = self.res.mol.natoms
 
@@ -102,3 +103,35 @@ class Property(object):
         for element in atom_list:
             melting += self.structure.get_atomic_fraction(element) * element.melting_point
         return melting
+
+    def get_miedema_energy(self, composition=None):
+        """
+
+        :return: miedema energy
+        """
+        if composition is None:
+            composition = self.structure
+        energy = miedema.Miedema.get(composition)
+        return energy
+
+    def get_mixing_enthalpy(self):
+        """
+        delta_H =  sum_ij 4(H_ij*c_i*c_j)
+        H_ij : miedema  enthalpy of mixing of the binary liquid ij
+                between the ith and jth elements at an equiatomic composition.
+        :return: mixing energy
+        """
+        # atom_list = self.structure.elements
+        atom_list = list(self.structure.as_dict().keys())
+
+        mixing_enegy = 0
+        for i in range(len(atom_list)):
+            for j in range(i + 1, len(atom_list)):
+                composition = atom_list[i] + atom_list[j]
+                miedema_energy = self.get_miedema_energy(composition)
+                c_i = self.structure.get_atomic_fraction(atom_list[i])
+                c_j = self.structure.get_atomic_fraction(atom_list[j])
+
+                mixing_enegy += miedema_energy * c_i + c_j
+
+        return mixing_enegy * 4.0

@@ -15,6 +15,9 @@ import yaml
 __all__ = ["Miedema"]
 # data rows:
 # Element_name Phi Rho Vol Z Valence TM? RtoP Htrans
+#Data format: | Element | Phi | Nws1/3 | Vm 2/3 | Z | Valence |Transition Metal (1) or Not (0)| R/P| Htrans
+
+
 # params = yaml.safe_load(open(qmpy.INSTALL_PATH + "/data/miedema.yml").read())
 params = yaml.safe_load(open("Tools/data/miedema.yml").read())
 

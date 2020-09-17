@@ -2,6 +2,8 @@ import numpy as np
 from Tools import valence_electron
 from Tools import Constants
 from Tools import miedema
+from Tools import HeatOfMixing
+import yaml
 
 PROPERTIES = ["atomic_size_difference", "mixing_entropy", "mixing_enthalpy", "VEC",
               "electronegativity", "melting_point", "omega", "phi", "miedema_energy"]
@@ -57,7 +59,7 @@ class Property(object):
         for element in atom_list:
             r_d += self.structure.get_atomic_fraction(element) * (1 - (element.atomic_radius / r_bar)) ** 2
 
-        return np.sqrt(r_d)
+        return 100* np.sqrt(r_d)
 
     def get_mixing_entropy(self):
         atom_list = self.structure.elements
@@ -75,9 +77,11 @@ class Property(object):
         atom_list = self.structure.elements  # [Element Fe, Element Ni]
 
         VEC = 0.0
+        valence = yaml.safe_load(open("Tools/data/VEC.yml").read())
 
         for element in atom_list:
-            VEC += self.structure.get_atomic_fraction(element) * valence_electron.valence[str(element)]
+            #VEC += self.structure.get_atomic_fraction(element) * valence_electron.valence[str(element)]
+            VEC += self.structure.get_atomic_fraction(element) * valence[str(element)]
         return VEC
 
     def get_electronegativity(self):
@@ -128,10 +132,11 @@ class Property(object):
         for i in range(len(atom_list)):
             for j in range(i + 1, len(atom_list)):
                 composition = atom_list[i] + atom_list[j]
-                miedema_energy = self.get_miedema_energy(composition)
+                #miedema_energy = self.get_miedema_energy(composition)
+                miedema_energy = HeatOfMixing.Miedema.get(composition)
                 c_i = self.structure.get_atomic_fraction(atom_list[i])
                 c_j = self.structure.get_atomic_fraction(atom_list[j])
 
-                mixing_enegy += miedema_energy * c_i + c_j
+                mixing_enegy += miedema_energy * c_i * c_j
 
         return mixing_enegy * 4.0

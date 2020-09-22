@@ -57,9 +57,9 @@ class Property(object):
             r_bar += self.structure.get_atomic_fraction(element) * element.atomic_radius
         r_d = 0.0
         for element in atom_list:
-            r_d += self.structure.get_atomic_fraction(element) * (1 - (element.atomic_radius / r_bar)) ** 2
+            r_d += self.structure.get_atomic_fraction(element) * ((1 - (element.atomic_radius / r_bar)) ** 2)
 
-        return 100* np.sqrt(r_d)
+        return 100 * np.sqrt(r_d)
 
     def get_mixing_entropy(self):
         atom_list = self.structure.elements

@@ -21,7 +21,7 @@ data = []
 for compo in compositions:
     comp = pmg.Composition(compo)
     properties = Properties.Property(comp)
-    structure_prop = {"Alloy composition": compo}
+    structure_prop = {"Alloys": compo}
     for prop in props:
         structure_prop[prop] = properties.get_property(prop)
 

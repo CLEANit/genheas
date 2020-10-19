@@ -4,8 +4,8 @@ from Tools import Properties
 import pandas as pd
 from optparse import OptionParser
 import os.path
-
-molecule = pmg.Molecule.from_file('tests/tests_files/water.xyz')
+import sqlalchemy.types
+#molecule = pmg.Molecule.from_file('tests/tests_files/water.xyz')
 # structure = mg.Composition(molecule.formula)
 comp1 = pmg.Composition("Al0.5NbTaTiV")
 comp2 = pmg.Composition("CoCrFeNi")
@@ -33,3 +33,5 @@ pd.set_option('display.max_columns', 8)
 print(data_df.head())
 #for key in structure_prop.keys():
  #   print('{} : {:.2f}'.format(key, structure_prop[key]))
+
+sqlalchemy.types.

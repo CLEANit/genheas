@@ -1,0 +1,10 @@
+{
+    "GENERAL": {
+        "PRECISION": "8",
+        "PBC": {
+            "a1": true,
+            "a2": true,
+            "a3": true
+        }
+    }
+}

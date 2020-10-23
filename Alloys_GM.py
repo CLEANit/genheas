@@ -7,6 +7,15 @@ Created on Fri Oct 16 23:27:41 2020
 """
 
 import numpy as np
+import random 
+import matplotlib.pyplot as plt
+import seaborn as sns; sns.set()
+
+import yaml
+import time
+import copy
+import pickle
+
 from ase.lattice.cubic import FaceCenteredCubic, BodyCenteredCubic
 from ase.build import bulk
 import pymatgen as pmg
@@ -17,13 +26,12 @@ from clusterx.super_cell import SuperCell
 from clusterx.structures_set import StructuresSet
 from pymatgen import Element
 
-import yaml
 
-from sklearn.preprocessing import LabelEncoder
-from sklearn.preprocessing import OneHotEncoder
+#from sklearn.preprocessing import LabelEncoder
+#from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import StandardScaler
 
-from tensorflow.keras.utils import to_categorical
+#from tensorflow.keras.utils import to_categorical
 
 import torch
 import torch.nn as nn
@@ -31,8 +39,10 @@ import torch.optim as optim
 import torch.nn.init as init
 from torch.autograd import Variable
 import torch.nn.functional as F
-import copy
 
+
+import line_profiler
+profile = line_profiler.LineProfiler()
 
 class AlloysGen(object):
 
@@ -171,7 +181,7 @@ class Feedforward(nn.Module):
         output = self.softmax(output)
         return output
 
-
+@profile
 def gen_policies(Feedforward, input_size, output_size,  input_tensor, nb_policies):
         policies = []  # list of output vectors
         policies_weights = []
@@ -179,8 +189,7 @@ def gen_policies(Feedforward, input_size, output_size,  input_tensor, nb_policie
         
         for i in range(nb_policies):
             device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-            model = Feedforward(input_size, output_size)
-            model.to(device)
+            model = Feedforward(input_size, output_size).to(device)
             input_tensor = input_tensor.to(device)
             output_tensor = model(input_tensor)
             output_vector = output_tensor.cpu().detach().numpy()
@@ -191,7 +200,7 @@ def gen_policies(Feedforward, input_size, output_size,  input_tensor, nb_policie
             policies_weights.append(init_weight)
         return policies, policies_weights
 
-
+@profile
 def gen_structure(alloyatoms, out_vector, atoms_list_set):
     atms = copy.deepcopy(alloyatoms)
     for i in range(len(out_vector)):
@@ -204,40 +213,209 @@ def gen_structure(alloyatoms, out_vector, atoms_list_set):
     return atms, atomic_fraction
 
 
-
-def objective_function(fraction, target):
+@profile
+def fitness(fraction, target):
     """
     fractions is a dictionary with concentration of each atom
     target is a dictionary with the target concentration
-    return the RMSD
+    return the Root-mean-square deviation 
     """
-    summ = 0
-    for key in fraction.keys():
-        summ += (abs(fraction[key] -target[key] ))**2
-        
-    rmsd = np.sqrt(summ/len(fraction.keys()))  
-    return rmsd
+    
+   
+    atoms_list =  list(target.keys())
+    
+    target_conc = [target[elm] for elm in atoms_list]
+    target_conc = np.array(target_conc)
+    
+    
+    conc = [fraction[elm] for elm in atoms_list ]
+    conc = np.array(conc)   
+    diff = np.abs(conc - target_conc)
+    N = len(conc) 
+    return np.sqrt((diff * diff).sum() / N)
 
-
-def get_policies_objective(alloyatoms, policies, atoms_list_set,target):
+@profile
+def get_population_fitness(alloyatoms, policies, atoms_list_set,target):
 
     policies_obj_funct= []
     for policy in policies:
         structures = []
         fractions = []
-        obj_funct = []
+
         n =10
         for i in range(n):
             struct, frac = gen_structure(alloy_atoms,policy, atoms_list_set)
             fractions.append(frac)
             structures.append(struct)
-        
-        for comp in fractions:
-            obj_funct.append(objective_function(comp, target))   
+            
+        obj_funct = [fitness(comp, target) for comp in fractions ]
+          
         policies_obj_funct.append(np.average(np.array(obj_funct))) 
-    return policies_obj_funct     
+    
+    return policies_obj_funct      
+
+@profile
+def sort_population_by_fitness(population, key):
+    sorted_index =  np.argsort(key)
+    sorted_population= [population[idx] for idx in sorted_index ]
+    return sorted_population
+    
+@profile
+def choice_random(population, n):
+    random_weights = random.choices(population, k=n)
+    return random_weights    
+
+@profile
+def mutate(individual, alpha=0.1):  
+    noise = np.random.uniform(-1,1 ,individual.shape)*alpha
+    noised_individual = individual + noise
+    return noised_individual
+
+@profile
+def make_next_generation(previous_population, key, rate=0.25):
+
+    sorted_by_fitness_population = sort_population_by_fitness(previous_population, key)
+    population_size = len(previous_population)
+
+    top_size = int(np.ceil(population_size * rate))
+
+    # take top 25%
+    top_population = sorted_by_fitness_population[:top_size]
+
+    next_generation = top_population
+
+    #randomly mutate the weights of the top 25% of structures to make up the remaining 75%
+    selection = choice_random(top_population, (population_size - top_size))
+    next_generation.extend(selection)
+
+    return next_generation
 
 
+
+def train_policy(feedfoward, alloy_atoms, element_list, input_vectors,
+                 nb_generation):
+
+    input_size = np.prod(input_vectors[0].shape)  # prod(18,14)
+    output_size = output_size = len(element_list)
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    X_tensor = torch.from_numpy(input_vectors).float()
+    #X_tensor = torch.from_numpy(input_vectors.astype('float32'))
+    input_tensor = Variable(X_tensor).to(device)
+
+    best_policies = None  #list of output vectors
+    best_weights = None
+
+    iters = []
+    max_fitness = []
+    mean_fitness = []
+    nb_policies = 10
+    policies_fitness = None
+    t_10 = 0
+    for n in range(nb_generation + 1):
+        #print(f'generation {n} ')
+        since = time.time()
+        
+        if best_policies is None:  #first iteration
+            # create policies
+            policies = []  # list of output vectors
+            policies_weights = []
+
+            for i in range(nb_policies):
+                model = feedfoward(input_size, output_size)
+                model.to(device)
+           
+                output_tensor = model(input_tensor)
+                output_vector = output_tensor.cpu().detach().numpy()
+
+                init_weight = copy.deepcopy(model.l1.weight.data)
+                init_weight = init_weight.cpu().detach().numpy()
+                
+                
+                policies.append(output_vector)
+                policies_weights.append(init_weight)
+
+                #get the objective functions
+            policies_fitness = get_population_fitness(
+                alloy_atoms, policies, element_list, target_concentration)
+
+            # Rank the structures
+
+            best_policies = sort_population_by_fitness(policies,
+                                                       policies_fitness)
+            best_weights = sort_population_by_fitness(policies_weights,
+                                                      policies_fitness)
+
+        else:
+
+            next_generation = make_next_generation(best_weights,
+                                                   policies_fitness,
+                                                   rate=0.25)
+
+            for i in range(nb_policies):
+                weights = next_generation[i]
+                weights_tensor = torch.from_numpy(weights).float()
+                
+                #model = feedfoward(input_size, output_size)
+                model.l1.weight = torch.nn.parameter.Parameter(weights_tensor)
+                #model.to(device)
+           
+                output_tensor = model(input_tensor)
+                output_vector = output_tensor.cpu().detach().numpy()
+
+                init_weight = copy.deepcopy(model.l1.weight.data)
+                init_weight = init_weight.cpu().detach().numpy()
+                
+                
+                policies.append(output_vector)
+                policies_weights.append(init_weight)
+
+
+            policies_fitness = get_population_fitness(
+                alloy_atoms, policies, element_list, target_concentration)
+
+            best_policies = sort_population_by_fitness(policies,
+                                                       policies_fitness)
+            best_weights = sort_population_by_fitness(policies_weights,
+                                                      policies_fitness)
+
+        # save the current training information
+        iters.append(n)
+        max_fitness.append(np.max(np.array(policies_fitness)))
+        mean_fitness.append(np.mean(np.array(policies_fitness)))  # compute *average* objective
+        t_10 += time.time()-since
+        
+        
+        # Print mean fitness and time every 10 iterations.
+        if n % 10 == 0:
+            print('generation {:d} *** mean fitness {:.4f} *** Time: {:.1f}s'.format(
+                n, mean_fitness[n], t_10))
+            t_10 = 0
+            #print('*' * 20)
+    
+    torch.save(model.state_dict(), './model_{}.pth'.format(nb_generation))
+    pickle.dump(max_fitness, open('max_objective_{}.pkl'.format(nb_generation), 'wb'))
+    pickle.dump(mean_fitness, open('mean_objective_{}.pkl'.format(nb_generation), 'wb'))
+    
+    
+    # plotting
+    #fig = plt.figure(figsize = (8, 8))
+    
+    
+    plt.plot(iters, mean_fitness, label = 'mean_fitness', linewidth=4)
+    plt.plot(iters, max_fitness, label = 'max_fitness',   linewidth=4)
+    
+    plt.xlabel("Generation", fontsize = 15)
+    plt.ylabel('' )
+    plt.title("Training Curve ")
+    
+    plt.legend(fontsize = 12,  loc='upper left')
+    #plt.savefig('traces.png', dpi=600,Transparent=True)
+    plt.savefig("training_{}.svg".format(nb_generation), dpi=600, transparent=True)
+    plt.show()
+
+
+    return best_policies, best_weights
 
 if __name__ == "__main__":
     element_list = ['Ag', 'Pd']
@@ -245,13 +423,15 @@ if __name__ == "__main__":
     target_concentration =  {'Ag': 0.5, 'Pd': 0.5}
     cell_type = 'fcc'
     cell_size = [4, 4, 4]
-
-    AlloyGen = AlloysGen(element_list, concentrations, cell_type, cell_size)
+    
     # generate alloys supercell
+    AlloyGen = AlloysGen(element_list, concentrations, cell_type, cell_size)
+    
     alloy_atoms, lattice_param = AlloyGen.gen_alloy_supercell(elements=element_list,
                                                               concentrations=concentrations, types=cell_type,
                                                               size=cell_size)
 
+    
     alloy_structure = AseAtomsAdaptor.get_structure(alloy_atoms)  # Pymatgen Structure
     alloy_composition = pmg.Composition(alloy_atoms.get_chemical_formula())  # Pymatgen Composition
 
@@ -264,29 +444,18 @@ if __name__ == "__main__":
     # generate input vectors
     input_vectors = AlloyGen.get_input_vectors(all_neighbors_list, properties)
 
-    # generate input tensor
-    X_tensor = torch.from_numpy(input_vectors).float()
-    input_tensor = Variable(X_tensor)  # requires_grad=False
+   
 
     # Feedforward
-    input_size = np.prod(input_vectors[0].shape)  # prod(18,14)
-    output_size = output_size = len(set(alloy_atoms.get_chemical_symbols()))
-    #device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    #model = MLP(input_size, output_size)
-    #model.to(device)
-
-    #input_tensor = input_tensor.to(device)
-
-    # generate policies ang get objective function
-    nb_policies = 10
-    policies, policies_weights = gen_policies(Feedforward, input_size, output_size,  input_tensor, nb_policies)
-    policies_obj_funct = get_policies_objective(alloy_atoms, policies, element_list,  target_concentration )
     
-    size = int(np.ceil(len(policies)*0.25))
-    top_index =  sorted(range(len(policies_obj_funct)), key=lambda i: policies_obj_funct[i])[-size:]
+    
+    nb_generation =10
 
-    top_policies = [policies[idx] for idx in top_index]
-    top_policies_weights  =[ policies_weights[idx]for idx in top_index]
+    best_policies, best_weights = train_policy(Feedforward, alloy_atoms, element_list,  input_vectors, nb_generation)
     
     
 
+    #all_neighbors_list = sites_neighbor_list(top_structures[0], lattice_param)
+
+    ## generate input vectors
+    #input_vectors = get_input_vectors(all_neighbors_list, properties)

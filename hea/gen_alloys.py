@@ -21,7 +21,7 @@ from pymatgen.io.ase import AseAtomsAdaptor
 
 import torch
 # import torch.optim as optim
-# import torch.nn.init as init
+import torch.nn.init as init
 from torch.autograd import Variable
 # import torch.nn.functional as F
 
@@ -57,7 +57,11 @@ def train_policy(feedfoward, alloy_atoms, element_list, input_vectors,
     nb_policies = 10
     policies_fitness = None
     t_10 = 0
-    #with torch.set_grad_enabled(False):
+
+    model = feedfoward(input_size, output_size)
+    model.to(device)
+    model.eval()
+    # with torch.set_grad_enabled(False):
     for n in range(nb_generation + 1):
         # print(f'generation {n} ')
         since = time.time()
@@ -68,9 +72,7 @@ def train_policy(feedfoward, alloy_atoms, element_list, input_vectors,
             policies_weights = []
 
             for i in range(nb_policies):
-                model = feedfoward(input_size, output_size)
-                model.to(device)
-                model.eval()
+                init.normal_(model.l1.weight, mean=0, std=1)
                 output_tensor = model(input_tensor)
                 output_vector = output_tensor.cpu().detach().numpy()
 
@@ -99,7 +101,8 @@ def train_policy(feedfoward, alloy_atoms, element_list, input_vectors,
 
                 # model = feedfoward(input_size, output_size)
                 model.l1.weight = torch.nn.parameter.Parameter(weights_tensor)
-                model.eval()
+
+                #model.eval()
                 # model.to(device)
 
                 output_tensor = model(input_tensor)

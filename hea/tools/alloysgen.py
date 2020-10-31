@@ -76,6 +76,7 @@ class AlloysGen(object):
         all_neighbors_list = []
         for i in range(structure.num_sites):
             site_neighbor = points_indices[np.where(center_indices == i)]
+            np.insert(site_neighbor, 0, i)
             all_neighbors_list.append(site_neighbor)
 
         return all_neighbors_list

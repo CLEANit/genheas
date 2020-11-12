@@ -10,7 +10,7 @@ from pymatgen.io.ase import AseAtomsAdaptor
 from hea.tools.alloysgen import AlloysGen
 #import sites_neighbor_list, get_neighbors_type
 import torch
-
+from ase.data import atomic_numbers
 import logging
 #logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -21,7 +21,8 @@ class NnGa(object):
 
     """
 
-    def __init__(self, AlloyGen, n_structures=10, rate=0.25, alpha=0.1, device="cpu"):
+    def __init__(self,AlloyGen, max_diff_element,
+                 n_structures=10, rate=0.25, alpha=0.1, device="cpu"):
         """
         #nb_polocies: int : nber of polocies generated at each generation
         n_structures: int :  nber of structure generated for each policies
@@ -33,9 +34,17 @@ class NnGa(object):
         self.rate = rate
         self.alpha = alpha
         self.device = device
+        #self.element_pool = element_pool
+        #self.concentration = concentration
+        #self.cell_type= cell_type
+        #self.cell_size = cell_size
+        self.max_diff_element = max_diff_element
         self.AlloyGen =AlloyGen
+        #AlloysGen.__init__(self,self.element_pool, self.concentration, self.cell_type, self.cell_size)
+        # Then call the function of with self ( self.sites_neighbor_list)
 
-    #  @profile
+
+
     def gen_policies(self, Feedforward, input_size, output_size, input_tensor, nb_policies):
         policies = []  # list of output vectors
         policies_weights = []
@@ -54,46 +63,77 @@ class NnGa(object):
         return policies, policies_weights
 
     # @profile
-    def gen_structure_numpy(self, alloyatoms, output_tensor, atoms_list_set):
+    def gen_structure_numpy(self, alloyatoms, output_tensor, element_pool):
         """
         gen structure using numpy.randomchoice
         """
         output_vector = output_tensor.cpu().detach().numpy()
         replace = True  # default
-        atom_list = [np.random.choice(atoms_list_set, p=vec, size=1, replace=replace) for vec in output_vector]
+        atom_list = [np.random.choice(element_pool, p=vec, size=1, replace=replace) for vec in output_vector]
         alloyatoms.set_chemical_symbols(atom_list)
         atomic_fraction = {}
 
         compo = pmg.Composition(alloyatoms.get_chemical_formula())
-        for elm in atoms_list_set:
+        for elm in element_pool:
             atomic_fraction[elm] = compo.get_atomic_fraction(Element(elm))
             return alloyatoms, atomic_fraction
 
-    def gen_structure(self, alloyatoms, output_tensor, atoms_list_set):
+    def gen_structure(self, alloyatoms, output_tensor, element_pool=None, max_diff_element=None):
         """
         using pytorch
         """
-        replace = True  # default  False
-        atom_list = [atoms_list_set[elem.multinomial(num_samples=1, replacement=replace)] for elem in output_tensor]
-        alloyatoms.set_chemical_symbols(atom_list)
+        # replace = True  # default  False
+        # atom_list = [element_pool[elem.multinomial(num_samples=1, replacement=replace)] for elem in output_tensor]
+        # alloyatoms.set_chemical_symbols(atom_list)
+        # compo = pmg.Composition(alloyatoms.get_chemical_formula())
+        # fractional_composition = compo.fractional_composition
+        if element_pool is None:
+            element_pool = self.element_pool
+
+        if max_diff_element is None:
+            max_diff_element = self.max_diff_element
+
+
+        replace = True # default  False
+        elems_in =[]
+        max_diff_elem = copy.deepcopy(max_diff_element)
+        for iout, output in enumerate(output_tensor):
+
+            choice = output.multinomial(num_samples=1, replacement=replace)
+            atm = element_pool[choice]
+
+            idx = element_pool.index(atm)
+            while max_diff_elem[idx]== 0: #  We have the max of this elements
+                prob = output [idx] # take the proba of the element
+                prob = prob/(len(element_pool)-1)  #divide by nber element -1
+                output = output+prob # add the value to each component
+                output [idx] = 0 # set the selected proba to 0
+                choice = output.multinomial(num_samples=1, replacement=replace)
+                atm = element_pool[choice]
+                idx = element_pool.index(atm)
+
+            max_diff_elem[idx]-=1
+            alloyatoms.symbols[iout] = atm
+            elems_in.append(atm)
+
+            #max_diff_elem = {x:elems_in.count(x) for x in elems_in}
         compo = pmg.Composition(alloyatoms.get_chemical_formula())
         fractional_composition = compo.fractional_composition
 
-
         return alloyatoms, fractional_composition
 
-    # def gen_structures(self, alloyatoms, out_vector, atoms_list_set):
+    # def gen_structures(self, alloyatoms, out_vector, element_pool):
     #     atms = copy.deepcopy(alloyatoms)
 
     #     out_vector = out_vector.flatten()
     #     out_vector = out_vector / len(out_vector)
-    #     atm_list = atoms_list_set * len(atms)  # normalize to 1
+    #     atm_list = element_pool * len(atms)  # normalize to 1
     #     atom_list = np.random.choice(atm_list, len(atms), p=out_vector)
     #     atms.set_chemical_symbols(atom_list)
 
     #     atomic_fraction = {}
     #     compo = pmg.Composition(atms.get_chemical_formula())
-    #     for elm in atoms_list_set:
+    #     for elm in element_pool:
     #         atomic_fraction[elm] = compo.get_atomic_fraction(Element(elm))
     #     return atms, atomic_fraction
 
@@ -118,27 +158,27 @@ class NnGa(object):
 
 
 
-    def fitness2(self, configuartion, combinasons, concentrations,lattice_param,cell_type, element_list ):
-        pmg_structure = AseAtomsAdaptor.get_structure(configuartion)
+    def fitness2(self, configuration, combinasons, concentrations,lattice_param,cell_type, element_list ):
+        pmg_structure = AseAtomsAdaptor.get_structure(configuration)
         all_neighbors_list = self.AlloyGen.sites_neighbor_list(pmg_structure, lattice_param)
         atomic_vec_array = self.AlloyGen.get_neighbors_type(all_neighbors_list)
-
+        atm_numbers = configuration.numbers
 
         shells = np.hsplit(atomic_vec_array, [coordination_numbers[cell_type][0],atomic_vec_array.shape[0]])
         shell_1, shell_2 = shells[0], shells[1]
         occurrences_1 = {}
         occurrences_2 = {}
         for elm in element_list:
-            occurrences_1[elm] = np.count_nonzero(shell_1 == pmg.Element(elm).number, axis=1)
-            occurrences_2[elm] = np.count_nonzero(shell_2 == pmg.Element(elm).number, axis=1)
+            occurrences_1[elm] = np.count_nonzero(shell_1 == atomic_numbers[elm] , axis=1)
+            occurrences_2[elm] = np.count_nonzero(shell_2 == atomic_numbers[elm], axis=1)
 
         terms_1 = {}
         terms_2 = {}
         for conmbi in combinasons:
             atm1 = conmbi.split('-')[0]
             atm2 = conmbi.split('-')[1]
-            terms_1[conmbi] =  occurrences_1[atm1][[np.where(configuartion.numbers==pmg.Element(atm2).number)]]
-            terms_2[conmbi] =  occurrences_2[atm1][[np.where(configuartion.numbers==pmg.Element(atm2).number)]]
+            terms_1[conmbi] =  occurrences_1[atm1][np.where(atm_numbers==atomic_numbers[atm2])]
+            terms_2[conmbi] =  occurrences_2[atm1][np.where( atm_numbers==atomic_numbers[atm2])]
 
         fitn_1 = {}
         fitn_2 = {}
@@ -184,11 +224,11 @@ class NnGa(object):
         fitness_CN = np.abs(1-fitness_CN1)+ np.abs(1-fitness_CN1)
         fitness_NN= np.abs(1-fitness_NN1)+ np.abs(1-fitness_NN1)
 
-        return fitness_CN +fitness_NN, NN1, NN2
+        return fitness_CN , NN1, NN2
 
 
     # @profile
-    def get_population_fitness(self, alloyatoms, policies, atoms_list_set, concentrations,cell_type,lattice_param,combinasons):
+    def get_population_fitness(self, alloyatoms, policies, element_pool, concentrations,cell_type,lattice_param,combinasons):
         #logger.info('get_population_fitness')
         policies_obj_funct = []
         for policy in policies:
@@ -196,8 +236,8 @@ class NnGa(object):
             #fractions = []
             obj_functs = []
             for i in range(len(policies)):
-                struct, fractional_composition = self.gen_structure(alloyatoms, policy, atoms_list_set)
-                obj_funct2, shell1, shell2 = self.fitness2(struct, combinasons, concentrations,lattice_param,cell_type,  atoms_list_set)
+                struct, fractional_composition = self.gen_structure(alloyatoms, policy, element_pool)
+                obj_funct2, shell1, shell2 = self.fitness2(struct, combinasons, concentrations,lattice_param,cell_type,  element_pool)
                 #obj_funct1 = self.fitness1(fractional_composition, concentrations)
                 #fractions.append(frac)
                 structures.append(struct)
@@ -207,7 +247,7 @@ class NnGa(object):
 
         return policies_obj_funct
 
-    def get_population_fitness1(self, alloyatoms, policies, atoms_list_set, concentrations,cell_type,lattice_param,combinasons):
+    def get_population_fitness1(self, alloyatoms, policies, element_pool, concentrations,cell_type,lattice_param,combinasons):
         #logger.info('get_population_fitness')
         policies_obj_funct = []
         for policy in policies:
@@ -215,8 +255,8 @@ class NnGa(object):
             #fractions = []
             obj_functs = []
             for i in range(len(policies)):
-                struct, fractional_composition = self.gen_structure(alloyatoms, policy, atoms_list_set)
-                #obj_funct2, shell1, shell2 = self.fitness2(struct, combinasons, concentrations,lattice_param,cell_type,  atoms_list_set)
+                struct, fractional_composition = self.gen_structure(alloyatoms, policy, element_pool)
+                #obj_funct2, shell1, shell2 = self.fitness2(struct, combinasons, concentrations,lattice_param,cell_type,  element_pool)
                 obj_funct1 = self.fitness1(fractional_composition, concentrations)
                 #fractions.append(frac)
                 structures.append(struct)

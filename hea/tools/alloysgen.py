@@ -16,8 +16,8 @@ from sklearn.preprocessing import StandardScaler
 
 class AlloysGen(object):
 
-    def __init__(self, element_list, concentration, cell_type, cell_size,):
-        self.element_list = element_list
+    def __init__(self, element_pool, concentration, cell_type, cell_size):
+        self.element_pool = element_pool
         self.concentration = concentration
         self.cell_type = cell_type
         self.cell_size = cell_size
@@ -25,6 +25,7 @@ class AlloysGen(object):
         self.alloy_atoms = None
         self.alloy_structure = None
         self.alloy_composition = None
+        #self.max_diff_element = None
 
     def gen_alloy_surcafe(self, elements, concentrations, types, size):
         """
@@ -115,6 +116,27 @@ class AlloysGen(object):
         self.alloy_structure = AseAtomsAdaptor.get_structure(self.alloy_atoms)  # Pymatgen Structure
         self.alloy_composition = pmg.Composition(self.alloy_atoms.get_chemical_formula())  # Pymatgen Composition
         return self.alloy_atoms, lattice_param
+
+    def get_max_diff_elements(self,element_pool, concentrations, nb_atm):
+            """
+                compute the maximun number of different element base on concentration
+                and the total number of atoms
+            """
+            max_diff = []
+            for elm in element_pool:
+                max_diff.append(round(nb_atm * concentrations[elm]))
+            if sum(max_diff) == nb_atm:
+                self.max_diff_element = max_diff
+                return self.max_diff_element
+            elif sum(max_diff) < nb_atm:
+                ielem = 1
+                while sum(max_diff) != nb_atm or ielem < len(max_diff):
+                    max_diff[ielem] = max_diff[ielem] + 1
+                    ielem += 1
+                self.max_diff_element = max_diff
+                return self.max_diff_element
+
+
 
     def sites_neighbor_list(self, structure, cutoff):
         """

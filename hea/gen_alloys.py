@@ -36,8 +36,11 @@ from hea.tools.nn_ga_model import NnGa
 
 
 # @profile
-def train_policy(feedfoward,alloy_atoms, element_list, concentrations, input_vectors,
+def train_policy(feedfoward,alloy_atoms, element_pool, concentrations,
+                 max_diff_element, input_vectors,
                  nb_generation,min_mean_fitness= 0.01 ):
+
+
 
 
     early_stop = False
@@ -46,7 +49,7 @@ def train_policy(feedfoward,alloy_atoms, element_list, concentrations, input_vec
 
 
     input_size = np.prod(input_vectors[0].shape)  # prod(18,14)
-    output_size = output_size = len(element_list)
+    output_size = output_size = len(element_pool)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     X_tensor = torch.from_numpy(input_vectors).float()
@@ -69,7 +72,7 @@ def train_policy(feedfoward,alloy_atoms, element_list, concentrations, input_vec
     model.to(device)
     #model.eval()
     # with torch.set_grad_enabled(False):
-    nn_ga = NnGa( AlloyGen,n_structures=10, rate=0.25, alpha=0.1, device= device)
+
     for generation in range(nb_generation + 1):
         # print(f'generation {n} ')
         since = time.time()
@@ -93,7 +96,7 @@ def train_policy(feedfoward,alloy_atoms, element_list, concentrations, input_vec
                     policies_weights.append(model.l1.weight.data)
 
                 # get the objective functions
-            policies_fitness = nn_ga.get_population_fitness(alloy_atoms, policies, element_list, concentrations,cell_type,lattice_param,combinasons)
+            policies_fitness = nn_ga.get_population_fitness(alloy_atoms, policies, element_pool, concentrations,cell_type,lattice_param,combinasons)
 
             # Rank the structures
 
@@ -126,7 +129,7 @@ def train_policy(feedfoward,alloy_atoms, element_list, concentrations, input_vec
                     policies.append(output_tensor)
                     # policies_weights.append(init_weight)
 
-            policies_fitness = nn_ga.get_population_fitness(alloy_atoms, policies, element_list, concentrations,cell_type,lattice_param,combinasons)
+            policies_fitness = nn_ga.get_population_fitness(alloy_atoms, policies, element_pool, concentrations,cell_type,lattice_param,combinasons)
 
             best_policies = nn_ga.sort_population_by_fitness(policies,
                                                        policies_fitness)
@@ -198,8 +201,8 @@ def train_policy(feedfoward,alloy_atoms, element_list, concentrations, input_vec
     # plotting
     # fig = plt.figure(figsize = (8, 8))
 
-    plt.plot(iters, np.log(mean_fitness), label='Log(mean_fitness)', linewidth=4)
-    plt.plot(iters, np.log(max_fitness), label='Log(max_fitness)', linewidth=4)
+    plt.plot(iters, np.log(np.abs(1-mean_fitness)), label='Log|1-mean_fitness|', linewidth=4)
+    plt.plot(iters, np.log(np.abs(1-max_fitness)), label='Log|1-max_fitness|', linewidth=4)
 
     plt.xlabel("Generation", fontsize=15)
     plt.ylabel('')
@@ -210,48 +213,56 @@ def train_policy(feedfoward,alloy_atoms, element_list, concentrations, input_vec
     plt.savefig("training_{}.svg".format(nb_generation), dpi=600, transparent=True)
     # plt.show()
     pickle.dump(best_weights, open('best_weights_{}.pkl'.format(nb_generation), 'wb'))
+    pickle.dump(best_policies, open('best_policies_{}.pkl'.format(nb_generation), 'wb'))
     return best_policies, best_weights,
 
 
 if __name__ == "__main__":
-    element_list = ['Ag', 'Pd']
+    element_pool = ['Ag', 'Pd']
     concentrations = {'Ag': 0.5, 'Pd': 0.5}
     target_concentration = {'Ag': 0.5, 'Pd': 0.5}
     cell_type = 'fcc'
     cell_size = [4, 4, 4]
     combinasons = []
-    for i in range(len(element_list)):
-        for j in range(len(element_list)):
-            combinasons.append(element_list[i]+'-'+element_list[j])
+    for i in range(len(element_pool)):
+        for j in range(len(element_pool)):
+            combinasons.append(element_pool[i]+'-'+element_pool[j])
+
+
+
 
     # generate alloys supercell
-    AlloyGen = AlloysGen(element_list, concentrations, cell_type, cell_size)
+    AlloyGen = AlloysGen(element_pool, concentrations, cell_type, cell_size)
 
-    alloy_atoms, lattice_param = AlloyGen.gen_alloy_supercell(elements=element_list,
+    alloy_atoms, lattice_param = AlloyGen.gen_alloy_supercell(elements=element_pool,
                                                               concentrations=concentrations, types=cell_type,
                                                               size=cell_size)
+
+
+    max_diff_elements = AlloyGen.get_max_diff_elements(element_pool, concentrations, len(alloy_atoms))
+
     # atom_list = ['Ag','Pd']*32
-    # atom_list = ['Ag', 'Pd', 'Ag', 'Pd',
-    #               'Pd', 'Ag', 'Pd', 'Ag',
-    #               'Ag', 'Pd', 'Ag','Pd',
-    #               'Pd', 'Ag', 'Pd', 'Ag',
-    #               'Pd', 'Ag', 'Pd', 'Ag',
-    #               'Ag', 'Pd','Ag', 'Pd',
-    #               'Pd', 'Ag','Pd', 'Ag',
-    #               'Ag', 'Pd', 'Ag','Pd',
-    #               'Ag', 'Pd', 'Ag','Pd',
-    #               'Pd', 'Ag','Pd', 'Ag',
-    #               'Ag', 'Pd', 'Ag','Pd',
-    #               'Pd', 'Ag','Pd', 'Ag',
-    #               'Pd', 'Ag','Pd', 'Ag',
-    #               'Ag', 'Pd', 'Ag','Pd',
-    #               'Pd', 'Ag','Pd', 'Ag',
-    #               'Ag', 'Pd', 'Ag','Pd']
+    atom_list = ['Ag', 'Pd', 'Ag', 'Pd',
+                  'Pd', 'Ag', 'Pd', 'Ag',
+                  'Ag', 'Pd', 'Ag','Pd',
+                  'Pd', 'Ag', 'Pd', 'Ag',
+                  'Pd', 'Ag', 'Pd', 'Ag',
+                  'Ag', 'Pd','Ag', 'Pd',
+                  'Pd', 'Ag','Pd', 'Ag',
+                  'Ag', 'Pd', 'Ag','Pd',
+                  'Ag', 'Pd', 'Ag','Pd',
+                  'Pd', 'Ag','Pd', 'Ag',
+                  'Ag', 'Pd', 'Ag','Pd',
+                  'Pd', 'Ag','Pd', 'Ag',
+                  'Pd', 'Ag','Pd', 'Ag',
+                  'Ag', 'Pd', 'Ag','Pd',
+                  'Pd', 'Ag','Pd', 'Ag',
+                  'Ag', 'Pd', 'Ag','Pd']
 
 
 
 
-    # alloy_atoms.set_chemical_symbols(atom_list)
+    alloy_atoms.set_chemical_symbols(atom_list)
     write('input_configuration.png', alloy_atoms)
     alloy_structure = AseAtomsAdaptor.get_structure(alloy_atoms)  # Pymatgen Structure
     alloy_composition = pmg.Composition(alloy_atoms.get_chemical_formula())  # Pymatgen Composition
@@ -268,21 +279,26 @@ if __name__ == "__main__":
 
     # Feedforward
 
-    nb_generation =4000
+    nb_generation =21
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    nn_ga = NnGa(AlloyGen,max_diff_elements, n_structures=10, rate=0.25, alpha=0.1, device=device)
+
 
     best_policies, best_weights = train_policy(Feedforward, template,
-                                               element_list, concentrations,
-                                               input_vectors, nb_generation)
+                                               element_pool, concentrations,
+                                               max_diff_elements,
+                                               input_vectors,
+                                               nb_generation)
 
 
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    nn_ga = NnGa( AlloyGen,n_structures=10, rate=0.25, alpha=0.1, device= device)
-    my_struc, fractional_composition = nn_ga.gen_structure(template, best_policies[0], element_list)
-    print('formula: ' ,my_struc.get_chemical_formula())
-    write('random_training_structure.png', my_struc)
+    # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # nn_ga = NnGa( AlloyGen,n_structures=10, rate=0.25, alpha=0.1, device= device)
+    # my_struc, fractional_composition = nn_ga.gen_structure(template, best_policies[0], element_pool)
+    # print('formula: ' ,my_struc.get_chemical_formula())
+    # write('random_training_structure.png', my_struc)
 
-    from PIL import Image
-    img = Image.open('random_training_structure.png')
-    img.show()
+    # from PIL import Image
+    # img = Image.open('random_training_structure.png')
+    # img.show()
 

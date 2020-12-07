@@ -13,16 +13,16 @@ from clusterx.structures_set import StructuresSet
 # from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import StandardScaler
 # from tensorflow.keras.utils import to_categorical
-
+import copy
 
 coordination_numbers ={'fcc': [12,6,24], 'bcc':[8,6,12]}
 
 class AlloysGen(object):
 
-    def __init__(self, element_pool, concentration, cell_type):
+    def __init__(self, element_pool, concentration, crystalstructure):
         self.element_pool = element_pool
         self.concentration = concentration
-        self.cell_type = cell_type
+        self.crystalstructure = crystalstructure
         #self.cell_size = cell_size
         self.species = None
         self.alloyAtoms = None
@@ -44,7 +44,7 @@ class AlloysGen(object):
         return combinations
 
 
-    def gen_alloy_surcafe(self, element_pool, concentrations, types, size):
+    def gen_alloy_surcafe(self, element_pool, concentrations, crystalstructure, size):
         """
         :param element_pool: list of element in the alloy
         :param concentrations:
@@ -53,7 +53,7 @@ class AlloysGen(object):
         :return: Alloy supercell
         """
         prim = []
-        if types == 'fcc':
+        if crystalstructure== 'fcc':
             for elm in element_pool:
                 prim.append(bulk(elm, 'fcc'))
         else:
@@ -84,24 +84,70 @@ class AlloysGen(object):
 
 
 
-    def gen_alloy_supercell(self, element_pool, concentrations, types, size):
+    def gen_alloy_supercell(self, element_pool, concentrations, crystalstructure, size,
+                            lattice_param = [None, None, None]):
         """
         :param element_pool: list of element in the alloy
         :param concentrations:
-        :param types: fcc or bcc
+        :param crystalstructure: fcc or bcc
         :param size:
         :return: Alloy supercell
         """
         prim = []
-        if types == 'fcc':
+        if crystalstructure== 'fcc':
+            if all(elem  is None for elem in lattice_param):
+                try:
+                    lattice_param = FaceCenteredCubic(element_pool[0]).cell.cellpar()[:3]
+                except Exception as err:
+                    print(err)
+                    raise Exception ('Please provide the lattice parameter')
+
+            a= lattice_param[0]
+            prime = bulk(name='X', crystalstructure='fcc', a=a, b=None, c=None)
             for elm in element_pool:
-                prim.append(bulk(elm, 'fcc'))
-                #prim.append(FaceCenteredCubic(elm))
-            lattice_param =FaceCenteredCubic(element_pool[0]).cell[0][0]
+                prime_copy =  copy.deepcopy(prime)
+                prime_copy.set_chemical_symbols(elm)
+
+                prim.append(prime_copy)
+        elif crystalstructure== 'bcc':
+            if all(elem  is None for elem in lattice_param):
+                try:
+                     lattice_param = BodyCenteredCubic(element_pool[0]).cell.cellpar()[:3]  # array([ 3.52,  3.52,  3.52, 90.  , 90.  , 90.  ])
+                except Exception as err:
+                    print(err)
+                    raise Exception ('Please provide the lattice parameter')
+
+
+            a = lattice_param[0]
+            prime = bulk(name='X', crystalstructure='bcc', a=a, b=None, c=None)
+
+            for elm in element_pool:
+                prime_copy =  copy.deepcopy(prime)
+                prime_copy.set_chemical_symbols(elm)
+
+                prim.append(prime_copy)
+
+        elif crystalstructure== 'hpc':
+
+            # if  all(elem  is None for elem in lattice_param):
+            #     try:
+            #         a =BodyCenteredCubic(element_pool[0]).cell[0][0]
+            #         b =BodyCenteredCubic(element_pool[0]).cell[0][0]
+            #         c =BodyCenteredCubic(element_pool[0]).cell[0][0]
+            #     except Exception as err:
+            #         print(err)
+            #         raise Exception ('Please provide the lattice parameter')
+            # a=None
+            # b=None
+            # c=None
+
+            # for elm in element_pool:
+            #     #prim.append(BodyCenteredCubic(elm))
+            #     prim.append(bulk(name=elm, crystalstructure='hpc', a=a, b=b, c=c))
+            raise Exception('hpc is not yet implemented')
         else:
-            for elm in element_pool:
-                #prim.append(BodyCenteredCubic(elm))
-                prim.append(bulk(elm, 'bcc'))
+            raise Exception('Only fcc abd bcc are defined')
+
 
         platt = ParentLattice(prim[0], substitutions=prim[1:])
         scell = SuperCell(platt, size)
@@ -180,7 +226,7 @@ class AlloysGen(object):
         0  1  [0. 0. 0.]    2.892
 
         """
-        center_indices, points_indices, offset_vectors, distances = structure.get_neighbor_list(cutoff)
+        center_indices, points_indices, offset_vectors, distances = structure.get_neighbor_list(cutoff+0.1)
         all_neighbors_list = []
 
         #all_distance_list = []
@@ -292,7 +338,7 @@ class AlloysGen(object):
         """
 
 
-        NNeighbours = coordination_numbers[self.cell_type][0]
+        NNeighbours = coordination_numbers[self.crystalstructure][0]
 
         numbers_vec,  symbols_vec= self.get_neighbors_type(neighbors_list,alloyAtoms)
 
@@ -389,7 +435,12 @@ class AlloysGen(object):
         for combi in self.combination:
                 atm1 = combi.split('-')[0]
                 atm2 = combi.split('-')[1]
-                CN_list[combi]  = self._a_around_b(atm1, atm2, shell, alloyAtoms)
+                try:
+                    CN_list[combi]  = self._a_around_b(atm1, atm2, shell, alloyAtoms)
+                except KeyError:
+                    CN_list[combi] = [0]
+                except Exception as e:
+                    raise Exception(e)
         return CN_list
 
 

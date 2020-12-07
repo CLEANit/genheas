@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 coordination_numbers = {'fcc': [12, 6, 24], 'bcc': [8, 6, 12]}
 
 
+
 class NnGa(object):
     """
 
@@ -292,7 +293,9 @@ class NnGa(object):
         N = len(V)
         return np.sqrt((diff * diff).sum() / N)
 
-    def get_shell_fitness(self,CN_list,concentrations, NNeighbours):
+
+
+    def get_neighbors_deviation(self,CN_list,concentrations, NNeighbours):
         """
         CN_list:list of dictionanry
         alloy_atoms: structure(Atoms class)
@@ -318,6 +321,21 @@ class NnGa(object):
 
         return fitness
 
+
+    def get_shell_fitness(self,CN_list):
+        """
+         CN_list:list of dictionanry
+        """
+        fitness = {}
+        target = 0
+
+        for key, val in CN_list.items():
+            atm1, atm2 = key.split('-')
+            if atm1 == atm2:
+                fitness[key] = self._rmsd(val,target )
+
+        return fitness
+
     def get_offset_fitness(self,CN_list):
         """
        CN_list:list of dictionanry
@@ -328,8 +346,7 @@ class NnGa(object):
 
 
         fitness = {}
-        #compo = pmg.Composition(alloyAtoms.get_chemical_formula())
-        #fractional_composition = compo.fractional_composition
+        target = 0
 
         for key, val in CN_list.items():
             atm1, atm2 = key.split('-')
@@ -369,9 +386,9 @@ class NnGa(object):
 
 
                 CN1_list, CNoffset0_list = AlloyGen.get_coordination_numbers(configuration,cutoff)
-                shell_fitness = self.get_shell_fitness(CN1_list,concentrations,NNeighbours)
+                shell_fitness = self.get_shell_fitness(CN1_list)
                 offset_fitness = self.get_offset_fitness(CNoffset0_list)
-                fitness = sum(shell_fitness.values()) + sum(offset_fitness.values())
+                fitness =   sum(shell_fitness.values()) #+  sum(offset_fitness.values())
 
                 #structures.append(struct)
                 fitness_list.append(fitness)

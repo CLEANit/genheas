@@ -1,8 +1,8 @@
 import numpy as np
-from hea.tools import valence_electron
-from hea.tools  import constants
-from hea.tools  import miedema
-from hea.tools  import heatofmixing
+from tools import valence_electron
+from tools  import constants
+from tools  import miedema
+from tools  import heatofmixing
 import yaml
 
 PROPERTIES = ["atomic_size_difference", "mixing_entropy", "mixing_enthalpy", "VEC",

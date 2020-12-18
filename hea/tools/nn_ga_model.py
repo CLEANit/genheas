@@ -7,7 +7,7 @@ import copy
 
 from pymatgen import Element
 from pymatgen.io.ase import AseAtomsAdaptor
-from hea.tools.alloysgen import AlloysGen
+from tools.alloysgen import AlloysGen
 #import sites_neighbor_list, get_neighbors_type
 import torch
 from ase.data import atomic_numbers
@@ -23,7 +23,7 @@ class NnGa(object):
 
     """
 
-    def __init__(self,n_structures=10, rate=0.25, alpha=0.1, device="cpu"):
+    def __init__(self, rate=0.25, alpha=0.1, device="cpu"):
         """
         #nb_polocies: int : nber of polocies generated at each generation
         n_structures: int :  nber of structure generated for each policies
@@ -31,7 +31,7 @@ class NnGa(object):
         alpha: parameter for gene mutation
         """
         # self.nb_polocies = nb_polocies
-        self.n_structures = n_structures
+
         self.rate = rate
         self.alpha = alpha
         self.device = device
@@ -151,129 +151,28 @@ class NnGa(object):
 
         return template, fractional_composition
 
-    # def gen_structures(self, alloyAtoms, out_vector, element_pool):
-    #     atms = copy.deepcopy(alloyAtoms)
 
-    #     out_vector = out_vector.flatten()
-    #     out_vector = out_vector / len(out_vector)
-    #     atm_list = element_pool * len(atms)  # normalize to 1
-    #     atom_list = np.random.choice(atm_list, len(atms), p=out_vector)
-    #     atms.set_chemical_symbols(atom_list)
 
-    #     atomic_fraction = {}
-    #     compo = pmg.Composition(atms.get_chemical_formula())
-    #     for elm in element_pool:
-    #         atomic_fraction[elm] = compo.get_atomic_fraction(Element(elm))
-    #     return atms, atomic_fraction
+    # # @profile
+    # def fitness1(self, fraction, target):
+    #     """
+    #     fraction: is a dictionary with concentration of each atom
+    #     target: is a dictionary with the target concentration
+    #     return the Root-mean-square deviation
+    #     """
 
-    # @profile
-    def fitness1(self, fraction, target):
-        """
-        fraction: is a dictionary with concentration of each atom
-        target: is a dictionary with the target concentration
-        return the Root-mean-square deviation
-        """
+    #     atoms_list = list(target.keys())
 
-        atoms_list = list(target.keys())
+    #     target_conc = [target[elm] for elm in atoms_list]
+    #     target_conc = np.array(target_conc)
 
-        target_conc = [target[elm] for elm in atoms_list]
-        target_conc = np.array(target_conc)
+    #     conc = [fraction[elm] for elm in atoms_list]
+    #     conc = np.array(conc)
+    #     diff = np.abs(conc - target_conc)
+    #     N = len(conc)
+    #     return np.abs(np.log(np.sqrt((diff * diff).sum() / N)))
 
-        conc = [fraction[elm] for elm in atoms_list]
-        conc = np.array(conc)
-        diff = np.abs(conc - target_conc)
-        N = len(conc)
-        return np.abs(np.log(np.sqrt((diff * diff).sum() / N)))
 
-    def fitness2(
-            self,
-            configuration,
-            combinasons,
-            concentrations,
-            lattice_param,
-            cell_type,
-            element_list):
-        pmg_structure = AseAtomsAdaptor.get_structure(configuration)
-        all_neighbors_list = self.AlloyGen.sites_neighbor_list(
-            pmg_structure, lattice_param)
-        atomic_vec_array = self.AlloyGen.get_neighbors_type(all_neighbors_list)
-        atm_numbers = configuration.numbers
-
-        shells = np.hsplit(
-            atomic_vec_array, [
-                coordination_numbers[cell_type][0], atomic_vec_array.shape[0]])
-        shell_1, shell_2 = shells[0], shells[1]
-        occurrences_1 = {}
-        occurrences_2 = {}
-        for elm in element_list:
-            occurrences_1[elm] = np.count_nonzero(
-                shell_1 == atomic_numbers[elm], axis=1)
-            occurrences_2[elm] = np.count_nonzero(
-                shell_2 == atomic_numbers[elm], axis=1)
-
-        terms_1 = {}
-        terms_2 = {}
-        for conmbi in combinasons:
-            atm1 = conmbi.split('-')[0]
-            atm2 = conmbi.split('-')[1]
-            terms_1[conmbi] = occurrences_1[atm1][np.where(
-                atm_numbers == atomic_numbers[atm2])]
-            terms_2[conmbi] = occurrences_2[atm1][np.where(
-                atm_numbers == atomic_numbers[atm2])]
-
-        fitn_1 = {}
-        fitn_2 = {}
-        neighbors_1 = {}
-        neighbors_2 = {}
-
-        for key in combinasons:
-            atm1 = key.split('-')[0]
-            # fitn_1[key] = np.exp(np.std(terms_1[key],ddof=1)/np.sqrt(len(terms_1[key])))
-            # fitn_1[key] = np.exp(scipy.stats.sem(terms_1[key]))
-            fitn_1[key] = np.exp(np.std(terms_1[key]))
-
-            neighbors_1[key] = np.exp(
-                np.abs(
-                    np.average(
-                        terms_1[key]) /
-                    concentrations[atm1] -
-                    coordination_numbers[cell_type][0]))
-
-            # fitn_2[key] = np.exp(np.std(terms_2[key],ddof=1)/np.sqrt(len(terms_2[key])))
-            fitn_2[key] = np.exp(np.std(terms_2[key]))
-            # coordination_2[key] = np.average(terms_2[key])
-            neighbors_2[key] = np.exp(
-                np.abs(
-                    np.average(
-                        terms_2[key]) /
-                    concentrations[atm1] -
-                    coordination_numbers[cell_type][1]))
-
-        # for key, val in terms_2.items():
-        #     fitn_2[key] = np.exp(np.std(val))
-        #     coordination_2[key] = np.average(val)
-
-        fitness_CN1 = 0  # Cordination number
-        fitness_CN2 = 0
-        fitness_NN1 = 0  # Concentration
-        fitness_NN2 = 0
-        for key in combinasons:
-            fitness_CN1 += fitn_1[key] / len(combinasons)
-            fitness_CN2 += fitn_2[key] / len(combinasons)
-            fitness_NN1 += neighbors_1[key] / len(combinasons)
-            fitness_NN2 += neighbors_2[key] / len(combinasons)
-
-        NN1 = {}
-        NN2 = {}
-        for key in combinasons:
-            atm1 = key.split('-')[0]
-            NN1[key] = np.average(terms_1[key]) / concentrations[atm1]
-            NN2[key] = np.average(terms_2[key]) / concentrations[atm1]
-
-        fitness_CN = np.abs(1 - fitness_CN1) + np.abs(1 - fitness_CN1)
-        fitness_NN = np.abs(1 - fitness_NN1) + np.abs(1 - fitness_NN1)
-
-        return fitness_CN, NN1, NN2
 
     def _rmsd(self, V, W):
         """
@@ -293,10 +192,42 @@ class NnGa(object):
         N = len(V)
         return np.sqrt((diff * diff).sum() / N)
 
+    def get_shell1_fitness_AA(self,CN1_list):
 
-
-    def get_neighbors_deviation(self,CN_list,concentrations, NNeighbours):
         """
+        Minimize the $N_{aa}$ in the first coordination shell
+         CN_list:list of dictionanry
+        """
+        fitness = {}
+        target = 0
+
+        for key, val in CN1_list.items():
+            atm1, atm2 = key.split('-')
+            if atm1 == atm2:
+                fitness[key] = self._rmsd(val,target )
+
+        return fitness
+
+    def get_shell2_fitness_AA(self,CN2_list,NNeighbours):
+
+        """
+         Maximize the $N_{aa}$ in the second coordination shell
+         CN_list:list of dictionanry
+        """
+        fitness = {}
+        target = NNeighbours
+
+        for key, val in CN2_list.items():
+            atm1, atm2 = key.split('-')
+            if atm1 == atm2:
+                fitness[key] = self._rmsd(val,target )
+
+        return fitness
+
+    def get_shell1_fitness_AB(self,CN1_list,concentrations, NNeighbours):
+        """
+        Homogenize the $N_{a b}$ in the first coordination shell
+
         CN_list:list of dictionanry
         alloy_atoms: structure(Atoms class)
         NNeighbours:  ( number of neighbours in the shell)
@@ -305,126 +236,74 @@ class NnGa(object):
 
         """
 
-        #NNeighbours = coordination_numbers[self.cell_type][0]
-
-        fitness = {}
-        #compo = pmg.Composition(alloyAtoms.get_chemical_formula())
-        #fractional_composition = compo.fractional_composition
-
-        for key, val in CN_list.items():
-            atm = key.split('-')[0]
-
-            target = NNeighbours*concentrations[atm]
-
-            fitness[key] = self._rmsd(val,target )
-
-
-        return fitness
-
-
-    def get_shell_fitness(self,CN_list):
-        """
-         CN_list:list of dictionanry
-        """
-        fitness = {}
-        target = 0
-
-        for key, val in CN_list.items():
-            atm1, atm2 = key.split('-')
-            if atm1 == atm2:
-                fitness[key] = self._rmsd(val,target )
-
-        return fitness
-
-    def get_offset_fitness(self,CN_list):
-        """
-       CN_list:list of dictionanry
-       alloy_atoms: structre(Atoms class)
-       NNeighbours:  ( number of neighbours in the shell)
-        """
-
 
 
         fitness = {}
-        target = 0
+        nb_species = len(concentrations.keys())
 
-        for key, val in CN_list.items():
-            atm1, atm2 = key.split('-')
-            if atm1 == atm2:
-                target = 0
+        for key, val in CN1_list.items():
+            atm1 ,atm2 = key.split('-')
+            if atm1 != atm2:
+                param = NNeighbours*concentrations[atm2]
+                target = NNeighbours*concentrations[atm1] + param/(nb_species-1)
+
                 fitness[key] = self._rmsd(val,target )
 
 
         return fitness
 
+
+
+
+
+
+
+
+    def get_max_diff_element_fitness(self, max_diff_element, alloyAtoms):
+        """
+        max_diff_element : maximun number of each specie
+
+        """
+        element_list = alloyAtoms.get_chemical_symbols()
+
+        fitness = {}
+        max_diff_elem = {x:element_list.count(x) for x in element_list}
+
+        for key, val in max_diff_elem.items():
+
+            fitness[key] = self._rmsd([val],[max_diff_element[key]] )
+
+        return fitness
 
     # @profile
 
-    def get_population_fitness(self,alloyAtoms, concentrations, outputs,element_pool,cell_type,cutoff,combinasons):
+    def get_population_fitness(self,configurations, concentrations,
+                               max_diff_element,element_pool,cell_type,cutoff,combinasons):
         # logger.info('get_population_fitness')
 
         AlloyGen = AlloysGen(element_pool, concentrations, cell_type)
 
-
-
-        #combinasons = self._combinaison(element_pool)
-
-
-        max_diff_element = self.get_max_diff_elements(element_pool, concentrations, len(alloyAtoms))
-
-        NNeighbours = coordination_numbers[cell_type][0]
+        NN1 = coordination_numbers[cell_type][0]
+        NN2 = coordination_numbers[cell_type][1]
         pop_fitness = []
-        for output in outputs:
-            structures = []
-            # fractions = []
-            fitness_list = []
-
-            for i in range(len(outputs)):
-
-                configuration, fractional_composition =  \
-                    self.gen_structure_from_output(alloyAtoms,output,element_pool,max_diff_element)
+        for configuration in configurations:
 
 
-                CN1_list, CNoffset0_list = AlloyGen.get_coordination_numbers(configuration,cutoff)
-                shell_fitness = self.get_shell_fitness(CN1_list)
-                offset_fitness = self.get_offset_fitness(CNoffset0_list)
-                fitness =   sum(shell_fitness.values()) #+  sum(offset_fitness.values())
 
-                #structures.append(struct)
-                fitness_list.append(fitness)
+            CN1_list, CN2_list = AlloyGen.get_coordination_numbers(configuration,cutoff)
+            shell1_fitness_AA = self.get_shell1_fitness_AA(CN1_list)
+            #shell2_fitness_AA= self.get_shell2_fitness_AA(CN2_list, NN2)
+            shell1_fitness_AB= self.get_shell1_fitness_AB(CN1_list,concentrations, NN1)
+            max_diff_element_fitness =  self.get_max_diff_element_fitness(max_diff_element, configuration)
+            fitness =   sum(shell1_fitness_AA.values())  +sum(shell1_fitness_AB.values())+sum(max_diff_element_fitness.values()) #+sum(shell2_fitness_AA.values())
 
-            pop_fitness.append(np.average(np.array(fitness)))
+            pop_fitness.append(fitness)
 
-        return pop_fitness
 
-    def get_population_fitness1(
-            self,
-            alloyAtoms,
-            policies,
-            element_pool,
-            concentrations,
-            cell_type,
-            lattice_param,
-            combinasons):
-        # logger.info('get_population_fitness')
-        policies_obj_funct = []
-        for policy in policies:
-            structures = []
-            # fractions = []
-            obj_functs = []
-            for i in range(len(policies)):
-                struct, fractional_composition = self.gen_structure(
-                    alloyAtoms, policy, element_pool)
-                # obj_funct2, shell1, shell2 = self.fitness2(struct, combinasons, concentrations,lattice_param,cell_type,  element_pool)
-                obj_funct1 = self.fitness1(
-                    fractional_composition, concentrations)
-                # fractions.append(frac)
-                structures.append(struct)
-                obj_functs.append(obj_funct1)
 
-            policies_obj_funct.append(np.average(np.array(obj_functs)))
+        return np.average(np.array(pop_fitness))
 
-        return policies_obj_funct
+
     # @profile
 
     def sort_population_by_fitness(self, population, key):

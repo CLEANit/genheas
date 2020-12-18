@@ -4,17 +4,23 @@ from ase.lattice.cubic import FaceCenteredCubic, BodyCenteredCubic
 from ase.build import bulk
 import pymatgen as pmg
 from pymatgen.io.ase import AseAtomsAdaptor
-
+from pymatgen import Element
 from clusterx.parent_lattice import ParentLattice
 from clusterx.super_cell import SuperCell
 from clusterx.structures_set import StructuresSet
-
+from pyxtal.crystal import random_crystal, random_crystal_2D
+#from pyxtal import pyxtal
 # from sklearn.preprocessing import LabelEncoder
 # from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import StandardScaler
 # from tensorflow.keras.utils import to_categorical
 import copy
-
+from torch.autograd import Variable
+import torch.nn.init as init
+from pymatgen.transformations.site_transformations import ReplaceSiteSpeciesTransformation
+import torch
+import random
+import os
 coordination_numbers ={'fcc': [12,6,24], 'bcc':[8,6,12]}
 
 class AlloysGen(object):
@@ -23,13 +29,13 @@ class AlloysGen(object):
         self.element_pool = element_pool
         self.concentration = concentration
         self.crystalstructure = crystalstructure
-        #self.cell_size = cell_size
-        self.species = None
-        self.alloyAtoms = None
-        self.alloyStructure = None
-        self.alloyComposition = None
+        # self.cell_size = cell_size
+        # self.species = None
+        # self.alloyAtoms = None
+        # self.alloyStructure = None
+        # self.alloyComposition = None
         self.combination = self.get_combination(self.element_pool)
-        #self.max_diff_element = None
+        # self.max_diff_element = None
 
 
 
@@ -44,43 +50,7 @@ class AlloysGen(object):
         return combinations
 
 
-    def gen_alloy_surcafe(self, element_pool, concentrations, crystalstructure, size):
-        """
-        :param element_pool: list of element in the alloy
-        :param concentrations:
-        :param types: fcc or bcc
-        :param size:
-        :return: Alloy supercell
-        """
-        prim = []
-        if crystalstructure== 'fcc':
-            for elm in element_pool:
-                prim.append(bulk(elm, 'fcc'))
-        else:
-            for elm in element_pool:
-                prim.append(bulk(elm, 'bcc'))
 
-        platt = ParentLattice(prim[0], substitutions=prim[1:])
-        scell = SuperCell(platt, size)
-        lattice_param =FaceCenteredCubic(element_pool[0]).cell[0][0]
-        sset = StructuresSet(platt)
-        nstruc = 1
-        nb_atm = []
-        sub = {}
-        for elm in element_pool:
-            nb_atm.append(round(len(scell) * concentrations[elm]))
-        if sum(nb_atm) == len(scell):
-            sub[0] = nb_atm[1:]
-            for i in range(nstruc):
-                sset.add_structure(scell.gen_random(sub))
-        else:
-            raise Exception(' Sum of concentrations is not equal to 1')
-
-        clx_structure = sset.get_structures()[0]
-        self.alloyAtoms = clx_structure.get_atoms()  # ASE Atoms Class
-        self.alloyStructure = AseAtomsAdaptor.get_structure(self.alloyAtoms)  # Pymatgen Structure
-        self.alloyComposition = pmg.Composition(self.alloyAtoms.get_chemical_formula())  # Pymatgen Composition
-        return self.alloyAtoms, lattice_param
 
 
 
@@ -181,22 +151,68 @@ class AlloysGen(object):
         return self.alloyAtoms, lattice_param
 
 
+    def gen_raw_crystal(self,crystalstructure, size,lattice_param = [None, None, None], element='X'):
+
+        """
+        generate a crystal filled with  element: 'element'
+        """
+
+        if crystalstructure== 'fcc':
+            if all(elem  is None for elem in lattice_param):
+                    raise Exception ('Please provide the lattice parameter')
+
+            a= lattice_param[0]
+            prime = bulk(name=element, crystalstructure='fcc', a=a, b=None, c=None)
+            crystal = prime*tuple(size)
+        elif crystalstructure== 'bcc':
+            if all(elem  is None for elem in lattice_param):
+                    raise Exception ('Please provide the lattice parameter')
+
+            a= lattice_param[0]
+            prime = bulk(name=element, crystalstructure='bcc', a=a, b=None, c=None)
+            crystal = prime*tuple(size)
+        elif crystalstructure== 'hpc':
+
+            raise Exception('hpc is not yet implemented')
+        else:
+            raise Exception('Only fcc abd bcc are implemented')
+
+        return AseAtomsAdaptor.get_structure(crystal)
+
+    def gen_random_crystal_3D(self,crystalstructure, element, size):
+        """
+        use the Pyxtal package to gererate a ramdom 3D crystal
+
+        """
+        if crystalstructure== 'fcc':
+            try:
+                metallic_crystal = random_crystal(225 , element, size, 1.0, tm="metallic")
+            except Exception as e:
+                raise Exception(e)
+        elif crystalstructure== 'bcc':
+            try:
+                metallic_crystal = random_crystal(216 ,  element, size, 1.0, tm="metallic")
+            except Exception as e:
+                raise Exception(e)
+        return metallic_crystal.to_pymatgen()
+
     def get_max_diff_elements(self,element_pool, concentrations, nb_atm):
             """
                 compute the maximun number of different element base on concentration
                 and the total number of atoms
             """
-            max_diff = []
+            max_diff = {}
             for elm in element_pool:
-                max_diff.append(round(nb_atm * concentrations[elm]))
-            if sum(max_diff) == nb_atm:
+                max_diff[elm] = round(nb_atm * concentrations[elm])
+
+            if sum(max_diff.values()) == nb_atm:
                 self.max_diff_element = max_diff
                 return self.max_diff_element
-            elif sum(max_diff) < nb_atm:
-                ielem = 1
-                while sum(max_diff) != nb_atm or ielem < len(max_diff):
-                    max_diff[ielem] = max_diff[ielem] + 1
-                    ielem += 1
+            elif sum(max_diff.values()) < nb_atm:
+                for ielem, elm in enumerate(element_pool):
+                    while sum(max_diff.values()) != nb_atm :
+                        max_diff[elm] = max_diff[elm] + 1
+
                 self.max_diff_element = max_diff
                 return self.max_diff_element
 
@@ -226,7 +242,7 @@ class AlloysGen(object):
         0  1  [0. 0. 0.]    2.892
 
         """
-        center_indices, points_indices, offset_vectors, distances = structure.get_neighbor_list(cutoff+0.1)
+        center_indices, points_indices, offset_vectors, distances = structure.get_neighbor_list(cutoff+0.5)
         all_neighbors_list = []
 
         #all_distance_list = []
@@ -243,6 +259,54 @@ class AlloysGen(object):
             #all_distance_list.append(sortedDistance)
 
         return all_neighbors_list
+
+    def site_neighbor_list(self, structure, cutoff,site_number):
+        """
+        structure :  pymatgen structure class
+
+        cutoff : distance cutoff
+
+        return list  neighbors of the site "site_number"
+        """
+        center_indices, points_indices, offset_vectors, distances  = structure.get_neighbor_list(cutoff+0.5)
+        neighbors_list = []
+
+
+        site_neighbor = points_indices[np.where(center_indices==site_number)]
+        neighbor_distance= distances[np.where(center_indices==site_number)]
+
+        inds = neighbor_distance.argsort()
+        sortedNeighbor = site_neighbor[inds]
+        sortedDistance = neighbor_distance[inds]
+
+        sortedNeighbor=np.insert(sortedNeighbor, 0, site_number)
+
+
+
+
+
+
+
+        return sortedNeighbor
+
+
+    def site_neighbor_list2(self, structure, cutoff,site_number):
+        """
+        structure :  pymatgen structure class
+
+        cutoff : distance cutoff
+
+        return list  neighbors of the site "site_number"
+        """
+
+        sites = structure.sites
+        sites_neighbours = structure.get_neighbors(sites[site_number], cutoff+0.5)
+        neighbours_list =[sites[site_number].species_string]
+        neighbours_list.extend([neighbour.species_string for neighbour in  sites_neighbours])
+
+        neighbours_list = ['X' if elm =='X0+'  else elm for elm in neighbours_list]
+        return neighbours_list
+
 
     def get_neighbor_in_offset_zero(self,structure, cutoff):
 
@@ -268,7 +332,13 @@ class AlloysGen(object):
         return offset_list
 
 
-    def get_neighbors_type(self,neighbors_list, alloyAtoms):
+    def get_neighbors_type(self,all_neighbors_list, alloyAtoms):
+        """
+        neighbors_list: list of list
+        return  atomic numbers and symbols of the neighbours list
+        considered site is  not include in the list
+        """
+
         atomic_numbers = alloyAtoms.numbers
         #symbols = alloyAtoms.symbols
         symbols = alloyAtoms.get_chemical_symbols()
@@ -276,22 +346,58 @@ class AlloysGen(object):
         symbols_vec = []
 
 
-        for nb_list in neighbors_list:
+        for nb_list in all_neighbors_list:
             numbers_vec.append([atomic_numbers [i] for i in  nb_list[1:]]) # exclude the fisrt atom because it is the site considered
             symbols_vec.append([symbols[i] for i in  nb_list[1:]])
         return np.array(numbers_vec), np.array(symbols_vec)
 
-    def get_neighbors_type2(self,neighbors_list, alloyAtoms):
+    def get_neighbor_type(self, neighbors_list, alloyAtoms):
+
+        """
+        neighbors_list: list
+        return  atomic numbers and symbols of the neighbours list
+        """
         atomic_numbers = alloyAtoms.numbers
-        #symbols = alloyAtoms.symbols
+        symbols = alloyAtoms.get_chemical_symbols()
+
+        numbers_vec = [atomic_numbers[i] for i in  neighbors_list[1:]] # exclude the fisrt atom because it is the site considered
+        symbols_vec = [symbols[i] for i in  neighbors_list[1:]]
+        return np.array(numbers_vec), np.array(symbols_vec)
+
+
+    def get_neighbors_type2(self,all_neighbors_list, alloyAtoms):
+        """
+        neighbors_list: list of list
+        return  atomic number and symbol of the neighbours list
+        The considered site is  not include in the list
+        """
+        atomic_numbers = alloyAtoms.numbers
+
         symbols = alloyAtoms.get_chemical_symbols()
         numbers_vec = []
         symbols_vec = []
 
-        for nb_list in neighbors_list:
+        for nb_list in all_neighbors_list:
             numbers_vec.append([atomic_numbers [i] for i in  nb_list])
             symbols_vec.append([symbols[i] for i in  nb_list])
         return numbers_vec, symbols_vec
+
+
+    def get_neighbor_type2(self,neighbors_list, alloyAtoms):
+
+        """
+        neighbors_list: list
+        return  atomic number and symbol of the neighbours list
+        """
+        atomic_numbers = alloyAtoms.numbers
+
+        symbols = alloyAtoms.get_chemical_symbols()
+
+
+        numbers_vec = [atomic_numbers[i] for i in   neighbors_list]
+        symbols_vec = [symbols[i] for i in   neighbors_list]
+        return  np.array(numbers_vec), np.array(symbols_vec)
+
 
 
     def count_occurence_to_dict(self,arr,element_pool ):
@@ -433,8 +539,7 @@ class AlloysGen(object):
 
 
         for combi in self.combination:
-                atm1 = combi.split('-')[0]
-                atm2 = combi.split('-')[1]
+                atm1, atm2 = combi.split('-')
                 try:
                     CN_list[combi]  = self._a_around_b(atm1, atm2, shell, alloyAtoms)
                 except KeyError:
@@ -458,67 +563,99 @@ class AlloysGen(object):
         neighbor_in_offset = self.get_neighbor_in_offset_zero(alloyStructure,cutoff)
 
         shell1, shell2 =  self.count_neighbors_by_shell(all_neighbors_list,alloyAtoms, self.element_pool)
-        offset0  = self.count_neighbors_in_offset(neighbor_in_offset ,alloyAtoms, self.element_pool)
 
 
         CN1_list =self.get_CN_list(shell1, alloyAtoms) # Coordination number
-        #CN2_list = AlloyGen.get_CN_list(combinations, shell2, alloy_atoms)
-
-        CNoffset0_list = self.get_CN_list(offset0, alloyAtoms)
-
-        return CN1_list, CNoffset0_list
+        CN2_list = self.get_CN_list(shell2, alloyAtoms)
 
 
-    def get_atom_properties(self, structure):
-        """
 
-        structure : pymatgen structure class
-        return : dictionary with properties of each atom
-        """
-        species = np.array(structure.species)
-        VEC = yaml.safe_load(open("tools/data/VEC.yml").read())
-
-        composition = pmg.Composition(structure.formula)
-        #composition = self.alloyComposition
-        #species_oxidation_state = composition.oxi_state_guesses()
-        species_oxidation_state = []
-        properties = {}
-
-        for elm in set(species):
-            props = [elm.number]
-            if len(species_oxidation_state) == 0:  # oxidation_state
-                props.append(0)
-            else:
-                props.append(species_oxidation_state[elm.name])  # oxidation_state
-            props.append(VEC[elm.name])  # valence
-            props.append(elm.X)  # electronegativity
-            props.append(elm.group)  #
-            # props.append(elm.block)#
-            props.append(elm.row)  #
-            props.append(int(elm.is_metal))
-            props.append(int(elm.is_transition_metal))
-            props.append(int(elm.is_alkali))
-            props.append(int(elm.is_alkaline))
-            #props.append(int(elm.is_chalcogen))
-            #props.append(int(elm.is_halogen))
-            props.append(int(elm.is_metalloid))
-            props.append(round(elm.atomic_radius, 2))
-
-            properties[elm.name] = props
-        return properties
-
-    # def get_neighbors_type(self,all_neighbors_list):
-    #     atomic_numbers = self.alloyAtoms.numbers
-    #     atomic_vec = []
-    #     for nb_list in all_neighbors_list:
-    #         atomic_vec.append(atomic_numbers[nb_list[1:]]) # exclude the fisrt atom because it is the site considered
-    #     return np.array(atomic_vec)
+        return CN1_list, CN2_list
 
 
 
 
+    def get_atom_properties(self,element_pool, oxidation_state=None):
+            """
+            oxidation_state: dictionay with oxydation state of element
 
-    def get_input_vectors(self, neighbors_list, properties):
+            return : dictionary with properties of each atom
+
+            """
+            loc = os.path.dirname(os.path.abspath(__file__))
+            try:
+                with open(os.path.join(loc, "data/VEC.yml"), "r") as fr:
+                     VEC = yaml.safe_load(fr)
+
+            except Exception as e:
+                raise Exception(e)
+
+
+            properties = {}
+
+
+            for el in element_pool:
+                elm = Element(el)
+
+                props = [elm.number]
+                try:
+                    props.append(oxidation_state[elm.name])
+                except Exception as e:
+                    props.append(0)
+                try:
+                    props.append(VEC[elm.name])  # valence
+
+                except Exception as e:
+                    raise Exception(e)
+                try:
+                    props.append(elm.X)  # electronegativity
+                except Exception as e:
+                    raise Exception(e)
+                try:
+                    props.append(elm.group)  #
+                except Exception as e:
+                    raise Exception(e)
+                # props.append(elm.block)#
+                try:
+                    props.append(elm.row)  #
+                except Exception as e:
+                    raise Exception(e)
+                try:
+                    props.append(int(elm.is_metal))
+                except Exception as e:
+                    raise Exception(e)
+                try:
+                    props.append(int(elm.is_transition_metal))
+                except Exception as e:
+                    raise Exception(e)
+                try:
+                    props.append(int(elm.is_alkali))
+                except Exception as e:
+                    raise Exception(e)
+                try:
+                    props.append(int(elm.is_alkaline))
+                except Exception as e:
+                    raise Exception(e)
+                try:
+                #props.append(int(elm.is_chalcogen))
+                #props.append(int(elm.is_halogen))
+                    props.append(int(elm.is_metalloid))
+                except Exception as e:
+                    raise Exception(e)
+                try:
+                    props.append(round(elm.atomic_radius, 2))
+                except Exception as e:
+                    raise Exception(e)
+
+                properties[elm.name] = props
+
+
+            properties['X'] = [0]*len(properties[element_pool[0]])
+            return properties
+
+
+
+    def get_input_vectors(self, all_neighbors_list, properties):
         """
         all_neighbors_list: list of array with the list the neighbors  of each atom
         properties: dictionary with properties of each atom type
@@ -527,7 +664,7 @@ class AlloysGen(object):
         self.species = np.array(self.alloyStructure.species)
         input_vectors = []
         scaler = StandardScaler()
-        for nb_list in neighbors_list:
+        for nb_list in all_neighbors_list:
             input_vector = []
             for elm in self.species[nb_list]:
                 prop = properties[elm.name]
@@ -535,4 +672,171 @@ class AlloysGen(object):
             input_vector = scaler.fit_transform(input_vector)
             input_vectors.append(input_vector)
         return np.array(input_vectors)
+
+    def get_input_vector(self,neighbors_list, properties,alloyAtoms):
+        """
+        neighbors_list: list of array with the list the neighbors  an atom
+        properties: dictionary with properties of each atom type
+        """
+        #numbers_vec,  symbols_vec = self.get_neighbor_type2(neighbors_list, alloyAtoms)
+
+
+        scaler = StandardScaler()
+
+        input_vector = [ properties[elm] for elm in neighbors_list]
+        input_vector = scaler.fit_transform(input_vector)
+        return np.array(input_vector)
+
+
+    def gen_configuration(self,
+            structureX,
+            element_pool,
+            properties,
+            cutoff,
+            model,device):
+        """
+        structureX: empty structure to be filled ( N sites)
+        element_pool : list of dieffernet species
+        max_diff_element: maximum nunber of different species
+        model: NN model to train
+        return generated Atoms configuration
+        """
+        config = copy.deepcopy(structureX)
+        replace = True  # default  False
+        elems_in = []
+
+
+        Natoms = structureX.num_sites
+
+        for i in range(Natoms):
+            if i==0:
+                atm = random.choices(element_pool)[0]
+            else:
+                idx = element_pool.index(atm)
+
+
+                neighbors_list = self.site_neighbor_list2(config, cutoff, i)
+                atomX = AseAtomsAdaptor.get_atoms(config)
+                # numbers_vec, symbols_vec = AlloyGen.get_neighbor_type2(
+                #    neighbors_list, atomX)
+
+                input_vector = self.get_input_vector(
+                    neighbors_list, properties, atomX)
+                X_tensor = torch.from_numpy(input_vector).float()
+                input_tensor = Variable(X_tensor, requires_grad=False).to(device)
+                output_tensor = model(input_tensor)
+
+
+                choice = output_tensor.multinomial(num_samples=1, replacement=replace)
+                atm1 = element_pool[choice]
+
+                # while atm1==atm:  # We have the max of this elements
+                #    prob = output_tensor[idx]  # take the proba of the element
+                #    prob = prob / (len(element_pool) - 1)  # divide by nber element -1
+                #    output_tensor = output_tensor + prob  # add the value to each component
+                #    output_tensor[idx] = 0  # set the selected proba to 0
+                #    choice = output_tensor.multinomial(
+                #        num_samples=1, replacement=replace)
+                #    atm1 = element_pool[choice]
+                atm = atm1
+
+            replace_species = ReplaceSiteSpeciesTransformation(
+                indices_species_map={i: atm})
+            config = replace_species.apply_transformation(config)
+
+            elems_in.append(atm)
+
+        #init_weight = copy.deepcopy(model.l1.weight.data)
+        atms = AseAtomsAdaptor.get_atoms(config)
+        compo = pmg.Composition(atms.get_chemical_formula())
+        fractional_composition = compo.fractional_composition
+
+        return atms
+
+    def gen_constrained_configuration(self,
+                structureX,
+                element_pool,
+                properties,
+                max_diff_element,
+                cutoff,
+                model,device):
+            """
+            add a contrain to the for the max_diff_element
+
+            structureX: empty structure to be filled ( N sites)
+            element_pool : list of dieffernet species
+            max_diff_element: maximum nunber of different species
+            model: NN model to train
+            return generated Atoms configuration
+            """
+            config = copy.deepcopy(structureX)
+            replace = True  # default  False
+            elems_in = []
+            max_diff_elem = copy.deepcopy(max_diff_element)
+
+
+            Natoms = structureX.num_sites
+
+            if sum(max_diff_element.values()) != Natoms:
+                raise Exception('The number of site in the structre is not equal to sum of different elements')
+
+            for i in range(Natoms):
+                if i==0:
+                    atm = random.choices(element_pool)[0]
+                else:
+                    idx = element_pool.index(atm)
+
+                    neighbors_list = self.site_neighbor_list2(config, cutoff, i)
+                    atomX = AseAtomsAdaptor.get_atoms(config)
+                    # numbers_vec, symbols_vec = AlloyGen.get_neighbor_type2(
+                    #    neighbors_list, atomX)
+
+                    input_vector = self.get_input_vector(
+                        neighbors_list, properties, atomX)
+                    X_tensor = torch.from_numpy(input_vector).float()
+                    input_tensor = Variable(X_tensor, requires_grad=False).to(device)
+                    output_tensor = model(input_tensor)
+
+                    choice = output_tensor.multinomial(num_samples=1, replacement=replace)
+                    atm1 = element_pool[choice]
+
+
+
+                    # while atm1==atm:  # We have the max of this elements
+                    #    prob = output_tensor[idx]  # take the proba of the element
+                    #    prob = prob / (len(element_pool) - 1)  # divide by nber element -1
+                    #    output_tensor = output_tensor + prob  # add the value to each component
+                    #    output_tensor[idx] = 0  # set the selected proba to 0
+                    #    choice = output_tensor.multinomial(
+                    #        num_samples=1, replacement=replace)
+                    #    atm1 = element_pool[choice]
+                    atm = atm1
+
+
+                    idx = element_pool.index(atm)
+
+                    while max_diff_elem[atm] == 0:  # We have the max of this elements
+                        prob = output_tensor[idx]  # take the proba of the element
+                        prob = prob / (len(element_pool) - 1)  # divide by nber element -1
+                        output_tensor = output_tensor + prob  # add the value to each component
+                        output_tensor[idx] = 0  # set the selected proba to 0
+                        choice = output_tensor.multinomial(
+                            num_samples=1, replacement=replace)
+                        atm = element_pool[choice]
+                        idx = element_pool.index(atm)
+
+                max_diff_elem[atm] -= 1
+
+                replace_species = ReplaceSiteSpeciesTransformation(
+                    indices_species_map={i: atm})
+                config = replace_species.apply_transformation(config)
+
+                elems_in.append(atm)
+
+            #init_weight = copy.deepcopy(model.l1.weight.data)
+            atms = AseAtomsAdaptor.get_atoms(config)
+            compo = pmg.Composition(atms.get_chemical_formula())
+            fractional_composition = compo.fractional_composition
+
+            return atms
 

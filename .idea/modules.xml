@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/PyHEAs.iml" filepath="$PROJECT_DIR$/.idea/PyHEAs.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/pyHEA.iml" filepath="$PROJECT_DIR$/.idea/pyHEA.iml" />
     </modules>
   </component>
 </project>

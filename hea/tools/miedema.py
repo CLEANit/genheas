@@ -3,19 +3,12 @@
 # adapted by S. Kirklin 1/7/14
 import numpy as np
 import pymatgen as pmg
-import sys
 import yaml
-#import logging
-
-# import qmpy
-# from qmpy.utils import *
-
-# logger = logging.getLogger(__name__)
 
 __all__ = ["Miedema"]
 # data rows:
 # Element_name Phi Rho Vol Z Valence TM? RtoP Htrans
-#Data format: | Element | Phi | Nws1/3 | Vm 2/3 | Z | Valence |Transition Metal (1) or Not (0)| R/P| Htrans
+# Data format: | Element | Phi | Nws1/3 | Vm 2/3 | Z | Valence |Transition Metal (1) or Not (0)| R/P| Htrans
 
 
 # params = yaml.safe_load(open(qmpy.INSTALL_PATH + "/data/miedema.yml").read())
@@ -60,7 +53,7 @@ class Miedema(object):
             self.energy = None
             return
 
-        #composition = composition.fractional_composition.as_dict()
+        # composition = composition.fractional_composition.as_dict()
         self.elt_a, self.elt_b = list(composition.keys())
         self.x = composition[self.elt_b]
         self.A = params[self.elt_a]
@@ -123,11 +116,11 @@ class Miedema(object):
             RtoP = 0.0
         return RtoP
 
-    #@property
+    # @property
     def a_A(self):
         return self.pick_a(self.elt_a)
 
-    #@property
+    # @property
     def a_B(self):
         return self.pick_a(self.elt_b)
 
@@ -150,7 +143,7 @@ class Miedema(object):
         else:
             return possible_a[3]
 
-    #@property
+    # @property
     def gamma(self):
         """Calculate and return the value of Gamma_AB (= Gamma_BA) for the solvation
         of element A in element B."""

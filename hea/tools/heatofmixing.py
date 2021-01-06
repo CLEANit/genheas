@@ -1,14 +1,8 @@
+import sys
+
 import numpy as np
 import pymatgen as pmg
-import sys
 import yaml
-
-# import logging
-
-# import qmpy
-# from qmpy.utils import *
-
-# logger = logging.getLogger(__name__)
 
 __all__ = ["Miedema"]
 # data rows:
@@ -101,7 +95,7 @@ class Miedema(object):
         # self.mixing_energy = 0
 
         # for letter in ['A', 'B']:
-        #     # Data format: | Element | Phi | Nws1/3 | Vm 2/3 | Z | Valence |Transition Metal (1) or Not (0)| R/P| Htrans
+        #  # Data format: | Element | Phi | Nws1/3 | Vm 2/3 | Z | Valence |Transition Metal (1) or Not (0)| R/P| Htrans
         #     element_data = eval("self."+letter)
         #     name = element_data[0]
         #     self.elementName[name] = element_data[0]
@@ -161,8 +155,6 @@ class Miedema(object):
             self.P = 0.128
         return
 
-
-
     def decideA(self):
         Alkali = ['Li', 'Na', 'K', 'Rb', 'Sc', 'Fr']
         for itm in Alkali:
@@ -175,7 +167,7 @@ class Miedema(object):
     def a_A(self):
         return self.pick_a(self.elt_a)
 
-    #@property
+    # @property
     def a_B(self):
         return self.pick_a(self.elt_b)
 
@@ -198,12 +190,11 @@ class Miedema(object):
         else:
             return possible_a[3]
 
-
     def calHmix(self):
 
         self.calRP()
         self.assiginP()
-        #self.decideA()
+        # self.decideA()
         self.aA = self.a_A()
         self.aB = self.a_B()
         self.A_phiStar = float(self.elementPhiStar[self.A_name])
@@ -235,7 +226,7 @@ class Miedema(object):
 
         self.calRP()
         self.assiginP()
-        #self.decideA()
+        # self.decideA()
         self.aA = self.a_A()
         self.aB = self.a_B()
         #
@@ -264,29 +255,29 @@ class Miedema(object):
         self.deHmix = self.Avogardro * self.fxs * self.g * self.P * (
                 -self.e * dePhi ** 2 + self.QP * deNws13 ** 2 - self.RP) * 1.60217657E-22
 
-        #self.report()
+        # self.report()
         return self.deHmix
 
     def report(self):
-        print ('')
-        print ('-------------------------------------------------')
-        print ('-------------------- report ---------------------')
-        print ('Two components: ', self.A_name, '(', self.elementTRAN[self.A_name], ') and ', self.B_name, '(',
-               self.elementTRAN[self.B_name], ')')
-        #print ('Conc of', self.A_name, self.x)
-        #print ('Conc of', self.B_name, (1-self.x))
-        print ('Phi of', self.A_name, self.A_phiStar)
-        print ('Phi of', self.B_name, self.B_phiStar)
-        print ('n(ws)^1/3 of', self.A_name, self.A_nws13)
-        print ('n(ws)^1/3 of', self.B_name, self.B_nws13)
-        print ('Vm^2/3 of', self.A_name, self.A_Vm23)
-        print ('Vm^2/3 of', self.B_name, self.B_Vm23)
-        print ('a_A', self.aA)
-        print ('a_B', self.aB)
-        print ('P:', self.P)
-        print ('R/P:', self.RP)
-        print ('Q0/P:', self.QP)
-        print ('-------------------------------------------------')
+        print('')
+        print('-------------------------------------------------')
+        print('-------------------- report ---------------------')
+        print('Two components: ', self.A_name, '(', self.elementTRAN[self.A_name], ') and ', self.B_name, '(',
+              self.elementTRAN[self.B_name], ')')
+        # print ('Conc of', self.A_name, self.x)
+        # print ('Conc of', self.B_name, (1-self.x))
+        print('Phi of', self.A_name, self.A_phiStar)
+        print('Phi of', self.B_name, self.B_phiStar)
+        print('n(ws)^1/3 of', self.A_name, self.A_nws13)
+        print('n(ws)^1/3 of', self.B_name, self.B_nws13)
+        print('Vm^2/3 of', self.A_name, self.A_Vm23)
+        print('Vm^2/3 of', self.B_name, self.B_Vm23)
+        print('a_A', self.aA)
+        print('a_B', self.aB)
+        print('P:', self.P)
+        print('R/P:', self.RP)
+        print('Q0/P:', self.QP)
+        print('-------------------------------------------------')
         return
 
     @staticmethod

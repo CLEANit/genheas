@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-import pymatgen as pmg
-from hea.tools.properties import Property
 import pandas as pd
-from optparse import OptionParser
-import os.path
-import sqlalchemy.types
+import pymatgen as pmg
+
+from hea.tools.properties import Property
 
 # molecule = pmg.Molecule.from_file('tests/tests_files/water.xyz')
 # structure = mg.Composition(molecule.formula)
@@ -33,5 +31,4 @@ pd.set_option('display.width', 160)
 pd.set_option('display.max_columns', 8)
 print(data_df.head())
 # for key in structure_prop.keys():
-#   print('{} : {:.2f}'.format(key, structure_prop[key]))
-
+# print('{} : {:.2f}'.format(key, structure_prop[key]))

@@ -17,14 +17,11 @@ import numpy as np
 import seaborn as sns
 import torch
 import torch.nn.init as init
-from pymatgen.io.ase import AseAtomsAdaptor
-
-from hea.tools.alloysgen import AlloysGen
-from hea.tools.alloysgen import coordination_numbers
-from hea.tools.alloysgen import properties_list
+from hea.tools.alloysgen import AlloysGen, coordination_numbers, properties_list
 from hea.tools.feedforward import Feedforward
 from hea.tools.log import logger
 from hea.tools.nn_ga_model import NnGa
+from pymatgen.io.ase import AseAtomsAdaptor
 
 sns.set()
 

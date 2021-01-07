@@ -14,16 +14,12 @@ import matplotlib.pyplot as plt
 import torch
 import yaml
 from ase.io import write
-from ase.lattice.cubic import BodyCenteredCubic
-from ase.lattice.cubic import FaceCenteredCubic
-from PIL import Image
-
-from hea.tools.alloysgen import AlloysGen
-from hea.tools.alloysgen import coordination_numbers
-from hea.tools.alloysgen import properties_list
+from ase.lattice.cubic import BodyCenteredCubic, FaceCenteredCubic
+from hea.tools.alloysgen import AlloysGen, coordination_numbers, properties_list
 from hea.tools.feedforward import Feedforward
 from hea.tools.log import logger
 from hea.tools.nn_ga_model import NnGa
+from PIL import Image
 
 # import pymatgen as pmg
 # from ase.build import bulk

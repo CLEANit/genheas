@@ -1,4 +1,4 @@
-__name__ = 'pyHEA'
+__name__ = 'PyHEA'
 __version__ = '1.0.0'
 __author__ = 'Conrard TETSASSI'
 __email__ = 'ConrardGiresse.TetsassiFeugmo@nrc-cnrc.gc.ca'

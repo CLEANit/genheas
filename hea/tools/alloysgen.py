@@ -7,19 +7,19 @@ import pymatgen as pmg
 import torch
 import yaml
 from ase.build import bulk
-from ase.lattice.cubic import BodyCenteredCubic
-from ase.lattice.cubic import FaceCenteredCubic
+from ase.lattice.cubic import BodyCenteredCubic, FaceCenteredCubic
 from clusterx.parent_lattice import ParentLattice
 from clusterx.structures_set import StructuresSet
 from clusterx.super_cell import SuperCell
+from hea.tools.log import logger
 from pymatgen import Element
 from pymatgen.io.ase import AseAtomsAdaptor
-from pymatgen.transformations.site_transformations import ReplaceSiteSpeciesTransformation
+from pymatgen.transformations.site_transformations import (
+    ReplaceSiteSpeciesTransformation,
+)
 from pyxtal.crystal import random_crystal
 from sklearn.preprocessing import StandardScaler
 from torch.autograd import Variable
-
-from hea.tools.log import logger
 
 coordination_numbers = {'fcc': [12, 6, 24], 'bcc': [8, 6, 12]}
 
@@ -427,7 +427,8 @@ class AlloysGen:
 
         numbers_vec, symbols_vec = self.get_neighbors_type(neighbors_list, alloy_atoms)
 
-        shells = np.hsplit(symbols_vec, [NNeighbours])  # split into 12 and 6 for fcc
+        # split into 12 and 6 for fcc
+        shells = np.hsplit(symbols_vec, [NNeighbours])
         # shellss=np.hsplit(shells[1], [6])
 
         shell1 = self.count_occurence_to_dict(shells[0], element_pool)  # first 12 column

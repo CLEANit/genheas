@@ -4,12 +4,10 @@ import random
 import numpy as np
 import pymatgen as pmg
 import torch
+from hea.tools.alloysgen import AlloysGen, coordination_numbers
+from hea.tools.log import logger
 from pymatgen import Element
 from pymatgen.io.ase import AseAtomsAdaptor
-
-from hea.tools.alloysgen import AlloysGen
-from hea.tools.alloysgen import coordination_numbers
-from hea.tools.log import logger
 
 # from ase.data import atomic_numbers
 

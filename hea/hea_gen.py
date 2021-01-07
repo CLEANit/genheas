@@ -13,10 +13,8 @@ import os
 import numpy as np
 import torch
 import yaml
-
 from hea import generate
-from hea.tools.alloysgen import coordination_numbers
-from hea.tools.alloysgen import properties_list
+from hea.tools.alloysgen import coordination_numbers, properties_list
 from hea.tools.feedforward import Feedforward
 from hea.tools.log import logger
 from hea.train import train_policy

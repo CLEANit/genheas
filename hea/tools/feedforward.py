@@ -17,7 +17,8 @@ class Feedforward(nn.Module):
     def forward(self, x):
         # x = x.view(x.size(0), -1)  # convert tensor (nb_atom, 1, nb_neighbors,
         # nb_prop) --> (nv_atom,nb_neighbors*nb_prop)
-        x = x.view(-1)  # convert tensor (nb_neighbors, nb_prop) --> (nb_neighbors*nb_prop)
+        # convert tensor (nb_neighbors, nb_prop) --> (nb_neighbors*nb_prop)
+        x = x.view(-1)
         output = self.l1(x)
         output = self.softmax(output)
         return output

@@ -1,0 +1,73 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest]
+python_files=["tests/test_*.py"]
+
+[tool.black]
+line-length = 120
+skip-string-normalization = true
+#py36 = false
+exclude = '''
+/(
+    \.git
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | \.pytest_cache
+  | dist
+  | build
+  | docs
+  | hea/tests/tests_files/*
+  | hea/training_data/
+  | hea/tools/heatofmixing.py
+  | hea/tools/miedema.py
+  | hea/tools/properties.py
+  | hea/pyhea.py
+)/
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+src_paths = ["tests"]
+skip_glob = ["docs/*"]
+include_trailing_comma = true
+skip = ["hea/tests/tests_files/*","hea/training_data/","hea/tools/heatofmixing.py","hea/tools/miedema.py","hea/tools/properties.py","hea/pyhea.py"]
+
+[tool.flake8]
+show-source = true
+# E123, E125 skipped as they are invalid PEP-8.
+# N802 skipped (function name should be lowercase)
+# N806 skipped (variable in function should be lowercase)
+# F401 skipped (imported but unused) after verifying current usage is valid
+# W503 skipped line break before binary operator
+# C901 skipped: 'MLaunchTool.init' is too complex
+ignore = ["E123","E125","N802","N806","F401","W503","C901"]
+select = ["B","C","E","F","W","T4","B9"]
+skip_install = true
+builtins =[" _"]
+exclude = '''
+/(
+    \.git
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | \.pytest_cache
+  | dist
+  | build
+  | docs
+  | hea/tests/tests_files/*
+  | hea/training_data/
+  | hea/tools/heatofmixing.py
+  | hea/tools/miedema.py
+  | hea/tools/propertie.py
+  | hea/pyhea.py
+)/
+'''
+# venv,.venv,.git,.tox,dist,*lib/python*,*egg,*figures/*,__init__.py,build/*,setup.py,hea/util/*,hea/tests/test_*
+count = true
+statistics = true
+max-line-length = 120
+max-complexity = 18

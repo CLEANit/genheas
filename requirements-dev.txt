@@ -1,10 +1,10 @@
+ase
+coverage
+flake8
+nose
+pre-commit
+pyaml
 pyblack
 pytest
-flake8
 sphinx
 tox
-pre-commit
-coverage
-nose
-ase
-pyaml

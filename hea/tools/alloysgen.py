@@ -7,14 +7,14 @@ import pymatgen as pmg
 import torch
 import yaml
 from ase.build import bulk
-from ase.lattice.cubic import BodyCenteredCubic, FaceCenteredCubic
+from ase.lattice.cubic import BodyCenteredCubic
+from ase.lattice.cubic import FaceCenteredCubic
 from clusterx.parent_lattice import ParentLattice
 from clusterx.structures_set import StructuresSet
 from clusterx.super_cell import SuperCell
 from pymatgen import Element
 from pymatgen.io.ase import AseAtomsAdaptor
-from pymatgen.transformations.site_transformations import \
-    ReplaceSiteSpeciesTransformation
+from pymatgen.transformations.site_transformations import ReplaceSiteSpeciesTransformation
 from pyxtal.crystal import random_crystal
 from sklearn.preprocessing import StandardScaler
 from torch.autograd import Variable
@@ -23,13 +23,23 @@ from hea.tools.log import logger
 
 coordination_numbers = {'fcc': [12, 6, 24], 'bcc': [8, 6, 12]}
 
-properties_list = ['number', 'group', 'row', 'is_metal', 'is_transition_metal',
-                   'is_alkali', 'is_alkaline', 'is_metalloid', 'atomic_radius',
-                   'oxidation_states', 'VEC', 'electronegativity']
+properties_list = [
+    'number',
+    'group',
+    'row',
+    'is_metal',
+    'is_transition_metal',
+    'is_alkali',
+    'is_alkaline',
+    'is_metalloid',
+    'atomic_radius',
+    'oxidation_states',
+    'VEC',
+    'electronegativity',
+]
 
 
-class AlloysGen(object):
-
+class AlloysGen:
     def __init__(self, element_pool, concentration, crystalstructure, oxidation_states=None):
         self.element_pool = element_pool
         self.concentration = concentration
@@ -80,7 +90,7 @@ class AlloysGen(object):
         elif crystalstructure == 'bcc':
             if all(elem is None for elem in lattice_param):
                 try:
-                    '''# array([ 3.52,  3.52,  # 3.52, 90.  , 90.  , 90.  ]) '''
+                    """# array([ 3.52,  3.52,  # 3.52, 90.  , 90.  , 90.  ]) """
                     lattice_param = BodyCenteredCubic(element_pool[0]).cell.cellpar()[:3]
 
                 except Exception as err:
@@ -186,12 +196,12 @@ class AlloysGen(object):
         """
         if crystalstructure == 'fcc':
             try:
-                metallic_crystal = random_crystal(225, element, size, 1.0, tm="metallic")
+                metallic_crystal = random_crystal(225, element, size, 1.0, tm='metallic')
             except Exception as e:
                 raise Exception(e)
         elif crystalstructure == 'bcc':
             try:
-                metallic_crystal = random_crystal(216, element, size, 1.0, tm="metallic")
+                metallic_crystal = random_crystal(216, element, size, 1.0, tm='metallic')
             except Exception as e:
                 raise Exception(e)
         return metallic_crystal.to_pymatgen()
@@ -199,9 +209,9 @@ class AlloysGen(object):
     @staticmethod
     def get_max_diff_elements(element_pool, concentrations, nb_atm):
         """
-                compute the maximun number of different element base on concentration
-                and the total number of atoms
-            """
+        compute the maximun number of different element base on concentration
+        and the total number of atoms
+        """
         max_diff = {}
         for elm in element_pool:
             max_diff[elm] = round(nb_atm * concentrations[elm])
@@ -318,7 +328,8 @@ class AlloysGen(object):
 
         for nb_list in all_neighbors_list:
             numbers_vec.append(
-                [atomic_numbers[i] for i in nb_list[1:]])  # exclude the fisrt atom because it is the site considered
+                [atomic_numbers[i] for i in nb_list[1:]]
+            )  # exclude the fisrt atom because it is the site considered
             symbols_vec.append([symbols[i] for i in nb_list[1:]])
         return np.array(numbers_vec), np.array(symbols_vec)
 
@@ -331,8 +342,9 @@ class AlloysGen(object):
         atomic_numbers = alloy_atoms.numbers
         symbols = alloy_atoms.get_chemical_symbols()
 
-        numbers_vec = [atomic_numbers[i] for i in
-                       neighbors_list[1:]]  # exclude the fisrt atom because it is the site considered
+        numbers_vec = [
+            atomic_numbers[i] for i in neighbors_list[1:]
+        ]  # exclude the fisrt atom because it is the site considered
         symbols_vec = [symbols[i] for i in neighbors_list[1:]]
         return np.array(numbers_vec), np.array(symbols_vec)
 
@@ -471,9 +483,7 @@ class AlloysGen(object):
         return CN_list
 
     def get_coordination_numbers(self, alloy_atoms, cutoff):
-        """
-
-        """
+        """"""
 
         alloyStructure = AseAtomsAdaptor.get_structure(alloy_atoms)
         # generate neighbor list in offset [ 0, 0, 0]
@@ -489,15 +499,15 @@ class AlloysGen(object):
     @staticmethod
     def get_atom_properties(element_pool, oxidation_states=None):
         """
-            oxidation_state: dictionay with oxydation state of element
+        oxidation_state: dictionay with oxydation state of element
 
-            return : dictionary with properties of each atom
+        return : dictionary with properties of each atom
 
-            """
+        """
 
         loc = os.path.dirname(os.path.abspath(__file__))
         try:
-            with open(os.path.join(loc, "data/VEC.yml"), "r") as fr:
+            with open(os.path.join(loc, 'data/VEC.yml')) as fr:
                 VEC = yaml.safe_load(fr)
 
         except Exception as e:
@@ -590,17 +600,18 @@ class AlloysGen(object):
         # pool_element.index(atm)
         return atm, output
 
-    def gen_configuration(self, structureX, element_pool, cutoff, model, device,
-                          max_diff_element=None, constrained=False):
+    def gen_configuration(
+        self, structureX, element_pool, cutoff, model, device, max_diff_element=None, constrained=False
+    ):
         """
-            add a contrain to the for the max_diff_element
+        add a contrain to the for the max_diff_element
 
-            structureX: empty structure to be filled ( N sites)
-            element_pool : list of dieffernet species
-            max_diff_element: maximum nunber of different species
-            model: NN model to train
-            return generated Atoms configuration
-            """
+        structureX: empty structure to be filled ( N sites)
+        element_pool : list of dieffernet species
+        max_diff_element: maximum nunber of different species
+        model: NN model to train
+        return generated Atoms configuration
+        """
 
         # global output_tensor, max_diff_elem
         properties = self.get_atom_properties(element_pool, oxidation_states=self.oxidation_states)
@@ -648,12 +659,11 @@ class AlloysGen(object):
             if constrained and max_diff_element is not None:
                 idx = element_pool.index(atm)
                 while max_diff_elem[atm] == 0:  # We have the max of this elements
-                    atm, output_tensor= self._apply_constraint(output_tensor, element_pool, idx)
+                    atm, output_tensor = self._apply_constraint(output_tensor, element_pool, idx)
 
                 max_diff_elem[atm] -= 1
 
-            replace_species = ReplaceSiteSpeciesTransformation(
-                indices_species_map={i: atm})
+            replace_species = ReplaceSiteSpeciesTransformation(indices_species_map={i: atm})
             config = replace_species.apply_transformation(config)
 
             elems_in.append(atm)

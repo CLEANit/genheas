@@ -1,17 +1,16 @@
-
 import numpy
 import scipy
 from scipy.constants import codata
 
 # Molar gas constant
 
-R = codata.value("molar gas constant")  # J/K/mol.
+R = codata.value('molar gas constant')  # J/K/mol.
 # scipy.constants.R
 
 # speed of light in atomic units
 
 c = codata.value('elementary charge')
-G = codata.value("Newtonian constant of gravitation")
+G = codata.value('Newtonian constant of gravitation')
 mu_0 = codata.value('mag. constant')
 epsilon_0 = codata.value('electric constant')
 cvel = codata.value('inverse fine-structure constant')
@@ -61,7 +60,7 @@ def epsilon(i, j, k):
     """
     levi-civita symbol
     """
-    return(j - i) * (k - i) * (k - j) / 2
+    return (j - i) * (k - i) * (k - j) / 2
 
 
 def conv_freq_in_angvel_au(freq):

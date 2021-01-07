@@ -1,12 +1,9 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """
 Created on Fri Oct 16 23:27:41 2020
 
 @author: Conrard TETSASSI
 """
-
 import glob
 import os
 import pathlib
@@ -22,8 +19,9 @@ import torch
 import torch.nn.init as init
 from pymatgen.io.ase import AseAtomsAdaptor
 
-from hea.tools.alloysgen import (AlloysGen, coordination_numbers,
-                                 properties_list)
+from hea.tools.alloysgen import AlloysGen
+from hea.tools.alloysgen import coordination_numbers
+from hea.tools.alloysgen import properties_list
 from hea.tools.feedforward import Feedforward
 from hea.tools.log import logger
 from hea.tools.nn_ga_model import NnGa
@@ -31,18 +29,19 @@ from hea.tools.nn_ga_model import NnGa
 sns.set()
 
 
-
 def train_policy(
-        crystal_structure,
-        element_pool,
-        concentrations,
-        nb_generation,
-        train_size,
-        device='cpu',
-        rate=0.25,
-        alpha=0.1,
-        oxidation_states=None,
-        guess_weight=None, min_mean_fitness=0.01):
+    crystal_structure,
+    element_pool,
+    concentrations,
+    nb_generation,
+    train_size,
+    device='cpu',
+    rate=0.25,
+    alpha=0.1,
+    oxidation_states=None,
+    guess_weight=None,
+    min_mean_fitness=0.01,
+):
     # ==========================  Initialization  ============================
     # early_stop = False
     n_generations_stop = 6
@@ -87,7 +86,7 @@ def train_policy(
 
             # rand_number = random.randint(1,10)
             name = 'structure'
-            files = glob.glob('training_data/{}/clusters_{}/{}_*.cif'.format(crystal_structure, train_size, name))
+            files = glob.glob(f'training_data/{crystal_structure}/clusters_{train_size}/{name}_*.cif')
             structure = random.choice(files)
             atoms = ase.io.read(structure)
             max_diff_elements = AlloyGen.get_max_diff_elements(element_pool, concentrations, len(atoms))
@@ -119,7 +118,7 @@ def train_policy(
                     if i == 0 and guess_weight is not None:
                         try:
                             my_model.l1.weight = torch.nn.parameter.Parameter(guess_weight)
-                            logger.info('+' * 5, 'policy {} initilized with guess weight'.format(i))
+                            logger.info('+' * 5, f'policy {i} initilized with guess weight')
                             # print('+' * 5, 'policy {} initilized with guess weight'.format(i))
                         except Exception as err:
                             logger.warning('Warning: error in guess weight')
@@ -131,22 +130,16 @@ def train_policy(
                     if i < 1:
                         pass
                     elif torch.all(torch.eq(policies[i - 1], policies[i])):
-                        logger.warning(
-                            '*' * 5,
-                            'Warning: Initial weight are identical to previous',
-                            '*' * 5)
+                        logger.warning('*' * 5, 'Warning: Initial weight are identical to previous', '*' * 5)
                     configurations = []
                     for _ in range(nb_config):
                         configurations.append(
-                            AlloyGen.gen_configuration(structureX, element_pool, cutoff, my_model, device=device))
+                            AlloyGen.gen_configuration(structureX, element_pool, cutoff, my_model, device=device)
+                        )
 
                     configurations_fitness = GaNn.get_population_fitness(
-                        configurations,
-                        concentrations,
-                        max_diff_elements,
-                        element_pool,
-                        crystal_structure,
-                        cutoff)
+                        configurations, concentrations, max_diff_elements, element_pool, crystal_structure, cutoff
+                    )
 
                     policies_fitnesses.append(configurations_fitness)  # list of array
 
@@ -156,11 +149,9 @@ def train_policy(
 
                 # Rank the policies
 
-                sorted_policies = GaNn.sort_population_by_fitness(
-                    policies, policies_avg_fitnesses)
+                sorted_policies = GaNn.sort_population_by_fitness(policies, policies_avg_fitnesses)
 
-                sorted_policies_fitnesses = GaNn.sort_population_by_fitness(
-                    policies_fitnesses, policies_avg_fitnesses)
+                sorted_policies_fitnesses = GaNn.sort_population_by_fitness(policies_fitnesses, policies_avg_fitnesses)
                 # best_policies = sorted_policies[0]
 
             else:
@@ -175,19 +166,12 @@ def train_policy(
                     configurations = []
                     for _ in range(nb_config):
                         configurations.append(
-                            AlloyGen.gen_configuration(
-                                structureX,
-                                element_pool,
-                                cutoff,
-                                my_model, device=device))
+                            AlloyGen.gen_configuration(structureX, element_pool, cutoff, my_model, device=device)
+                        )
 
                     configurations_fitness = GaNn.get_population_fitness(
-                        configurations,
-                        concentrations,
-                        max_diff_elements,
-                        element_pool,
-                        crystal_structure,
-                        cutoff)
+                        configurations, concentrations, max_diff_elements, element_pool, crystal_structure, cutoff
+                    )
 
                     policies_fitnesses.append(configurations_fitness)  # list of array
 
@@ -197,11 +181,9 @@ def train_policy(
 
                 # Rank the policies
 
-                sorted_policies = GaNn.sort_population_by_fitness(
-                    policies, policies_avg_fitnesses)
+                sorted_policies = GaNn.sort_population_by_fitness(policies, policies_avg_fitnesses)
 
-                sorted_policies_fitnesses = GaNn.sort_population_by_fitness(
-                    policies_fitnesses, policies_avg_fitnesses)
+                sorted_policies_fitnesses = GaNn.sort_population_by_fitness(policies_fitnesses, policies_avg_fitnesses)
 
             # save the current training information
 
@@ -213,17 +195,17 @@ def train_policy(
 
             logger.info(
                 'generation: {:6d} | *** mean fitness {:10.6f} *** Time: {:.1f}s'.format(
-                    generation,
-                    mean_fitness[generation],
-                    time.time() - since))
+                    generation, mean_fitness[generation], time.time() - since
+                )
+            )
 
             if mean_fitness[generation] < min_mean_fitness:
 
                 generations_no_improve = 0
                 min_mean_fitness = mean_fitness[generation]
 
-                PATH = '{}/early_model_{}.pth'.format(output, nb_generation)
-                logger.info('model [{}/early_model_{}.pth] saved'.format(output, nb_generation))
+                PATH = f'{output}/early_model_{nb_generation}.pth'
+                logger.info(f'model [{output}/early_model_{nb_generation}.pth] saved')
                 torch.save(my_model.state_dict(), PATH)
             else:
                 generations_no_improve += 1
@@ -238,16 +220,12 @@ def train_policy(
 
     weights = sorted_policies[0]
     my_model.l1.weight = torch.nn.parameter.Parameter(weights)
-    PATH = '{}/model_{}.pth'.format(output, nb_generation)
-    logger.info('model [{}/model_{}.pth] saved'.format(output, nb_generation))
+    PATH = f'{output}/model_{nb_generation}.pth'
+    logger.info(f'model [{output}/model_{nb_generation}.pth] saved')
     torch.save(my_model.state_dict(), PATH)
-    pickle.dump(
-        weights,
-        open(
-            '{}/best_policy_{}.pkl'.format(output, nb_generation),
-            'wb'))
+    pickle.dump(weights, open(f'{output}/best_policy_{nb_generation}.pkl', 'wb'))
 
-    logger.info('Best policy saved in  [{}/best_policy_{}.pkl]'.format(output, nb_generation))
+    logger.info(f'Best policy saved in  [{output}/best_policy_{nb_generation}.pkl]')
     max_fitness = np.array(max_fitness)
     mean_fitness = np.array(mean_fitness)
 
@@ -259,26 +237,15 @@ def train_policy(
     # fig = plt.figure(figsize = (8, 8))
 
     plt.clf()
-    plt.plot(
-        iters,
-        np.log(max_fitness),
-        label='Log (max_fitness)',
-        linewidth=1)
-    plt.plot(
-        iters,
-        np.log(mean_fitness),
-        label='Log (mean_fitness)',
-        linewidth=1)
+    plt.plot(iters, np.log(max_fitness), label='Log (max_fitness)', linewidth=1)
+    plt.plot(iters, np.log(mean_fitness), label='Log (mean_fitness)', linewidth=1)
 
-    plt.xlabel("Generation", fontsize=15)
+    plt.xlabel('Generation', fontsize=15)
     plt.ylabel('')
-    plt.title("Fitness of the best policy ")
+    plt.title('Fitness of the best policy ')
 
     plt.legend(fontsize=12, loc='upper left')
-    plt.savefig(
-        "{}/training_{}.png".format(output, nb_generation),
-        dpi=600,
-        transparent=True, bbox_inches='tight')
+    plt.savefig(f'{output}/training_{nb_generation}.png', dpi=600, transparent=True, bbox_inches='tight')
 
     plt.show()
 

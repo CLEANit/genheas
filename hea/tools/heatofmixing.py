@@ -4,17 +4,17 @@ import numpy as np
 import pymatgen as pmg
 import yaml
 
-__all__ = ["Miedema"]
+__all__ = ['Miedema']
 # data rows:
 # Element_name Phi Rho Vol Z Valence TM? RtoP Htrans
 # Data format: | Element | Phi | Nws1/3 | Vm 2/3 | Z | Valence |Transition Metal (1) or Not (0)| R_cf| Htrans
 
 
 # params = yaml.safe_load(open(qmpy.INSTALL_PATH + "/data/miedema.yml").read())
-params = yaml.safe_load(open("Tools/data/miedema.yml").read())
+params = yaml.safe_load(open('Tools/data/miedema.yml').read())
 
 
-class Miedema(object):
+class Miedema:
     def __init__(self, composition):
         """
         Takes a variety of composition representations and returns the miedema
@@ -42,7 +42,7 @@ class Miedema(object):
         elif isinstance(composition, dict):
             composition = pmg.Composition(composition)
         else:
-            raise TypeError("Unrecognized composition:", composition)
+            raise TypeError('Unrecognized composition:', composition)
 
         if len(composition) != 2:
             return None
@@ -83,7 +83,7 @@ class Miedema(object):
         self.elementVM23 = {}
         self.elementRP = {}
         self.elementTRAN = {}
-        self.Avogardro = 6.02E23  # unit /mole
+        self.Avogardro = 6.02e23  # unit /mole
         #
         self.xA = np.linspace(0.001, 0.999, 200)
         self.xAs = np.empty(len(self.xA))
@@ -113,7 +113,7 @@ class Miedema(object):
         elements = {'A': self.A_name, 'B': self.B_name}
         for key in elements.keys():
             #  Element: Phi | Nws1/3 | Vm 2/3 | Z | Valence |Transition Metal (1) or Not (0)| R/P| Htrans
-            element_data = eval("self." + key)
+            element_data = eval('self.' + key)
             name = elements[key]
             self.elementName[name] = name
             self.elementPhiStar[name] = element_data[0]
@@ -185,7 +185,7 @@ class Miedema(object):
         elif params[4] == 3:
             return possible_a[2]
         # elif elementA in ["Ag","Au","Ir","Os","Pd","Pt","Rh","Ru"]:
-        elif elt in ["Ag", "Au", "Cu"]:
+        elif elt in ['Ag', 'Au', 'Cu']:
             return possible_a[2]
         else:
             return possible_a[3]
@@ -208,17 +208,32 @@ class Miedema(object):
         for i in range(len(self.xA)):
             self.A_Vm23Alloy = self.A_Vm23 * (1 + self.aA * self.xB[i] * (dePhi))
             self.B_Vm23Alloy = self.B_Vm23 * (1 + self.aB * self.xA[i] * (-1 * dePhi))
-            self.xAs[i] = self.xA[i] * self.A_Vm23Alloy / (
-                    self.xA[i] * self.A_Vm23Alloy + self.xB[i] * self.B_Vm23Alloy)
+            self.xAs[i] = (
+                self.xA[i] * self.A_Vm23Alloy / (self.xA[i] * self.A_Vm23Alloy + self.xB[i] * self.B_Vm23Alloy)
+            )
             self.fxs[i] = self.xAs[i] * (1.0 - self.xAs[i])
-            self.g[i] = 2.0 * (self.xA[i] * self.A_Vm23Alloy + self.xB[i] * self.B_Vm23Alloy) / (
-                    1.0 / self.A_nws13 + 1.0 / self.B_nws13)
-            self.deHmix[i] = self.Avogardro * self.fxs[i] * self.g[i] * self.P * (
-                    -self.e * (dePhi) ** 2 + self.QP * (deNws13) ** 2 - self.RP) * 1.60217657E-22
-        self.deH_A_partial_infDilute = 2.0 * self.A_Vm23 / (
-                1.0 / self.A_nws13 + 1.0 / self.B_nws13) * self.Avogardro * self.P * (
-                                               -self.e * (dePhi) ** 2 + self.QP * (
-                                           deNws13) ** 2 - self.RP) * 1.60217657E-22
+            self.g[i] = (
+                2.0
+                * (self.xA[i] * self.A_Vm23Alloy + self.xB[i] * self.B_Vm23Alloy)
+                / (1.0 / self.A_nws13 + 1.0 / self.B_nws13)
+            )
+            self.deHmix[i] = (
+                self.Avogardro
+                * self.fxs[i]
+                * self.g[i]
+                * self.P
+                * (-self.e * (dePhi) ** 2 + self.QP * (deNws13) ** 2 - self.RP)
+                * 1.60217657e-22
+            )
+        self.deH_A_partial_infDilute = (
+            2.0
+            * self.A_Vm23
+            / (1.0 / self.A_nws13 + 1.0 / self.B_nws13)
+            * self.Avogardro
+            * self.P
+            * (-self.e * (dePhi) ** 2 + self.QP * (deNws13) ** 2 - self.RP)
+            * 1.60217657e-22
+        )
 
         return
 
@@ -247,13 +262,19 @@ class Miedema(object):
 
         self.A_Vm23Alloy = self.A_Vm23 * (1 + self.aA * self.xB * dePhi)
         self.B_Vm23Alloy = self.B_Vm23 * (1 + self.aB * self.xA * (-1 * dePhi))
-        self.xAs = self.xA * self.A_Vm23Alloy / (
-                self.xA * self.A_Vm23Alloy + self.xB * self.B_Vm23Alloy)
+        self.xAs = self.xA * self.A_Vm23Alloy / (self.xA * self.A_Vm23Alloy + self.xB * self.B_Vm23Alloy)
         self.fxs = self.xAs * (1.0 - self.xAs)
-        self.g = 2.0 * (self.xA * self.A_Vm23Alloy + self.xB * self.B_Vm23Alloy) / (
-                1.0 / self.A_nws13 + 1.0 / self.B_nws13)
-        self.deHmix = self.Avogardro * self.fxs * self.g * self.P * (
-                -self.e * dePhi ** 2 + self.QP * deNws13 ** 2 - self.RP) * 1.60217657E-22
+        self.g = (
+            2.0 * (self.xA * self.A_Vm23Alloy + self.xB * self.B_Vm23Alloy) / (1.0 / self.A_nws13 + 1.0 / self.B_nws13)
+        )
+        self.deHmix = (
+            self.Avogardro
+            * self.fxs
+            * self.g
+            * self.P
+            * (-self.e * dePhi ** 2 + self.QP * deNws13 ** 2 - self.RP)
+            * 1.60217657e-22
+        )
 
         # self.report()
         return self.deHmix
@@ -262,8 +283,17 @@ class Miedema(object):
         print('')
         print('-------------------------------------------------')
         print('-------------------- report ---------------------')
-        print('Two components: ', self.A_name, '(', self.elementTRAN[self.A_name], ') and ', self.B_name, '(',
-              self.elementTRAN[self.B_name], ')')
+        print(
+            'Two components: ',
+            self.A_name,
+            '(',
+            self.elementTRAN[self.A_name],
+            ') and ',
+            self.B_name,
+            '(',
+            self.elementTRAN[self.B_name],
+            ')',
+        )
         # print ('Conc of', self.A_name, self.x)
         # print ('Conc of', self.B_name, (1-self.x))
         print('Phi of', self.A_name, self.A_phiStar)

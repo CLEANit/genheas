@@ -2,9 +2,10 @@ import torch.nn as nn
 
 # import torch.nn.functional as F
 
+
 class Feedforward(nn.Module):
     def __init__(self, input_size, output_size):
-        super(Feedforward, self).__init__()
+        super().__init__()
         self.input_size = input_size
         self.output_size = output_size
 

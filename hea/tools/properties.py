@@ -1,16 +1,27 @@
 import numpy as np
 import yaml
 
-from hea.tools import constants, heatofmixing, miedema, valence_electron
+from hea.tools import constants
+from hea.tools import heatofmixing
+from hea.tools import miedema
+from hea.tools import valence_electron
 
-PROPERTIES = ["atomic_size_difference", "mixing_entropy", "mixing_enthalpy", "VEC",
-              "electronegativity", "melting_point", "omega", "phi", "miedema_energy"]
+PROPERTIES = [
+    'atomic_size_difference',
+    'mixing_entropy',
+    'mixing_enthalpy',
+    'VEC',
+    'electronegativity',
+    'melting_point',
+    'omega',
+    'phi',
+    'miedema_energy',
+]
 
-__all__ = ["Property"]
+__all__ = ['Property']
 
 
-class Property(object):
-
+class Property:
     def __init__(self, structure):
         """
         Param structure: pymatgen class object
@@ -39,14 +50,14 @@ class Property(object):
         usname = self.get_property_names(name)
 
         if usname is None:  # invalid name
-            print("Property [{}] not recognized".format(name))
+            print(f'Property [{name}] not recognized')
             return None
 
         try:
-            prop = eval("self.get_" + usname + "()")
+            prop = eval('self.get_' + usname + '()')
             return prop
         except AttributeError:
-            print("Property [{}] not implemented".format(usname))
+            print(f'Property [{usname}] not implemented')
             return None
 
     def get_atomic_size_difference(self):
@@ -76,7 +87,7 @@ class Property(object):
         atom_list = self.structure.elements  # [Element Fe, Element Ni]
 
         VEC = 0.0
-        valence = yaml.safe_load(open("Tools/data/VEC.yml").read())
+        valence = yaml.safe_load(open('Tools/data/VEC.yml').read())
 
         for element in atom_list:
             # VEC += self.structure.get_atomic_fraction(element) * valence_electron.valence[str(element)]

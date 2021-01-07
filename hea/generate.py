@@ -1,12 +1,9 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """
 Created on Fri Oct 16 23:27:41 2020
 
 @author: Conrard Tetsassi
 """
-
 import os
 import pathlib
 import pickle
@@ -17,21 +14,23 @@ import matplotlib.pyplot as plt
 import torch
 import yaml
 from ase.io import write
-from ase.lattice.cubic import BodyCenteredCubic, FaceCenteredCubic
+from ase.lattice.cubic import BodyCenteredCubic
+from ase.lattice.cubic import FaceCenteredCubic
 from PIL import Image
 
-from hea.tools.alloysgen import (AlloysGen, coordination_numbers,
-                                 properties_list)
+from hea.tools.alloysgen import AlloysGen
+from hea.tools.alloysgen import coordination_numbers
+from hea.tools.alloysgen import properties_list
 from hea.tools.feedforward import Feedforward
 from hea.tools.log import logger
 from hea.tools.nn_ga_model import NnGa
-
 
 # import pymatgen as pmg
 # from ase.build import bulk
 # from itertools import cycle
 # import numpy as np
 # from pymatgen.io.ase import AseAtomsAdaptor
+
 
 def read_model(path, element_pool, device):
     NN_in_shell1 = coordination_numbers[crystal_structure][0]
@@ -56,16 +55,16 @@ def read_model(path, element_pool, device):
 
 
 def read_policy(file):
-    weights = pickle.load(open(file, 'r'))
+    weights = pickle.load(open(file))
     return weights
 
 
 def write_to_cif(name, configuration):
-    write('{}/structure.cif'.format(name), configuration)
+    write(f'{name}/structure.cif', configuration)
 
 
 def write_to_png(name, configuration):
-    write('{}/structure.png'.format(name), configuration)
+    write(f'{name}/structure.png', configuration)
 
 
 def get_cutoff(cell_param, element_pool, cryst_structure):
@@ -99,12 +98,11 @@ def generate_structure(my_model, output_name, element_pool, conc, cryst_structur
 
     structureX = AlloyGen.gen_raw_crystal(cryst_structure, cell_size, element=element_pool[0], lattice_param=cell_param)
 
-    max_diff_elements = AlloyGen.get_max_diff_elements(
-        element_pool, conc, structureX.num_sites)
+    max_diff_elements = AlloyGen.get_max_diff_elements(element_pool, conc, structureX.num_sites)
 
-    configuration = AlloyGen.gen_configuration(structureX, element_pool, cutof, my_model, device='cpu',
-                                               max_diff_element=max_diff_elements,
-                                               constrained=True)
+    configuration = AlloyGen.gen_configuration(
+        structureX, element_pool, cutof, my_model, device='cpu', max_diff_element=max_diff_elements, constrained=True
+    )
 
     # generated_structure = AseAtomsAdaptor.get_structure(configuration)
 
@@ -122,13 +120,11 @@ def generate_structure(my_model, output_name, element_pool, conc, cryst_structur
     shell1_fitness_AA = GaNn.get_shell1_fitness_AA(CN1_list)
     shell2_fitness_AA = GaNn.get_shell2_fitness_AA(CN2_list, NN_in_shell2)
     shell1_fitness_AB = GaNn.get_shell1_fitness_AB(CN1_list, conc, NN_in_shell1)
-    max_diff_element_fitness = GaNn.get_max_diff_element_fitness(
-        max_diff_elements, configuration)
+    max_diff_element_fitness = GaNn.get_max_diff_element_fitness(max_diff_elements, configuration)
     print('shell1_fitness_AA: ', sum(shell1_fitness_AA.values()), '\n')
     print('shell2_fitness_AA: ', sum(shell2_fitness_AA.values()), '\n')
     print('shell1_fitness_AB: ', sum(shell1_fitness_AB.values()), '\n')
-    print('max_diff_element_fitness: ', sum(
-        max_diff_element_fitness.values()), '\n')
+    print('max_diff_element_fitness: ', sum(max_diff_element_fitness.values()), '\n')
     print('*' * 60)
 
     logger.info('Time for Generation:  {}'.format(time.time() - since))
@@ -140,12 +136,12 @@ def generate_structure(my_model, output_name, element_pool, conc, cryst_structur
     # plt.imshow(img1)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
 
     # ========================== Read Parameters  ============================
 
     try:
-        with open(os.path.join('./', "parameters.yml"), "r") as fr:
+        with open(os.path.join('./', 'parameters.yml')) as fr:
             parameters = yaml.safe_load(fr)
             logger.info('Parameters have been retrieved')
     except Exception as err:
@@ -182,5 +178,5 @@ if __name__ == "__main__":
     model = read_model(model_path, elements_pool, device)
     for i in range(nb_structures):
         generate_structure(model, output, elements_pool, concentrations, crystal_structure, size, cell_parameters)
-        shutil.move(os.path.join(output, 'structure.cif'), os.path.join(output, 'structure_{:03d}.cif'.format(i)))
-        shutil.move(os.path.join(output, 'structure.png'), os.path.join(output, 'structure_{:03d}.png'.format(i)))
+        shutil.move(os.path.join(output, 'structure.cif'), os.path.join(output, f'structure_{i:03d}.cif'))
+        shutil.move(os.path.join(output, 'structure.png'), os.path.join(output, f'structure_{i:03d}.png'))

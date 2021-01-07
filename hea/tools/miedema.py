@@ -5,17 +5,17 @@ import numpy as np
 import pymatgen as pmg
 import yaml
 
-__all__ = ["Miedema"]
+__all__ = ['Miedema']
 # data rows:
 # Element_name Phi Rho Vol Z Valence TM? RtoP Htrans
 # Data format: | Element | Phi | Nws1/3 | Vm 2/3 | Z | Valence |Transition Metal (1) or Not (0)| R/P| Htrans
 
 
 # params = yaml.safe_load(open(qmpy.INSTALL_PATH + "/data/miedema.yml").read())
-params = yaml.safe_load(open("tools/data/miedema.yml").read())
+params = yaml.safe_load(open('tools/data/miedema.yml').read())
 
 
-class Miedema(object):
+class Miedema:
     def __init__(self, composition):
         """
         Takes a variety of composition representations and returns the miedema
@@ -43,7 +43,7 @@ class Miedema(object):
         elif isinstance(composition, dict):
             composition = pmg.Composition(composition)
         else:
-            raise TypeError("Unrecognized composition:", composition)
+            raise TypeError('Unrecognized composition:', composition)
 
         if len(composition) != 2:
             return None
@@ -138,7 +138,7 @@ class Miedema(object):
         elif params[4] == 3:
             return possible_a[2]
         # elif elementA in ["Ag","Au","Ir","Os","Pd","Pt","Rh","Ru"]:
-        elif elt in ["Ag", "Au", "Cu"]:
+        elif elt in ['Ag', 'Au', 'Cu']:
             return possible_a[2]
         else:
             return possible_a[3]
@@ -182,14 +182,14 @@ class Miedema(object):
         f_AB = c_S_A * (1 + 8 * (c_S_A * c_S_B) ** 2)
         D_htrans = self.x * htrans[1] + (1 - self.x) * htrans[0]
         H_ord = (
-                self.gamma()
-                * (1 - self.x)
-                * self.x
-                * vol_A
-                * vol_B
-                * (1 + 8 * (c_S_A * c_S_B) ** 2)
-                / ((1 - self.x) * vol_A + self.x * vol_B)
-                + D_htrans
+            self.gamma()
+            * (1 - self.x)
+            * self.x
+            * vol_A
+            * vol_B
+            * (1 + 8 * (c_S_A * c_S_B) ** 2)
+            / ((1 - self.x) * vol_A + self.x * vol_B)
+            + D_htrans
         )
         return round(H_ord * 0.01036427, 2)
 

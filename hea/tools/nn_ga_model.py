@@ -7,17 +7,17 @@ import torch
 from pymatgen import Element
 from pymatgen.io.ase import AseAtomsAdaptor
 
-# from ase.data import atomic_numbers
-from hea.tools.alloysgen import AlloysGen, coordination_numbers
+from hea.tools.alloysgen import AlloysGen
+from hea.tools.alloysgen import coordination_numbers
 from hea.tools.log import logger
 
+# from ase.data import atomic_numbers
 
-class NnGa(object):
-    """
 
-    """
+class NnGa:
+    """"""
 
-    def __init__(self, rate=0.25, alpha=0.1, device="cpu"):
+    def __init__(self, rate=0.25, alpha=0.1, device='cpu'):
         """
         #nb_polocies: int : nber of polocies generated at each generation
         n_structures: int :  nber of structure generated for each policies
@@ -28,7 +28,6 @@ class NnGa(object):
         self.alpha = alpha
         self.device = device
         # self.max_diff_element = max_diff_element
-
 
     @staticmethod
     def _combinaison(element_pool):
@@ -42,18 +41,12 @@ class NnGa(object):
         return combinasons
 
     @staticmethod
-    def gen_policies(
-            feedforward,
-            input_size,
-            output_size,
-            input_tensor,
-            nb_policies):
+    def gen_policies(feedforward, input_size, output_size, input_tensor, nb_policies):
         policies = []  # list of output vectors
         policies_weights = []
 
         for _ in range(nb_policies):
-            device = torch.device(
-                "cuda" if torch.cuda.is_available() else "cpu")
+            device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
             model = feedforward(input_size, output_size).to(device)
             input_tensor = input_tensor.to(device)
             output_tensor = model(input_tensor)
@@ -72,12 +65,7 @@ class NnGa(object):
         """
         output_vector = output_tensor.cpu().detach().numpy()
         replace = True  # default
-        atom_list = [
-            np.random.choice(
-                element_pool,
-                p=vec,
-                size=1,
-                replace=replace) for vec in output_vector]
+        atom_list = [np.random.choice(element_pool, p=vec, size=1, replace=replace) for vec in output_vector]
         alloy_atoms.set_chemical_symbols(atom_list)
         atomic_fraction = {}
 
@@ -157,8 +145,8 @@ class NnGa(object):
 
     def get_shell2_fitness_AA(self, CN2_list, NNeighbours):
         """
-         Maximize the $N_{aa}$ in the second coordination shell
-         CN_list:list of dictionanry
+        Maximize the $N_{aa}$ in the second coordination shell
+        CN_list:list of dictionanry
         """
         fitness = {}
         target = NNeighbours
@@ -212,8 +200,7 @@ class NnGa(object):
 
     # @profile
 
-    def get_population_fitness(self, configurations, concentrations,
-                               max_diff_element, element_pool, cell_type, cutoff):
+    def get_population_fitness(self, configurations, concentrations, max_diff_element, element_pool, cell_type, cutoff):
 
         AlloyGen = AlloysGen(element_pool, concentrations, cell_type)
 
@@ -226,8 +213,12 @@ class NnGa(object):
             shell2_fitness_AA = self.get_shell2_fitness_AA(CN2_list, NN2)
             shell1_fitness_AB = self.get_shell1_fitness_AB(CN1_list, concentrations, NN1)
             max_diff_element_fitness = self.get_max_diff_element_fitness(max_diff_element, configuration)
-            fitness = sum(shell1_fitness_AA.values()) + sum(max_diff_element_fitness.values()) + sum(
-                shell1_fitness_AB.values()) + sum(shell2_fitness_AA.values())
+            fitness = (
+                sum(shell1_fitness_AA.values())
+                + sum(max_diff_element_fitness.values())
+                + sum(shell1_fitness_AB.values())
+                + sum(shell2_fitness_AA.values())
+            )
 
             pop_fitness.append(fitness)
 
@@ -280,8 +271,7 @@ class NnGa(object):
             rate = self.rate
 
         if key is not None:
-            sorted_by_fitness_population = self.sort_population_by_fitness(
-                previous_population, key)
+            sorted_by_fitness_population = self.sort_population_by_fitness(previous_population, key)
         else:
             sorted_by_fitness_population = previous_population
         population_size = len(previous_population)
@@ -295,8 +285,7 @@ class NnGa(object):
 
         # randomly mutate the weights of the top 25% of structures to make up
         # the remaining 75%
-        selection = self.choice_random(
-            top_population, (population_size - top_size))
+        selection = self.choice_random(top_population, (population_size - top_size))
         selections = [self.mutate(selec) for selec in selection]
 
         # # crossover 2 random items

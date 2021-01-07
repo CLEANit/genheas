@@ -1,4 +1,4 @@
-#include CHANGELOG.rst
+include CHANGELOG.rst
 include README.md
 include CONTRIBUTORS
 #include LICENSE
@@ -6,6 +6,7 @@ include setup.py
 include tox.ini
 graft docs
 graft tests
+graft hea
 
 global-exclude __pycache__
 global-exclude *.py[cod]

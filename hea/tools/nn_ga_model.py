@@ -1,13 +1,12 @@
-import copy
 import random
 
 import numpy as np
-import pymatgen as pmg
 import torch
+
 from hea.tools.alloysgen import AlloysGen, coordination_numbers
+
 from hea.tools.log import logger
-from pymatgen import Element
-from pymatgen.io.ase import AseAtomsAdaptor
+
 
 # from ase.data import atomic_numbers
 
@@ -28,84 +27,15 @@ class NnGa:
         # self.max_diff_element = max_diff_element
 
     @staticmethod
-    def _combinaison(element_pool):
+    def _combination(element_pool):
         """
-        combinasons list of  unique pair of atom in the structure
+        combinations list of  unique pair of atom in the structure
         """
-        combinasons = []
+        combinations = []
         for i in range(len(element_pool)):
             for j in range(len(element_pool)):
-                combinasons.append(element_pool[i] + '-' + element_pool[j])
-        return combinasons
-
-    @staticmethod
-    def gen_policies(feedforward, input_size, output_size, input_tensor, nb_policies):
-        policies = []  # list of output vectors
-        policies_weights = []
-
-        for _ in range(nb_policies):
-            device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-            model = feedforward(input_size, output_size).to(device)
-            input_tensor = input_tensor.to(device)
-            output_tensor = model(input_tensor)
-            output_vector = output_tensor.cpu().detach().numpy()
-            policies.append(output_vector)
-
-            init_weight = copy.deepcopy(model.l1.weight.data)
-            init_weight = init_weight.cpu().detach().numpy()
-            policies_weights.append(init_weight)
-        return policies, policies_weights
-
-    @staticmethod
-    def gen_structure_numpy(alloy_atoms, output_tensor, element_pool):
-        """
-        gen structure using numpy.randomchoice
-        """
-        output_vector = output_tensor.cpu().detach().numpy()
-        replace = True  # default
-        atom_list = [np.random.choice(element_pool, p=vec, size=1, replace=replace) for vec in output_vector]
-        alloy_atoms.set_chemical_symbols(atom_list)
-        atomic_fraction = {}
-
-        compo = pmg.Composition(alloy_atoms.get_chemical_formula())
-        for elm in element_pool:
-            atomic_fraction[elm] = compo.get_atomic_fraction(Element(elm))
-            return alloy_atoms, atomic_fraction
-
-    # @staticmethod
-    # def gen_structure_from_output(template, output_tensor, element_pool, max_diff_element):
-    #     """
-    #     using pytorch
-    #     """
-    #
-    #     replace = True  # default  False
-    #     elems_in = []
-    #     max_diff_elem = copy.deepcopy(max_diff_element)
-    #     for iout, output in enumerate(output_tensor):
-    #
-    #         choice = output.multinomial(num_samples=1, replacement=replace)
-    #         atm = element_pool[choice]
-    #
-    #         idx = element_pool.index(atm)
-    #         while max_diff_elem[idx] == 0:  # We have the max of this elements
-    #             prob = output[idx]  # take the proba of the element
-    #             # divide by nber element -1
-    #             prob = prob / (len(element_pool) - 1)
-    #             output = output + prob  # add the value to each component
-    #             output[idx] = 0  # set the selected proba to 0
-    #             choice = output.multinomial(num_samples=1, replacement=replace)
-    #             atm = element_pool[choice]
-    #             idx = element_pool.index(atm)
-    #
-    #         max_diff_elem[idx] -= 1
-    #         template.symbols[iout] = atm
-    #         elems_in.append(atm)
-    #
-    #         # max_diff_elem = {x:elems_in.count(x) for x in elems_in}
-    #     compo = pmg.Composition(template.get_chemical_formula())
-    #     fractional_composition = compo.fractional_composition
-    #
-    #     return template, fractional_composition
+                combinations.append(element_pool[i] + '-' + element_pool[j])
+        return combinations
 
     @staticmethod
     def _rmsd(v, w):
@@ -126,7 +56,7 @@ class NnGa:
         N = len(v)
         return np.sqrt((diff * diff).sum() / N)
 
-    def get_shell1_fitness_AA(self, CN1_list):
+    def get_shell1_fitness_AA(self, cn1_list):
         """
         Minimize the $N_{aa}$ in the first coordination shell
          CN_list:list of dictionanry
@@ -134,35 +64,35 @@ class NnGa:
         fitness = {}
         target = 0
 
-        for key, val in CN1_list.items():
+        for key, val in cn1_list.items():
             atm1, atm2 = key.split('-')
             if atm1 == atm2:
                 fitness[key] = self._rmsd(val, target)
 
         return fitness
 
-    def get_shell2_fitness_AA(self, CN2_list, NNeighbours):
+    def get_shell2_fitness_AA(self, cn1_list, n_neighbours):
         """
         Maximize the $N_{aa}$ in the second coordination shell
         CN_list:list of dictionanry
         """
         fitness = {}
-        target = NNeighbours
+        target = n_neighbours
 
-        for key, val in CN2_list.items():
+        for key, val in cn1_list.items():
             atm1, atm2 = key.split('-')
             if atm1 == atm2:
                 fitness[key] = self._rmsd(val, target)
 
         return fitness
 
-    def get_shell1_fitness_AB(self, CN1_list, concentrations, NNeighbours):
+    def get_shell1_fitness_AB(self, cn1_list, concentrations, n_neighbours):
         """
         Homogenize the $N_{a b}$ in the first coordination shell
 
         CN_list:list of dictionanry
         alloy_atoms: structure(Atoms class)
-        NNeighbours:  ( number of neighbours in the shell)
+        n_neighbours:  ( number of neighbours in the shell)
         return a dictionary:
 
 
@@ -171,11 +101,12 @@ class NnGa:
         fitness = {}
         nb_species = len(concentrations.keys())
 
-        for key, val in CN1_list.items():
+        for key, val in cn1_list.items():
             atm1, atm2 = key.split('-')
             if atm1 != atm2:
-                param = NNeighbours * concentrations[atm2]
-                target = NNeighbours * concentrations[atm1] + (param / (nb_species - 1))
+                param = n_neighbours * concentrations[atm2]
+                target = n_neighbours * \
+                         concentrations[atm1] + (param / (nb_species - 1))
 
                 fitness[key] = self._rmsd(val, target)
 
@@ -198,7 +129,8 @@ class NnGa:
 
     # @profile
 
-    def get_population_fitness(self, configurations, concentrations, max_diff_element, element_pool, cell_type, cutoff):
+    def get_population_fitness(self, configurations, concentrations,
+                               max_diff_element, element_pool, cell_type, cutoff):
 
         AlloyGen = AlloysGen(element_pool, concentrations, cell_type)
 
@@ -206,19 +138,23 @@ class NnGa:
         NN2 = coordination_numbers[cell_type][1]
         pop_fitness = []
         for configuration in configurations:
-            CN1_list, CN2_list = AlloyGen.get_coordination_numbers(configuration, cutoff)
+            CN1_list, CN2_list = AlloyGen.get_coordination_numbers(
+                configuration, cutoff)
             shell1_fitness_AA = self.get_shell1_fitness_AA(CN1_list)
             shell2_fitness_AA = self.get_shell2_fitness_AA(CN2_list, NN2)
             shell1_fitness_AB = self.get_shell1_fitness_AB(CN1_list, concentrations, NN1)
-            max_diff_element_fitness = self.get_max_diff_element_fitness(max_diff_element, configuration)
+            max_diff_element_fitness = self.get_max_diff_element_fitness(
+                max_diff_element, configuration)
             fitness = (
-                sum(shell1_fitness_AA.values())
-                + sum(max_diff_element_fitness.values())
-                + sum(shell1_fitness_AB.values())
-                + sum(shell2_fitness_AA.values())
+                    sum(shell1_fitness_AA.values())
+                    # + sum(max_diff_element_fitness.values())
+                    # + sum(shell1_fitness_AB.values())
+                    # + sum(shell2_fitness_AA.values())
             )
 
             pop_fitness.append(fitness)
+        # logger.info('shell1_fitness_AA:{:9.4f} \t shell1_fitness_AB: {:9.4f}  \t  max_diff_element_fitness: {:9.4f}'.format(
+        #     sum(shell1_fitness_AA.values()), sum(shell1_fitness_AB.values()), sum(max_diff_element_fitness.values())))
 
         return np.array(pop_fitness)
 
@@ -264,31 +200,40 @@ class NnGa:
     def make_next_generation(self, previous_population, rate=None, key=None):
         """
         population is supposed to be sorted by fitness
+        previous_population: list of list
         """
+        # logger.info('Start Mutation')
         if rate is None:
             rate = self.rate
 
         if key is not None:
-            sorted_by_fitness_population = self.sort_population_by_fitness(previous_population, key)
+            sorted_by_fitness_population = self.sort_population_by_fitness(
+                previous_population, key)
         else:
             sorted_by_fitness_population = previous_population
+
         population_size = len(previous_population)
 
         top_size = int(np.ceil(population_size * rate))
 
         # take top 25%
+        # list of list
         top_population = sorted_by_fitness_population[:top_size]
 
         next_generation = top_population
 
         # randomly mutate the weights of the top 25% of structures to make up
         # the remaining 75%
-        selection = self.choice_random(top_population, (population_size - top_size))
-        selections = [self.mutate(selec) for selec in selection]
+        selections = self.choice_random(
+            top_population, (population_size - top_size))  # list of list
+
+        mutants = [[self.mutate(selec) for selec in selection]
+                   for selection in selections]
 
         # # crossover 2 random items
         # choice = random.sample(range(top_size), k=2)
         # selections[choice[0]], selections[choice[1]] = self.cxOnePoint(selections[choice[0]], selections[choice[1]])
-        next_generation.extend(selections)
+        next_generation.extend(mutants)
 
+        # logger.info('Mutation completed')
         return next_generation

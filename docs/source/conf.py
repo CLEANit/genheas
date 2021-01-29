@@ -23,7 +23,7 @@ sys.path.insert(0, os.path.abspath('../../hea'))
 
 # -- Project information -----------------------------------------------------
 thisyear = datetime.datetime.now().year
-project = hea.__name__
+project = 'PyHEA'
 author = hea.__author__
 copyright = '{}, {} (National Reserved Council Canada'.format(thisyear, author)
 
@@ -64,6 +64,7 @@ add_module_names = False
 # a list of builtin themes.
 #
 html_theme = 'sphinx_rtd_theme'
+
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

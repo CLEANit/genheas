@@ -4,246 +4,431 @@ Created on Fri Oct 16 23:27:41 2020
 
 @author: Conrard TETSASSI
 """
-import glob
+import datetime
 import os
 import pathlib
 import pickle
 import random
 import time
+from math import prod
+import multiprocessing as mp
 
-import ase
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 import torch
-import torch.nn.init as init
-from hea.tools.alloysgen import AlloysGen, coordination_numbers, properties_list
+import yaml
+import glob
+# import torch.nn.init as init
+from pymatgen.io.ase import AseAtomsAdaptor
+
+from hea.tools.alloysgen import (
+    AlloysGen,
+    coordination_numbers,
+    properties_list,
+)
 from hea.tools.feedforward import Feedforward
 from hea.tools.log import logger
 from hea.tools.nn_ga_model import NnGa
-from pymatgen.io.ase import AseAtomsAdaptor
+
+# Scheduler import
+# from torch.optim.lr_scheduler import StepLR
+
+# import EarlyStopping
+# from pytorchtools import EarlyStopping
+
+# Set seed
+# torch.manual_seed(0)
 
 sns.set()
 
+opt_parameters_list = ['nb_atom', 'device', 'rate', 'alpha', 'nb_generation', 'nb_policies', 'nb_network_per_policy',
+                       'opt_time', 'input_size', 'output_size', 'step_time']
+
+
+# data_filepath = "training_data/{}a-{}p-{}n-{}m.csv".format(alpha,nb_policies,nb_network_per_policy)
+
+# By default we skip the first row, which contains the headers
+# By skipping 2 rows, you can disregard the first data-point (0,0) to get
+# a closer look
+def plot_optimization(data_filepath, skiprows=1):
+    plt.close()
+    for filename in glob.glob(data_filepath + '/*.csv'):
+        x, y = np.loadtxt(filename, delimiter=',',
+                          unpack=True, usecols=(0, 1), skiprows=skiprows)
+        plt.plot(x, y, label=os.path.basename(filename).split('.csv')[0], linewidth=3)
+
+    plt.xlabel('Generation', fontsize=16)
+    plt.ylabel('Fitness function', fontsize=16)
+    plt.title('Optimization Curve', fontsize=20)
+    plt.yticks(fontsize=16)
+    plt.xticks(fontsize=16)
+    plt.legend(fontsize=15, loc='upper right')
+    plt.savefig(f'{data_filepath}/optimization_curve.png',
+                dpi=600, transparent=True, bbox_inches='tight')
+    plt.show()
+
+
+def training_0(AlloyGen, structure, element_pool, nb_network_per_policy, input_size, output_size, cutoff, device='cpu'):
+    """
+    :param output_size:
+    :param input_size:
+    :param nb_network_per_policy:
+    :param AlloyGen:
+    :param structure:
+    :param element_pool:
+    :param cutoff:
+    :param device:
+    :return:
+    """
+
+    networks = [Feedforward(input_size, output_size)
+                for i in range(nb_network_per_policy)]
+    networks = [network.to(device) for network in networks]
+
+    network_weights = [network.l1.weight.data for network in networks]
+
+    # random.shuffle(atom_list)
+    # atoms.set_chemical_symbols(atom_list)
+
+    structureX = AseAtomsAdaptor.get_structure(structure)
+
+    configuration = AlloyGen.generate_configuration(
+        structureX, element_pool, cutoff, networks, device=device)
+
+    return configuration, network_weights
+
+
+def training_1(AlloyGen, networks, network_weights, structure, element_pool, nb_network_per_policy, input_size,
+               output_size,
+               cutoff, device='cpu'):
+    """
+    :param networks:
+    :param network_weights:
+    :param output_size:
+    :param input_size:
+    :param nb_network_per_policy:
+    :param AlloyGen:
+    :param structure:
+    :param element_pool:
+    :param cutoff:
+    :param device:
+    :return:
+    """
+    #
+
+    for j, w in enumerate(network_weights):
+        networks[j].l1.weight = torch.nn.Parameter(w)
+
+    # random.shuffle(atom_list)
+    # atoms.set_chemical_symbols(atom_list)
+
+    structureX = AseAtomsAdaptor.get_structure(structure)
+
+    configuration = AlloyGen.generate_configuration(
+        structureX, element_pool, cutoff, networks, device=device)
+
+    return configuration
+
 
 def train_policy(
-    crystal_structure,
-    element_pool,
-    concentrations,
-    nb_generation,
-    train_size,
-    device='cpu',
-    rate=0.25,
-    alpha=0.1,
-    oxidation_states=None,
-    guess_weight=None,
-    min_mean_fitness=0.01,
+        crystal_structure,
+        element_pool,
+        concentrations,
+        nb_generation,
+        cell_size,
+        cell_param,
+        device='cpu',
+        rate=0.25,
+        alpha=0.1,
+        nn_per_policy=1,
+        nb_policies=8,
+        oxidation_states=None,
+        fitness_minimum=0,
+        patience=100
 ):
+    """
+    :param patience: (int) nb generations to wait before early stop
+    :param fitness_minimum: (float) minimum fitness to reach
+    :param oxidation_states: (dict) {'Ag': 0, 'Pd': 0}
+    :param nb_generation: (int) number of generation to run
+    :param nb_policies: (int) number of policies = input structures
+    :param nn_per_policy: (int) number of network per policy
+    :param alpha: (float) scaling factor for the weight mutation
+    :param rate: (float) % of policy to keep at each generation
+    :param device: cpu or gpu
+    :param cell_param: (array) lattice constant of the input structure [3.61, 3.61, 3.61]
+    :param cell_size: (array) size of the input structure  [4,4,4]
+    :param concentrations: (dict) concentration of each element {'Ag': 0.5, 'Pd': 0.5}
+    :param element_pool: list of element ['Ag', 'Pd']
+    :param crystal_structure: (str) 'fcc' 'bcc' 'hpc'
+    :return: list with the best weight
+    """
     # ==========================  Initialization  ============================
+
+    logger.info(
+        f'Input parameters:: alpha [{alpha}]\t rate [{rate}] \t device [{device}]')
     # early_stop = False
-    n_generations_stop = 6
+    n_generations_stop = patience
     generations_no_improve = 0
+
     # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     GaNn = NnGa(rate=rate, alpha=alpha, device=device)
-    AlloyGen = AlloysGen(element_pool, concentrations, crystal_structure, oxidation_states)
+    AlloyGen = AlloysGen(
+        element_pool,
+        concentrations,
+        crystal_structure,
+        oxidation_states)
 
-    combinations = AlloyGen.get_combination(element_pool)
+    # combinations = AlloyGen.get_combination(element_pool)
 
     nb_species = len(element_pool)
-    output = os.path.join(str(nb_species) + '_elemetns', 'model_' + str(nb_generation))
+    output = os.path.join(
+        str(nb_species) + '_elements',
+        'model_' + str(nb_generation))
 
     pathlib.Path(output).mkdir(parents=True, exist_ok=True)
 
-    NN_in_shell1 = coordination_numbers[crystal_structure][0]
-    NN_in_shell2 = coordination_numbers[crystal_structure][1]
-    NNeighbours = NN_in_shell1 + 1 + NN_in_shell2
+    nn_in_shell1 = coordination_numbers[crystal_structure][0]
+    nn_in_shell2 = coordination_numbers[crystal_structure][1]
+    n_neighbours = nn_in_shell1 + 1 + nn_in_shell2
 
-    input_size = NNeighbours * len(properties_list)
+    input_size = n_neighbours * len(properties_list)
 
     output_size = len(element_pool)
 
-    sorted_policies = None
-    iters = []
-    max_fitness = []
-    mean_fitness = []
-    nb_policies = 10
-    nb_config = 10
-    # policies_fitness = None
+    sorted_weights_list = None
+    iter = 0
+    min_fitness = []
+    nb_network_per_policy = nn_per_policy
+    nb_policies = nb_policies
 
     # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    my_model = Feedforward(input_size, output_size)
-    my_model.to(device)
-
+    # my_model = Feedforward(input_size, output_size)
+    # my_model.to(device)
     since0 = time.time()
-    with torch.set_grad_enabled(False):
-        for generation in range(nb_generation):
-            since = time.time()
 
-            # rand_number = random.randint(1,10)
-            name = 'structure'
-            files = glob.glob(f'training_data/{crystal_structure}/clusters_{train_size}/{name}_*.cif')
-            structure = random.choice(files)
-            atoms = ase.io.read(structure)
-            max_diff_elements = AlloyGen.get_max_diff_elements(element_pool, concentrations, len(atoms))
+    nb_atom = AlloyGen.get_number_of_atom(crystal_structure, cell_size, cubik=False, direction=None)
 
-            atom_list = [element_pool[0]] * len(atoms)
+    max_diff_elements = AlloyGen.get_max_diff_elements(
+        element_pool, concentrations, nb_atom)
 
-            atoms.set_chemical_symbols(atom_list)
+    if not prod(cell_size) == sum(max_diff_elements.values()):
+        logger.error(
+            'the size : [{}] and the max_diff_elem : [{}] are not consistent'.format(
+                prod(cell_size), sum(max_diff_elements.values())
+            )
+        )
+        raise Exception(
+            'the size : [{}] and the max_diff_elem : [{}] are not consistent'.format(
+                prod(cell_size), sum(max_diff_elements.values())
+            )
+        )
 
-            structureX = AseAtomsAdaptor.get_structure(atoms)
-            # structureX =  AlloyGen.gen_raw_crystal(crystalstructure, cell_size,cell_parameters,
-            # element=elements_pool[0]) structureX = AlloyGen.gen_random_crystal_3D(crystalstructure, [elements_pool[
-            # 0]], Nb_elements)
+    # atoms = AlloyGen.gen_random_structure(crystal_structure, cell_size, max_diff_elements, cell_param)
+    logger.info('Generating the Input structure')
+    n_input = nb_policies
+    # input_structures, _ = AlloyGen.gen_alloy_supercell(element_pool, concentrations, crystal_structure, cell_size,
+    #                                                    n_input, lattice_param=cell_param)
 
-            # cell_param = np.array(structureX.lattice.abc)
+    # atom_list = ['Ag', 'Pd', 'Ag', 'Pd',
+    #              'Pd', 'Ag', 'Pd', 'Ag',
+    #              'Ag', 'Pd', 'Ag', 'Pd',
+    #              'Pd', 'Ag', 'Pd', 'Ag',
+    #              'Pd', 'Ag', 'Pd', 'Ag',
+    #              'Ag', 'Pd', 'Ag', 'Pd',
+    #              'Pd', 'Ag', 'Pd', 'Ag',
+    #              'Ag', 'Pd', 'Ag', 'Pd',
+    #              'Ag', 'Pd', 'Ag', 'Pd',
+    #              'Pd', 'Ag', 'Pd', 'Ag',
+    #              'Ag', 'Pd', 'Ag', 'Pd',
+    #              'Pd', 'Ag', 'Pd', 'Ag',
+    #              'Pd', 'Ag', 'Pd', 'Ag',
+    #              'Ag', 'Pd', 'Ag', 'Pd',
+    #              'Pd', 'Ag', 'Pd', 'Ag',
+    #              'Ag', 'Pd', 'Ag', 'Pd']
+    #
+    #
+    # for i, _ in enumerate(input_structures):
+    #     input_structures[i].set_chemical_symbols(atom_list)
 
-            cutoff = 4.0  # by default train cell was created
+    # input_structures = [input_structures[0] for i in range(nb_policies)]
+    # nb_atoms = len(input_structures[0])
 
-            # max_diff_elements = AlloyGen.get_max_diff_elements(element_pool, concentrations, structureX.num_sites)
+    # atom_list = []
+    # for key, value in max_diff_elements.items():
+    #     atom_list.extend([key] * value)
 
-            if sorted_policies is None:  # first iteration
+    # cell_param = np.array(structureX.lattice.abc)
 
-                policies_fitnesses = []
-                policies = []
-                for i in range(nb_policies):
+    logger.info(f'max_diff_elements: {max_diff_elements}')
+    logger.info(f'Number of policies: {n_input}')
+    logger.info(f'Number of ANN per policy: {nn_per_policy}')
+    logger.info(f'Number of atoms in the  input structure: {nb_atom}')
 
-                    my_model = Feedforward(input_size, output_size)
-                    # init.normal_(model.l1.weight, mean=0, std=1)
+    cutoff = cell_param[0]
+    logger.info('Start Optimization')
+    # with torch.set_grad_enabled(False):
+    networks = None
 
-                    if i == 0 and guess_weight is not None:
-                        try:
-                            my_model.l1.weight = torch.nn.parameter.Parameter(guess_weight)
-                            logger.info('+' * 5, f'policy {i} initilized with guess weight')
-                            # print('+' * 5, 'policy {} initilized with guess weight'.format(i))
-                        except Exception as err:
-                            logger.warning('Warning: error in guess weight')
-                            logger.error(f'{err}')
-                            # print('+' * 5,'Warning: error in guess weight:',print(e))
-                            pass
-                    # model.to(device)
-                    policies.append(my_model.l1.weight.data)
-                    if i < 1:
-                        pass
-                    elif torch.all(torch.eq(policies[i - 1], policies[i])):
-                        logger.warning('*' * 5, 'Warning: Initial weight are identical to previous', '*' * 5)
-                    configurations = []
-                    for _ in range(nb_config):
-                        configurations.append(
-                            AlloyGen.gen_configuration(structureX, element_pool, cutoff, my_model, device=device)
-                        )
+    input_structures, _ = AlloyGen.gen_alloy_supercell(element_pool, concentrations, crystal_structure, cell_size,
+                                                       n_input, lattice_param=cell_param)
 
-                    configurations_fitness = GaNn.get_population_fitness(
-                        configurations, concentrations, max_diff_elements, element_pool, crystal_structure, cutoff
-                    )
+    input_structures = [input_structures[0] for i in range(nb_policies)]
+    for generation in range(nb_generation):
+        since = time.time()
 
-                    policies_fitnesses.append(configurations_fitness)  # list of array
+        if networks is None:  # first iteration
 
-                policies_avg_fitnesses = [np.mean(array) for array in policies_fitnesses]
+            network_weights_list = []
+            configurations = []
 
-                policies_avg_fitnesses = np.array(policies_avg_fitnesses)
+            for _, structure in enumerate(input_structures):
+                networks = [Feedforward(input_size, output_size)
+                            for i in range(nb_network_per_policy)]
+                networks = [network.to(device) for network in networks]
 
-                # Rank the policies
+                network_weights = [network.l1.weight.data for network in networks]
 
-                sorted_policies = GaNn.sort_population_by_fitness(policies, policies_avg_fitnesses)
+                # random.shuffle(atom_list)
+                # atoms.set_chemical_symbols(atom_list)
 
-                sorted_policies_fitnesses = GaNn.sort_population_by_fitness(policies_fitnesses, policies_avg_fitnesses)
-                # best_policies = sorted_policies[0]
+                structureX = AseAtomsAdaptor.get_structure(structure)
 
-            else:
-
-                policies = GaNn.make_next_generation(sorted_policies)
-
-                policies_fitnesses = []
-                for _ in range(nb_policies):
-                    weights = policies[i]
-                    my_model.l1.weight = torch.nn.parameter.Parameter(weights)
-
-                    configurations = []
-                    for _ in range(nb_config):
-                        configurations.append(
-                            AlloyGen.gen_configuration(structureX, element_pool, cutoff, my_model, device=device)
-                        )
-
-                    configurations_fitness = GaNn.get_population_fitness(
-                        configurations, concentrations, max_diff_elements, element_pool, crystal_structure, cutoff
-                    )
-
-                    policies_fitnesses.append(configurations_fitness)  # list of array
-
-                policies_avg_fitnesses = [np.mean(array) for array in policies_fitnesses]
-
-                policies_avg_fitnesses = np.array(policies_avg_fitnesses)
-
-                # Rank the policies
-
-                sorted_policies = GaNn.sort_population_by_fitness(policies, policies_avg_fitnesses)
-
-                sorted_policies_fitnesses = GaNn.sort_population_by_fitness(policies_fitnesses, policies_avg_fitnesses)
-
-            # save the current training information
-
-            iters.append(generation)
-            max_fitness.append(np.max(sorted_policies_fitnesses[0]))
-
-            # compute *average* objective
-            mean_fitness.append(np.mean(sorted_policies_fitnesses[0]))
-
-            logger.info(
-                'generation: {:6d} | *** mean fitness {:10.6f} *** Time: {:.1f}s'.format(
-                    generation, mean_fitness[generation], time.time() - since
+                configuration = AlloyGen.generate_configuration(
+                    structureX, element_pool, cutoff, networks, device=device
                 )
+
+                configurations.append(configuration)
+                network_weights_list.append(network_weights)
+
+            # pool = mp.Pool(mp.cpu_count())
+            # results = pool.starmap(training_0, [
+            #     (AlloyGen, structure, element_pool, nb_network_per_policy, input_size, output_size, cutoff) for
+            #     structure in input_structures])
+            # pool.close()
+            # configurations = [result[0] for result in results]
+            # network_weights_list = [result[1] for result in results]
+
+            configurations_fitness = GaNn.get_population_fitness(
+                configurations, concentrations, max_diff_elements, element_pool, crystal_structure, cutoff
             )
 
-            if mean_fitness[generation] < min_mean_fitness:
+            # Rank the policies
 
-                generations_no_improve = 0
-                min_mean_fitness = mean_fitness[generation]
+            sorted_weights_list = GaNn.sort_population_by_fitness(
+                network_weights_list, configurations_fitness)  # list of list
 
-                PATH = f'{output}/early_model_{nb_generation}.pth'
-                logger.info(f'model [{output}/early_model_{nb_generation}.pth] saved')
-                torch.save(my_model.state_dict(), PATH)
-            else:
-                generations_no_improve += 1
+            # sorted_configurations_fitness = GaNn.sort_population_by_fitness(configurations_fitness,
+            #                                                                 configurations_fitness)
+            # print(sorted_configurations_fitness)
 
-            if generation > 5 and generations_no_improve == n_generations_stop:
-                logger.warning('Early stopping!')
-                # early_stop = True
-                break
-            else:
-                continue
+        else:
+
+            network_weights_list = GaNn.make_next_generation(
+                sorted_weights_list, rate=rate)  # list of list
+
+            configurations = []
+            for i, structure in enumerate(input_structures):
+
+                network_weights = network_weights_list[i]
+
+                for j, w in enumerate(network_weights):
+                    networks[j].l1.weight = torch.nn.Parameter(w)
+                # random.shuffle(atom_list)
+                # atoms.set_chemical_symbols(atom_list)
+
+                structureX = AseAtomsAdaptor.get_structure(structure)
+
+                configuration = AlloyGen.generate_configuration(
+                    structureX, element_pool, cutoff, networks, device=device
+                )
+
+                configurations.append(configuration)
+
+            # pool = mp.Pool(mp.cpu_count())
+            # configurations = pool.starmap(training_1, [(
+            #     AlloyGen, networks, network_weights, structure, element_pool, nb_network_per_policy, input_size,
+            #     output_size, cutoff) for
+            #     network_weights, structure in zip(network_weights_list, input_structures)])
+            # pool.close()
+
+            configurations_fitness = GaNn.get_population_fitness(
+                configurations, concentrations, max_diff_elements, element_pool, crystal_structure, cutoff
+            )
+
+            # Rank the policies
+
+            sorted_weights_list = GaNn.sort_population_by_fitness(
+                network_weights_list, configurations_fitness)  # list of list
+
+            # sorted_configurations_fitness = GaNn.sort_population_by_fitness(configurations_fitness,
+            #                                                                 configurations_fitness)
+            # print(sorted_configurations_fitness)
+
+        # save the current training information
+
+        step_time = time.time() - since
+        min_fitness.append(
+            [generation + 1, np.min(configurations_fitness), step_time])
+
+        # compute *average* objective
+        # mean_fitness.append(
+        #     [generation + 1, np.mean(configurations_fitness), step_time])
+
+        logger.info(
+            'generation: {:6d}/{} |fitness {:10.6f} *** time/step: {:.1f}s'.format(
+                generation + 1, nb_generation, np.min(configurations_fitness), step_time
+            )
+        )
+
+        if min_fitness[generation][1] < fitness_minimum:
+
+            generations_no_improve = 0
+            min_fitness = min_fitness[generation][1]
+        # torch.save(my_model.state_dict(), PATH)
+        else:
+            generations_no_improve += 1
+
+        if generation > 5 and generations_no_improve == n_generations_stop:
+            logger.warning('Early stopping!')
+            # early_stop = True
+            # PATH = f'{output}/early_model_{nb_generation}.pth'
+            logger.info('Weights Saved')
+            pickle.dump(
+                sorted_weights_list[0], open(
+                    f'{output}/ES_weights_{alpha}a-{nb_policies}p-{nb_network_per_policy}n.pkl', 'wb'))
             break
+        else:
+            continue
+        break
 
-    weights = sorted_policies[0]
-    my_model.l1.weight = torch.nn.parameter.Parameter(weights)
-    PATH = f'{output}/model_{nb_generation}.pth'
-    logger.info(f'model [{output}/model_{nb_generation}.pth] saved')
-    torch.save(my_model.state_dict(), PATH)
-    pickle.dump(weights, open(f'{output}/best_policy_{nb_generation}.pkl', 'wb'))
+    logger.info('Optimization completed')
+    best_policy = sorted_weights_list[0]
 
-    logger.info(f'Best policy saved in  [{output}/best_policy_{nb_generation}.pkl]')
-    max_fitness = np.array(max_fitness)
-    mean_fitness = np.array(mean_fitness)
+    pickle.dump(best_policy, open(f'{output}/BestWeights_{alpha}a-{nb_policies}p-{nb_network_per_policy}n.pkl', 'wb'))
 
-    logger.info('Total traning time :  {}'.format(time.time() - since0))
-    # pickle.dump(max_fitness, open('max_objective_{}.pkl'.format(nb_generation), 'wb'))
-    # pickle.dump(mean_fitness, open('mean_objective_{}.pkl'.format(nb_generation), 'wb'))
+    logger.info(f'Best policy saved in  [{output}/BestWeights_{alpha}a-{nb_policies}p-{nb_network_per_policy}n.pkl]')
+    min_fitness = np.array(min_fitness)
+    # mean_fitness = np.array(mean_fitness)
+    opt_time = time.time() - since0
+    logger.info('Cumulative optimization time after  {} generations [h:m:s] ::  {}'.format(
+        generation + 1, str(datetime.timedelta(seconds=opt_time))))
+    np.savetxt('{}/{}a-{}p-{}n.csv'.format(output, alpha, nb_policies, nb_network_per_policy), min_fitness,
+               delimiter=",", header='Generation, min_fitness, time')
+    # np.savetxt('{}/mean_fitness.csv'.format(output), mean_fitness, delimiter=",",
+    #            header='Generation, min_fitness, time')
 
-    # plotting
-    # fig = plt.figure(figsize = (8, 8))
+    plot_optimization(output, skiprows=1)
 
-    plt.clf()
-    plt.plot(iters, np.log(max_fitness), label='Log (max_fitness)', linewidth=1)
-    plt.plot(iters, np.log(mean_fitness), label='Log (mean_fitness)', linewidth=1)
+    nb_atoms = len(input_structures[0])
+    opt_parameters = {}
+    for param in opt_parameters_list:
+        opt_parameters[param] = eval(param)
 
-    plt.xlabel('Generation', fontsize=15)
-    plt.ylabel('')
-    plt.title('Fitness of the best policy ')
+    with open(f'{output}/opt_parameters_{alpha}a-{nb_policies}p-{nb_network_per_policy}n.yml', 'w') as yaml_file:
+        yaml.dump(opt_parameters, yaml_file, default_flow_style=False)
 
-    plt.legend(fontsize=12, loc='upper left')
-    plt.savefig(f'{output}/training_{nb_generation}.png', dpi=600, transparent=True, bbox_inches='tight')
-
-    plt.show()
-
-    return sorted_policies[0]
+    return sorted_weights_list[0]

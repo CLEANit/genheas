@@ -13,9 +13,9 @@ see docs for documentation, reporting bugs, and getting support.
 Developing and Contributing
 ---------------------------
 See
-`contributing.md <https://https://github.com/CLEANit/pyHEA/blob/master/docs/contributing.rst>`_
+`contributing.md <https://https://github.com/CLEANit/pyHEA/docs/contributing.rst>`_
 for guidelines on running tests, adding features, coding style, and updating
-documentation when developing in or contributing to Pyramid.
+documentation when developing in or contributing to PyHEA
 
 
 

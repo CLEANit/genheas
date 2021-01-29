@@ -1,5 +1,5 @@
 import torch.nn as nn
-
+import torch
 # import torch.nn.functional as F
 
 
@@ -10,8 +10,9 @@ class Feedforward(nn.Module):
         self.output_size = output_size
 
         self.l1 = nn.Linear(self.input_size, self.output_size, bias=True)
-        # init.normal_(self.l1.weight, mean=0, std=1)
-        # self.softmax = nn.Softmax(dim=1)
+        # torch.nn.init.normal_(self.l1.weight, mean=0, std=1)
+        # torch.nn.init.xavier_uniform_(self.l1.weight, gain=1.0)
+
         self.softmax = nn.Softmax(dim=-1)
 
     def forward(self, x):

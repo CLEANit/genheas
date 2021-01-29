@@ -3,16 +3,16 @@
 @Time    : 04 Jan 9:47 a.m. 2021
 @Author  : Conrard Tetsassi
 @Email   : giresse.feugmo@gmail.com
-@File    : hea_gen.py
+@File    : optimize.py
 @Project : pyHEA
 @Software: PyCharm
 """
-import glob
+
 import os
 
-import numpy as np
 import torch
 import yaml
+
 from hea import generate
 from hea.tools.alloysgen import coordination_numbers, properties_list
 from hea.tools.feedforward import Feedforward
@@ -20,10 +20,11 @@ from hea.tools.log import logger
 from hea.train import train_policy
 
 # ========================== Read Parameters  ============================
+
+input_file = 'parameters.yml'
 try:
-    with open(os.path.join('./', 'parameters.yml')) as fr:
+    with open(os.path.join('./', input_file)) as fr:
         parameters = yaml.safe_load(fr)
-        logger.info('Parameters have been retrieved')
 except Exception as err:
     logger.error(f'{err}')
     raise Exception(f'{err}')
@@ -38,62 +39,75 @@ rate = parameters['rate']
 alpha = parameters['alpha']
 device = parameters['device']
 
+nn_per_policy = parameters['nn_per_policy']
+nb_policies = parameters['nb_policies']
+patience = parameters['patience']
+
 nb_species = len(elements_pool)
 
 nb_structures = parameters['nb_structures']
-generation = parameters['generation']
-size = parameters['size']
-
+generation = parameters['nb_generation']
+training_size = parameters['cell_size']
+supercell_size = parameters['supercell_size']
+# cube = parameters['cubic']
 # ==========================  Analyze Parameters  ============================
 
 if not list(oxidation_states.keys()) == elements_pool:
+    logger.error('<oxidation_states> should match <elements_pool>')
     raise Exception('<oxidation_states> should match <elements_pool>')
 elif sum(oxidation_states.values()) != 0:
+    logger.error('sum of oxidation states should be 0')
     raise Exception('sum of oxidation states should be 0')
 
-training_files = glob.glob(f'training_data/{crystal_structure}/clusters*')
-training_sizes = [x.split('/')[-1].split('_')[-1] for x in training_files]
-training_sizes.sort(reverse=True)
+logger.info('Input parameters have been retrieved')
 
-composition = np.array(list(concentrations.values()))
-composition = composition / np.min(composition)
-min_nb_atoms = int(np.sum(composition))
+nn_in_shell1 = coordination_numbers[crystal_structure][0]
+nn_in_shell2 = coordination_numbers[crystal_structure][1]
+n_neighbours = nn_in_shell1 + 1 + nn_in_shell2
 
-training_size = next(x for x in training_sizes if int(x) >= min_nb_atoms)
-
-if min_nb_atoms < 8:
-    training_size = 16
-
-NN_in_shell1 = coordination_numbers[crystal_structure][0]
-NN_in_shell2 = coordination_numbers[crystal_structure][1]
-NNeighbours = NN_in_shell1 + 1 + NN_in_shell2
-
-input_size = NNeighbours * len(properties_list)
+input_size = n_neighbours * len(properties_list)
 
 output_size = len(elements_pool)
 
-# ==============================  Training ===============================
 
+# ==============================  Training ===============================
 
 for generation in generations:
     nb_generation = generation
-    # Feedforward
     best_policy = train_policy(
         crystal_structure,
         elements_pool,
         concentrations,
         nb_generation,
         training_size,
-        oxidation_states=oxidation_states,
-    )
+        cell_parameters,
+        rate=rate,
+        alpha=alpha,
+        nn_per_policy=nn_per_policy,
+        nb_policies=nb_policies,
+        patience=patience,
+        oxidation_states=oxidation_states)
+
 
     # ============================  Generation  ==========================
 
-    output = os.path.join(str(nb_species) + '_elemetns', 'model_' + str(nb_generation))
-    if generation:
-        model = Feedforward(input_size, output_size)
-        model.to(device)
-        model.l1.weight = torch.nn.parameter.Parameter(best_policy)
-        generate.generate_structure(
-            model, output, elements_pool, concentrations, crystal_structure, size, cell_parameters
-        )
+    output = os.path.join(
+        str(nb_species) + '_elements',
+        'model_' + str(nb_generation))
+
+    networks = [Feedforward(input_size, output_size)
+                for i in range(len(best_policy))]
+    networks = [network.to(device) for network in networks]
+
+    for j, w in enumerate(best_policy):
+        networks[j].l1.weight = torch.nn.Parameter(w)
+
+    generate.generate_structure(
+        networks,
+        output,
+        elements_pool,
+        concentrations,
+        crystal_structure,
+        training_size,
+        cell_parameters,
+        constraints=False)

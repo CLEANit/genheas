@@ -5,20 +5,20 @@ Created on Fri Oct 16 23:27:41 2020
 @author: Conrard TETSASSI
 """
 import datetime
+import glob
+import multiprocessing as mp
 import os
 import pathlib
 import pickle
 import random
 import time
 from math import prod
-import multiprocessing as mp
 
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 import torch
 import yaml
-import glob
 # import torch.nn.init as init
 from pymatgen.io.ase import AseAtomsAdaptor
 
@@ -42,8 +42,19 @@ from hea.tools.nn_ga_model import NnGa
 
 sns.set()
 
-opt_parameters_list = ['nb_atom', 'device', 'rate', 'alpha', 'nb_generation', 'nb_policies', 'nb_network_per_policy',
-                       'opt_time', 'input_size', 'output_size', 'step_time']
+opt_parameters_list = [
+    'nb_atom',
+    'device',
+    'rate',
+    'alpha',
+    'nb_generation',
+    'nb_policies',
+    'nb_network_per_policy',
+    'opt_time',
+    'input_size',
+    'output_size',
+    'step_time',
+]
 
 
 # data_filepath = "training_data/{}a-{}p-{}n-{}m.csv".format(alpha,nb_policies,nb_network_per_policy)
@@ -54,8 +65,7 @@ opt_parameters_list = ['nb_atom', 'device', 'rate', 'alpha', 'nb_generation', 'n
 def plot_optimization(data_filepath, skiprows=1):
     plt.close()
     for filename in glob.glob(data_filepath + '/*.csv'):
-        x, y = np.loadtxt(filename, delimiter=',',
-                          unpack=True, usecols=(0, 1), skiprows=skiprows)
+        x, y = np.loadtxt(filename, delimiter=',', unpack=True, usecols=(0, 1), skiprows=skiprows)
         plt.plot(x, y, label=os.path.basename(filename).split('.csv')[0], linewidth=3)
 
     plt.xlabel('Generation', fontsize=16)
@@ -64,8 +74,7 @@ def plot_optimization(data_filepath, skiprows=1):
     plt.yticks(fontsize=16)
     plt.xticks(fontsize=16)
     plt.legend(fontsize=15, loc='upper right')
-    plt.savefig(f'{data_filepath}/optimization_curve.png',
-                dpi=600, transparent=True, bbox_inches='tight')
+    plt.savefig(f'{data_filepath}/optimization_curve.png', dpi=600, transparent=True, bbox_inches='tight')
     plt.show()
 
 
@@ -82,8 +91,7 @@ def training_0(AlloyGen, structure, element_pool, nb_network_per_policy, input_s
     :return:
     """
 
-    networks = [Feedforward(input_size, output_size)
-                for i in range(nb_network_per_policy)]
+    networks = [Feedforward(input_size, output_size) for i in range(nb_network_per_policy)]
     networks = [network.to(device) for network in networks]
 
     network_weights = [network.l1.weight.data for network in networks]
@@ -93,15 +101,23 @@ def training_0(AlloyGen, structure, element_pool, nb_network_per_policy, input_s
 
     structureX = AseAtomsAdaptor.get_structure(structure)
 
-    configuration = AlloyGen.generate_configuration(
-        structureX, element_pool, cutoff, networks, device=device)
+    configuration = AlloyGen.generate_configuration(structureX, element_pool, cutoff, networks, device=device)
 
     return configuration, network_weights
 
 
-def training_1(AlloyGen, networks, network_weights, structure, element_pool, nb_network_per_policy, input_size,
-               output_size,
-               cutoff, device='cpu'):
+def training_1(
+    AlloyGen,
+    networks,
+    network_weights,
+    structure,
+    element_pool,
+    nb_network_per_policy,
+    input_size,
+    output_size,
+    cutoff,
+    device='cpu',
+):
     """
     :param networks:
     :param network_weights:
@@ -125,29 +141,32 @@ def training_1(AlloyGen, networks, network_weights, structure, element_pool, nb_
 
     structureX = AseAtomsAdaptor.get_structure(structure)
 
-    configuration = AlloyGen.generate_configuration(
-        structureX, element_pool, cutoff, networks, device=device)
+    configuration = AlloyGen.generate_configuration(structureX, element_pool, cutoff, networks, device=device)
 
     return configuration
 
 
 def train_policy(
-        crystal_structure,
-        element_pool,
-        concentrations,
-        nb_generation,
-        cell_size,
-        cell_param,
-        device='cpu',
-        rate=0.25,
-        alpha=0.1,
-        nn_per_policy=1,
-        nb_policies=8,
-        oxidation_states=None,
-        fitness_minimum=0,
-        patience=100
+    crystal_structure,
+    element_pool,
+    concentrations,
+    nb_generation,
+    cell_size,
+    cell_param,
+    device='cpu',
+    rate=0.25,
+    alpha=0.1,
+    nn_per_policy=1,
+    nb_policies=8,
+    oxidation_states=None,
+    fitness_minimum=0,
+    patience=100,
+    cubik=False,
+    direction=None,
 ):
     """
+    :param direction:
+    :param cubik:
     :param patience: (int) nb generations to wait before early stop
     :param fitness_minimum: (float) minimum fitness to reach
     :param oxidation_states: (dict) {'Ag': 0, 'Pd': 0}
@@ -166,8 +185,7 @@ def train_policy(
     """
     # ==========================  Initialization  ============================
 
-    logger.info(
-        f'Input parameters:: alpha [{alpha}]\t rate [{rate}] \t device [{device}]')
+    logger.info(f'Input parameters:: alpha [{alpha}]\t rate [{rate}] \t device [{device}]')
     # early_stop = False
     n_generations_stop = patience
     generations_no_improve = 0
@@ -175,18 +193,12 @@ def train_policy(
     # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     GaNn = NnGa(rate=rate, alpha=alpha, device=device)
-    AlloyGen = AlloysGen(
-        element_pool,
-        concentrations,
-        crystal_structure,
-        oxidation_states)
+    AlloyGen = AlloysGen(element_pool, concentrations, crystal_structure, oxidation_states)
 
     # combinations = AlloyGen.get_combination(element_pool)
 
     nb_species = len(element_pool)
-    output = os.path.join(
-        str(nb_species) + '_elements',
-        'model_' + str(nb_generation))
+    output = os.path.join(str(nb_species) + '_elements', 'model_' + str(nb_generation))
 
     pathlib.Path(output).mkdir(parents=True, exist_ok=True)
 
@@ -199,7 +211,7 @@ def train_policy(
     output_size = len(element_pool)
 
     sorted_weights_list = None
-    iter = 0
+    # iter = 0
     min_fitness = []
     nb_network_per_policy = nn_per_policy
     nb_policies = nb_policies
@@ -209,11 +221,9 @@ def train_policy(
     # my_model = Feedforward(input_size, output_size)
     # my_model.to(device)
     since0 = time.time()
+    nb_atom = AlloyGen.get_number_of_atom(crystal_structure, cell_size, cubik=cubik, direction=direction)
 
-    nb_atom = AlloyGen.get_number_of_atom(crystal_structure, cell_size, cubik=False, direction=None)
-
-    max_diff_elements = AlloyGen.get_max_diff_elements(
-        element_pool, concentrations, nb_atom)
+    max_diff_elements = AlloyGen.get_max_diff_elements(element_pool, concentrations, nb_atom)
 
     if not prod(cell_size) == sum(max_diff_elements.values()):
         logger.error(
@@ -223,45 +233,13 @@ def train_policy(
         )
         raise Exception(
             'the size : [{}] and the max_diff_elem : [{}] are not consistent'.format(
-                prod(cell_size), sum(max_diff_elements.values())
+                nb_atom, sum(max_diff_elements.values())
             )
         )
 
     # atoms = AlloyGen.gen_random_structure(crystal_structure, cell_size, max_diff_elements, cell_param)
     logger.info('Generating the Input structure')
     n_input = nb_policies
-    # input_structures, _ = AlloyGen.gen_alloy_supercell(element_pool, concentrations, crystal_structure, cell_size,
-    #                                                    n_input, lattice_param=cell_param)
-
-    # atom_list = ['Ag', 'Pd', 'Ag', 'Pd',
-    #              'Pd', 'Ag', 'Pd', 'Ag',
-    #              'Ag', 'Pd', 'Ag', 'Pd',
-    #              'Pd', 'Ag', 'Pd', 'Ag',
-    #              'Pd', 'Ag', 'Pd', 'Ag',
-    #              'Ag', 'Pd', 'Ag', 'Pd',
-    #              'Pd', 'Ag', 'Pd', 'Ag',
-    #              'Ag', 'Pd', 'Ag', 'Pd',
-    #              'Ag', 'Pd', 'Ag', 'Pd',
-    #              'Pd', 'Ag', 'Pd', 'Ag',
-    #              'Ag', 'Pd', 'Ag', 'Pd',
-    #              'Pd', 'Ag', 'Pd', 'Ag',
-    #              'Pd', 'Ag', 'Pd', 'Ag',
-    #              'Ag', 'Pd', 'Ag', 'Pd',
-    #              'Pd', 'Ag', 'Pd', 'Ag',
-    #              'Ag', 'Pd', 'Ag', 'Pd']
-    #
-    #
-    # for i, _ in enumerate(input_structures):
-    #     input_structures[i].set_chemical_symbols(atom_list)
-
-    # input_structures = [input_structures[0] for i in range(nb_policies)]
-    # nb_atoms = len(input_structures[0])
-
-    # atom_list = []
-    # for key, value in max_diff_elements.items():
-    #     atom_list.extend([key] * value)
-
-    # cell_param = np.array(structureX.lattice.abc)
 
     logger.info(f'max_diff_elements: {max_diff_elements}')
     logger.info(f'Number of policies: {n_input}')
@@ -273,12 +251,24 @@ def train_policy(
     # with torch.set_grad_enabled(False):
     networks = None
 
-    input_structures, _ = AlloyGen.gen_alloy_supercell(element_pool, concentrations, crystal_structure, cell_size,
-                                                       n_input, lattice_param=cell_param)
-
-    input_structures = [input_structures[0] for i in range(nb_policies)]
     for generation in range(nb_generation):
         since = time.time()
+        # input_structures, _ = AlloyGen.gen_alloy_supercell(
+        #     element_pool, concentrations, crystal_structure, cell_size, n_input, lattice_param=cell_param
+        # )
+
+        input_structures = [
+            AlloyGen.gen_random_structure(
+                crystal_structure,
+                cell_size,
+                max_diff_elements,
+                lattice_param=cell_param,
+                name=element_pool[0],
+                cubik=cubik,
+                surface=direction,
+            )
+            for _ in range(n_input)
+        ]
 
         if networks is None:  # first iteration
 
@@ -286,8 +276,7 @@ def train_policy(
             configurations = []
 
             for _, structure in enumerate(input_structures):
-                networks = [Feedforward(input_size, output_size)
-                            for i in range(nb_network_per_policy)]
+                networks = [Feedforward(input_size, output_size) for i in range(nb_network_per_policy)]
                 networks = [network.to(device) for network in networks]
 
                 network_weights = [network.l1.weight.data for network in networks]
@@ -319,7 +308,8 @@ def train_policy(
             # Rank the policies
 
             sorted_weights_list = GaNn.sort_population_by_fitness(
-                network_weights_list, configurations_fitness)  # list of list
+                network_weights_list, configurations_fitness
+            )  # list of list
 
             # sorted_configurations_fitness = GaNn.sort_population_by_fitness(configurations_fitness,
             #                                                                 configurations_fitness)
@@ -327,8 +317,7 @@ def train_policy(
 
         else:
 
-            network_weights_list = GaNn.make_next_generation(
-                sorted_weights_list, rate=rate)  # list of list
+            network_weights_list = GaNn.make_next_generation(sorted_weights_list, rate=rate)  # list of list
 
             configurations = []
             for i, structure in enumerate(input_structures):
@@ -362,7 +351,8 @@ def train_policy(
             # Rank the policies
 
             sorted_weights_list = GaNn.sort_population_by_fitness(
-                network_weights_list, configurations_fitness)  # list of list
+                network_weights_list, configurations_fitness
+            )  # list of list
 
             # sorted_configurations_fitness = GaNn.sort_population_by_fitness(configurations_fitness,
             #                                                                 configurations_fitness)
@@ -371,8 +361,7 @@ def train_policy(
         # save the current training information
 
         step_time = time.time() - since
-        min_fitness.append(
-            [generation + 1, np.min(configurations_fitness), step_time])
+        min_fitness.append([generation + 1, np.min(configurations_fitness), step_time])
 
         # compute *average* objective
         # mean_fitness.append(
@@ -398,8 +387,9 @@ def train_policy(
             # PATH = f'{output}/early_model_{nb_generation}.pth'
             logger.info('Weights Saved')
             pickle.dump(
-                sorted_weights_list[0], open(
-                    f'{output}/ES_weights_{alpha}a-{nb_policies}p-{nb_network_per_policy}n.pkl', 'wb'))
+                sorted_weights_list[0],
+                open(f'{output}/ES_weights_{alpha}a-{nb_policies}p-{nb_network_per_policy}n.pkl', 'wb'),
+            )
             break
         else:
             continue
@@ -414,16 +404,23 @@ def train_policy(
     min_fitness = np.array(min_fitness)
     # mean_fitness = np.array(mean_fitness)
     opt_time = time.time() - since0
-    logger.info('Cumulative optimization time after  {} generations [h:m:s] ::  {}'.format(
-        generation + 1, str(datetime.timedelta(seconds=opt_time))))
-    np.savetxt('{}/{}a-{}p-{}n.csv'.format(output, alpha, nb_policies, nb_network_per_policy), min_fitness,
-               delimiter=",", header='Generation, min_fitness, time')
+    logger.info(
+        'Cumulative optimization time after  {} generations [h:m:s] ::  {}'.format(
+            generation + 1, str(datetime.timedelta(seconds=opt_time))
+        )
+    )
+    np.savetxt(
+        '{}/{}a-{}p-{}n.csv'.format(output, alpha, nb_policies, nb_network_per_policy),
+        min_fitness,
+        delimiter=',',
+        header='Generation, min_fitness, time',
+    )
     # np.savetxt('{}/mean_fitness.csv'.format(output), mean_fitness, delimiter=",",
     #            header='Generation, min_fitness, time')
 
     plot_optimization(output, skiprows=1)
 
-    nb_atoms = len(input_structures[0])
+    # nb_atoms = len(input_structures[0])
     opt_parameters = {}
     for param in opt_parameters_list:
         opt_parameters[param] = eval(param)

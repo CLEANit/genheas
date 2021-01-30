@@ -105,8 +105,7 @@ class NnGa:
             atm1, atm2 = key.split('-')
             if atm1 != atm2:
                 param = n_neighbours * concentrations[atm2]
-                target = n_neighbours * \
-                         concentrations[atm1] + (param / (nb_species - 1))
+                target = n_neighbours * concentrations[atm1] + (param / (nb_species - 1))
 
                 fitness[key] = self._rmsd(val, target)
 
@@ -129,8 +128,7 @@ class NnGa:
 
     # @profile
 
-    def get_population_fitness(self, configurations, concentrations,
-                               max_diff_element, element_pool, cell_type, cutoff):
+    def get_population_fitness(self, configurations, concentrations, max_diff_element, element_pool, cell_type, cutoff):
 
         AlloyGen = AlloysGen(element_pool, concentrations, cell_type)
 
@@ -138,23 +136,22 @@ class NnGa:
         NN2 = coordination_numbers[cell_type][1]
         pop_fitness = []
         for configuration in configurations:
-            CN1_list, CN2_list = AlloyGen.get_coordination_numbers(
-                configuration, cutoff)
-            shell1_fitness_AA = self.get_shell1_fitness_AA(CN1_list)
+            CN1_list, CN2_list = AlloyGen.get_coordination_numbers(configuration, cutoff)
+            # shell1_fitness_AA = self.get_shell1_fitness_AA(CN1_list)
             shell2_fitness_AA = self.get_shell2_fitness_AA(CN2_list, NN2)
             shell1_fitness_AB = self.get_shell1_fitness_AB(CN1_list, concentrations, NN1)
-            max_diff_element_fitness = self.get_max_diff_element_fitness(
-                max_diff_element, configuration)
+            max_diff_element_fitness = self.get_max_diff_element_fitness(max_diff_element, configuration)
             fitness = (
-                    sum(shell1_fitness_AA.values())
-                    # + sum(max_diff_element_fitness.values())
-                    # + sum(shell1_fitness_AB.values())
-                    # + sum(shell2_fitness_AA.values())
+                # sum(shell1_fitness_AA.values())
+                +sum(max_diff_element_fitness.values())
+                + sum(shell1_fitness_AB.values())
+                + sum(shell2_fitness_AA.values())
             )
 
             pop_fitness.append(fitness)
-        # logger.info('shell1_fitness_AA:{:9.4f} \t shell1_fitness_AB: {:9.4f}  \t  max_diff_element_fitness: {:9.4f}'.format(
-        #     sum(shell1_fitness_AA.values()), sum(shell1_fitness_AB.values()), sum(max_diff_element_fitness.values())))
+        # logger.info('shell1_fitness_AA:{:9.4f} \t shell1_fitness_AB: {:9.4f}  \t  max_diff_element_fitness: {
+        # :9.4f}'.format( sum(shell1_fitness_AA.values()), sum(shell1_fitness_AB.values()),
+        # sum(max_diff_element_fitness.values())))
 
         return np.array(pop_fitness)
 
@@ -207,8 +204,7 @@ class NnGa:
             rate = self.rate
 
         if key is not None:
-            sorted_by_fitness_population = self.sort_population_by_fitness(
-                previous_population, key)
+            sorted_by_fitness_population = self.sort_population_by_fitness(previous_population, key)
         else:
             sorted_by_fitness_population = previous_population
 
@@ -224,11 +220,9 @@ class NnGa:
 
         # randomly mutate the weights of the top 25% of structures to make up
         # the remaining 75%
-        selections = self.choice_random(
-            top_population, (population_size - top_size))  # list of list
+        selections = self.choice_random(top_population, (population_size - top_size))  # list of list
 
-        mutants = [[self.mutate(selec) for selec in selection]
-                   for selection in selections]
+        mutants = [[self.mutate(selec) for selec in selection] for selection in selections]
 
         # # crossover 2 random items
         # choice = random.sample(range(top_size), k=2)

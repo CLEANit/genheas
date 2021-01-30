@@ -1,21 +1,19 @@
 import copy
 import os
-import sys
 import random
-from math import prod
+import sys
 
 import numpy as np
 import torch
 import torch.nn.functional as f
 import yaml
 from ase.build import bulk
+from ase.data import atomic_numbers, chemical_symbols, reference_states
 from ase.lattice.cubic import BodyCenteredCubic, FaceCenteredCubic
-from ase.lattice.hexagonal import Hexagonal, HexagonalClosedPacked
-from ase.data import reference_states, atomic_numbers, chemical_symbols
+# from ase.lattice.hexagonal import Hexagonal, HexagonalClosedPacked
 from clusterx.parent_lattice import ParentLattice
 from clusterx.structures_set import StructuresSet
 from clusterx.super_cell import SuperCell
-from tqdm import tqdm
 from pymatgen import Element
 from pymatgen.io.ase import AseAtomsAdaptor
 from pymatgen.transformations.site_transformations import (
@@ -23,6 +21,7 @@ from pymatgen.transformations.site_transformations import (
 )
 from sklearn.preprocessing import MaxAbsScaler, StandardScaler
 from torch.autograd import Variable
+from tqdm import tqdm
 
 from hea.tools.log import logger
 
@@ -51,10 +50,11 @@ properties_list = [
 #     'electronegativity',
 # ]
 
-direktions = {111: [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
-              100: [[1, 0, 0], [0, 0, 0], [0, 0, 1]],
-              110: [[1, 0, 0], [0, 1, 0], [0, 0, 10]],
-              }
+direktions = {
+    111: [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+    100: [[1, 0, 0], [0, 0, 0], [0, 0, 1]],
+    110: [[1, 0, 0], [0, 1, 0], [0, 0, 10]],
+}
 
 
 class AlloysGen:
@@ -79,7 +79,8 @@ class AlloysGen:
             try:
                 Z = atomic_numbers[name]
                 ref = reference_states[
-                    Z]  # {'symmetry': 'bcc', 'a': 4.23} or {'symmetry': 'hcp', 'c/a': 1.622, 'a': 2.51}
+                    Z
+                ]  # {'symmetry': 'bcc', 'a': 4.23} or {'symmetry': 'hcp', 'c/a': 1.622, 'a': 2.51}
                 xref = ref['symmetry']
                 a = ref['a']
                 if 'c/a' in ref.keys():
@@ -91,7 +92,10 @@ class AlloysGen:
         else:
             a = lattice_param[0]
             c = lattice_param[1]
-        return a
+        if xref == 'fcc' or 'bcc':
+            return
+        else:
+            return a, c
 
     @staticmethod
     def get_number_of_atom(crystalstructure, cel_size, cubik=False, direction=None):
@@ -130,8 +134,9 @@ class AlloysGen:
         return combinations
 
     @staticmethod
-    def gen_alloy_supercell(element_pool, concentrations, crystalstructure, size, nb_structure, lattice_param=None,
-                            cubic=False):
+    def gen_alloy_supercell(
+            element_pool, concentrations, crystalstructure, size, nb_structure, lattice_param=None, cubic=False
+    ):
         """
         :param nb_structure:
         :param cubic:
@@ -188,21 +193,6 @@ class AlloysGen:
 
         elif crystalstructure == 'hpc':
 
-            # if  all(elem  is None for elem in lattice_param):
-            #     try:
-            #         a =BodyCenteredCubic(element_pool[0]).cell[0][0]
-            #         b =BodyCenteredCubic(element_pool[0]).cell[0][0]
-            #         c =BodyCenteredCubic(element_pool[0]).cell[0][0]
-            #     except Exception as err:
-            #         logger.error(f'{err}')
-            #         raise Exception ('Please provide the lattice parameter')
-            # a=None
-            # b=None
-            # c=None
-
-            # for elm in element_pool:
-            #     #prim.append(BodyCenteredCubic(elm))
-            #     prim.append(bulk(name=elm, crystalstructure='hpc', a=a, b=b, c=c))
             raise Exception('hpc is not yet implemented')
         else:
             raise Exception('Only fcc abd bcc are defined')
@@ -265,8 +255,9 @@ class AlloysGen:
         return AseAtomsAdaptor.get_structure(crystal)
 
     @staticmethod
-    def gen_random_structure(crystalstructure, size, max_diff_elem, lattice_param=None, name=None, cubik=False,
-                             surface=None):
+    def gen_random_structure(
+            crystalstructure, size, max_diff_elem, lattice_param=None, name=None, cubik=False, surface=None
+    ):
         """
         :param crystalstructure:
         :param size:
@@ -303,7 +294,8 @@ class AlloysGen:
             try:
                 Z = atomic_numbers[name]
                 ref = reference_states[
-                    Z]  # {'symmetry': 'bcc', 'a': 4.23} or {'symmetry': 'hcp', 'c/a': 1.622, 'a': 2.51}
+                    Z
+                ]  # {'symmetry': 'bcc', 'a': 4.23} or {'symmetry': 'hcp', 'c/a': 1.622, 'a': 2.51}
                 xref = ref['symmetry']
                 a = ref['a']
                 if 'c/a' in ref.keys():
@@ -692,7 +684,7 @@ class AlloysGen:
         return XNormed
 
     @staticmethod
-    def get_input_vectors(all_neighbors_list, properties, alloy_structure):
+    def get_input_vector_2(neighbors_list, properties, alloy_structure):
         """
         all_neighbors_list: list of array with the list the neighbors  of each atom
         properties: dictionary with properties of each atom type
@@ -702,18 +694,15 @@ class AlloysGen:
         scaler1 = StandardScaler()
         scaler2 = MaxAbsScaler()
 
-        vectors = []
-
-        for nb_list in all_neighbors_list:
-            vector = [properties[elm.name] for elm in species[nb_list]]
-            vector = np.array(vector)
-            vector = scaler2.fit_transform(vector)
-            vectors.append(np.apply_along_axis(AlloysGen._scaler, -1, vector))
+        vector = [properties[elm.name] for elm in species[neighbors_list]]
+        vector = np.array(vector)
 
         # Standardized by column
-        # vectors = scaler1.fit_transform(vectors.reshape(-1, vectors.shape[-1])).reshape(vectors.shape)
+        vector = scaler1.fit_transform(vector.reshape(-1, vector.shape[-1])).reshape(vector.shape)
 
-        return np.array(vectors)
+        vector = scaler2.fit_transform(vector)
+
+        return vector
 
     @staticmethod
     def get_inputs_vectors(all_neighbors_list, properties, alloy_structure):
@@ -777,8 +766,8 @@ class AlloysGen:
         return atmm, output
 
     def generate_configuration(
-            self, config, element_pool, cutoff, models, device, max_diff_element=None, constrained=False,
-            verbose=False):
+            self, config, element_pool, cutoff, models, device, max_diff_element=None, constrained=False, verbose=False
+    ):
         """
         add a contrain to the for the max_diff_element
 
@@ -803,16 +792,16 @@ class AlloysGen:
             else:
                 max_diff_elem = copy.deepcopy(max_diff_element)
 
-        all_neighbors_list = self.sites_neighbor_list(config, cutoff)
-        input_vectors = self.get_inputs_vectors(all_neighbors_list, properties, config)
+        # all_neighbors_list = self.sites_neighbor_list(config, cutoff)
+        # input_vectors = self.get_inputs_vectors(all_neighbors_list, properties, config)
         # sys.stdout.flush()
         # for i in range(Natoms):
         for i in tqdm(range(Natoms), file=sys.stdout, leave=verbose):
 
-            # neighbors_list = self.site_neighbor_list(config, cutoff, i)
-            # input_vector = self.get_input_vector(neighbors_list, properties, config)
+            neighbors_list = self.site_neighbor_list(config, cutoff, i)
+            input_vector = self.get_input_vector_2(neighbors_list, properties, config)
 
-            X_tensor = torch.from_numpy(input_vectors[i]).float()
+            X_tensor = torch.from_numpy(input_vector).float()
             input_tensor = Variable(X_tensor, requires_grad=False).to(device)
 
             output_tensors = []

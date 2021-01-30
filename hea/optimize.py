@@ -49,6 +49,8 @@ nb_structures = parameters['nb_structures']
 generation = parameters['nb_generation']
 training_size = parameters['cell_size']
 supercell_size = parameters['supercell_size']
+cube = parameters['cubic']
+surface = parameters['surfaces']
 # cube = parameters['cubic']
 # ==========================  Analyze Parameters  ============================
 
@@ -86,17 +88,16 @@ for generation in generations:
         nn_per_policy=nn_per_policy,
         nb_policies=nb_policies,
         patience=patience,
-        oxidation_states=oxidation_states)
-
+        oxidation_states=oxidation_states,
+        cubik=False,
+        direction=None
+    )
 
     # ============================  Generation  ==========================
 
-    output = os.path.join(
-        str(nb_species) + '_elements',
-        'model_' + str(nb_generation))
+    output = os.path.join(str(nb_species) + '_elements', 'model_' + str(nb_generation))
 
-    networks = [Feedforward(input_size, output_size)
-                for i in range(len(best_policy))]
+    networks = [Feedforward(input_size, output_size) for i in range(len(best_policy))]
     networks = [network.to(device) for network in networks]
 
     for j, w in enumerate(best_policy):
@@ -110,4 +111,5 @@ for generation in generations:
         crystal_structure,
         training_size,
         cell_parameters,
-        constraints=False)
+        constraints=True,
+    )

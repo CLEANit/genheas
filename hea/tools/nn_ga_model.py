@@ -1,8 +1,8 @@
 import random
 
 import numpy as np
+import pymatgen as pmg
 import torch
-
 from hea.tools.alloysgen import AlloysGen, coordination_numbers
 
 from hea.tools.log import logger
@@ -116,13 +116,33 @@ class NnGa:
         max_diff_element : maximun number of each specie
 
         """
-        element_list = alloy_atoms.get_chemical_symbols()
-
+        # element_list = alloy_atoms.get_chemical_symbols()
+        # max_diff_elem = {x: element_list.count(x) for x in element_list}
         fitness = {}
-        max_diff_elem = {x: element_list.count(x) for x in element_list}
+        comp = pmg.Composition(alloy_atoms.get_chemical_formula())
+        max_diff_elem = comp.as_dict()
 
         for key, val in max_diff_elem.items():
             fitness[key] = self._rmsd([val], [max_diff_element[key]])
+
+        return fitness
+
+    def get_composition_fitness(self, max_diff_element, alloy_atoms):
+        """
+        max_diff_element : maximun number of each specie
+
+        """
+        target_comp = pmg.Composition(max_diff_element)
+
+        comp = pmg.Composition(alloy_atoms.get_chemical_formula())
+
+        fitness = {}
+
+        comp_dict = {x.name: comp.get_atomic_fraction(x) for x in comp.elements}
+        target_comp_dict = {x.name: target_comp.get_atomic_fraction(x) for x in target_comp.elements}
+
+        for key, val in comp_dict.items():
+            fitness[key] = self._rmsd([val], [target_comp_dict[key]])
 
         return fitness
 
@@ -143,9 +163,9 @@ class NnGa:
             max_diff_element_fitness = self.get_max_diff_element_fitness(max_diff_element, configuration)
             fitness = (
                 # sum(shell1_fitness_AA.values())
-                +sum(max_diff_element_fitness.values())
-                + sum(shell1_fitness_AB.values())
-                + sum(shell2_fitness_AA.values())
+                    +sum(max_diff_element_fitness.values())
+                    + sum(shell1_fitness_AB.values())
+                    + sum(shell2_fitness_AA.values())
             )
 
             pop_fitness.append(fitness)

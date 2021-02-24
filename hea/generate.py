@@ -13,6 +13,8 @@ import time
 
 import torch
 import yaml
+import pymatgen as pmg
+import numpy as np
 from ase.io import write
 
 from pymatgen.io.ase import AseAtomsAdaptor
@@ -104,23 +106,26 @@ def generate_structure(
 
     max_diff_elements = AlloyGen.get_max_diff_elements(element_pool, conc, nb_atom)
 
-    logger.info(f'number of atoms : {nb_atom}')
-    logger.info(f'max_diff_elements : {max_diff_elements}')
     # name = max(max_diff_elements , key=max_diff_elements.get)
 
     cutof = AlloyGen.get_cutoff(element_pool[0], cryst_structure, cell_param)
 
-    structureX = AlloyGen.gen_random_structure(
-        cryst_structure,
-        cell_size,
-        max_diff_elements,
-        lattice_param=cell_param,
-        name=element_pool[0],
-        cubik=cubik,
-        surface=direction,
-    )
+    # structureX = AlloyGen.gen_random_structure(
+    #     cryst_structure,
+    #     cell_size,
+    #     max_diff_elements,
+    #     lattice_param=cell_param,
+    #     name=element_pool[0],
+    #     cubik=cubik,
+    #     surface=direction,
+    # )
+    raw_crystal = AlloyGen.gen_raw_crystal(cryst_structure, cell_size, lattice_param=cell_param, name=element_pool[0],
+                                           cubik=cubik, surface=direction)
 
-    structureX = AseAtomsAdaptor.get_structure(structureX)
+    logger.info(f'Number of atoms : {nb_atom}')
+    logger.info(f'Template structure : {raw_crystal.get_chemical_formula()}')
+    logger.info(f'Target max_diff_elements : {max_diff_elements}')
+    structureX = AseAtomsAdaptor.get_structure(raw_crystal)
 
     configuration = AlloyGen.generate_configuration(
         structureX,
@@ -139,8 +144,10 @@ def generate_structure(
     # write_to_png(output_name, configuration)
 
     print('\n', '*' * 20, 'Best structure', '*' * 20)
+    composition = pmg.Composition(configuration.get_chemical_formula(mode='metal'))
+    print('Generated chemical formula: ', composition, '\n')
 
-    print('chemical formula: ', configuration.get_chemical_formula(), '\n')
+    print('Fractional composition: ', composition.fractional_composition, '\n')
 
     CN1_list, CN2_list = AlloyGen.get_coordination_numbers(configuration, cutof)
 
@@ -150,22 +157,55 @@ def generate_structure(
     shell2_fitness_AA = GaNn.get_shell2_fitness_AA(CN2_list, nn_in_shell2)
     shell1_fitness_AB = GaNn.get_shell1_fitness_AB(CN1_list, conc, nn_in_shell1)
     max_diff_element_fitness = GaNn.get_max_diff_element_fitness(max_diff_elements, configuration)
-    print('shell1_fitness_AA: {:6.2f}'.format(sum(shell1_fitness_AA.values())))
+    composition_fitness = GaNn.get_composition_fitness(max_diff_elements, configuration)
+
+    # print('shell1_fitness_AA: {:6.2f}'.format(sum(shell1_fitness_AA.values())))
+
+    fitness = (sum(max_diff_element_fitness.values())
+               + sum(shell1_fitness_AB.values())
+               + sum(shell2_fitness_AA.values())
+               # + sum(shell1_fitness_AA.values())
+               )
+
     print('shell2_fitness_AA: {:6.2f}'.format(sum(shell2_fitness_AA.values())))
     print('shell1_fitness_AB: {:6.2f}'.format(sum(shell1_fitness_AB.values())))
-    print('max_diff_element_fitness: {:6.2f}'.format(sum(max_diff_element_fitness.values())))
-    print('*' * 60)
+    print('max_diff_element_fitness: {:6.2f}\n'.format(sum(max_diff_element_fitness.values())))
+    print('Total fitness: {:6.2f}\n'.format(fitness))
 
-    logger.info(f' <.cif> files have been saved in [{output_name}]')
-    logger.info(
+    print(f'<.cif> files have been saved in [{output_name}]')
+    print(
         'Total time for the generation h:m:s ::  {}'.format(str(datetime.timedelta(seconds=time.time() - since)))
     )
-
+    print('*' * 60)
     ###########################################################################
 
     # img1 = Image.open(os.path.join(output_name, 'structure.png'))
     # # plt.clf()
     # plt.imshow(img1)
+
+    target_comp = pmg.Composition(max_diff_elements)
+    script = '\n'
+    script += 'Total fitness (shell2_AA + shell1_AB+ max_diff_element): {:6.2f}\n'.format(fitness)
+    script += '\n'
+    script += 'shell2_fitness_AA: {:6.2f}\n'.format(sum(shell2_fitness_AA.values()))
+    script += 'shell1_fitness_AB: {:6.2f}\n'.format(sum(shell1_fitness_AB.values()))
+    script += '\n'
+    script += 'Target chemical formula: {}\n'.format(target_comp)
+    script += 'Generated chemical formula: {}\n'.format(composition)
+    script += 'max_diff_element_fitness: {:6.2f}\n'.format(sum(max_diff_element_fitness.values()))
+    script += '\n'
+    script += 'Target composition: {}\n'.format(target_comp.fractional_composition)
+    script += 'Generated composition: {}\n'.format(composition.fractional_composition)
+    script += 'composition_fitness: {:6.4f}\n'.format(sum(composition_fitness.values()))
+    script += '\n'
+    # f.write('shell1_fitness_AA: {:6.2f}\n'.format(sum(shell1_fitness_AA.values())))
+
+    script += 'Total time for the generation h:m:s ::  {}\n'.format(
+        str(datetime.timedelta(seconds=time.time() - since)))
+
+    script += '*' * 80
+    script += '\n'
+    return script, fitness
 
 
 if __name__ == '__main__':
@@ -220,14 +260,15 @@ if __name__ == '__main__':
 
     best_policy = read_policy(policy_path)
 
-    networks = [Feedforward(input_size, output_size) for i in range(len(best_policy))]
-    networks = [network.to(device) for network in networks]
-
-    for j, w in enumerate(best_policy):
-        networks[j].l1.weight = torch.nn.Parameter(w)
-
+    # os.remove(outfile)
+    scripts = []
+    fitnesses = []
     for i in range(nb_structures):
-        generate_structure(
+        networks = [Feedforward(input_size, output_size) for i in range(len(best_policy))]
+        networks = [network.to(device) for network in networks]
+        for j, w in enumerate(best_policy):
+            networks[j].l1.weight = torch.nn.Parameter(w)
+        scrip_t, fitnes = generate_structure(
             networks,
             output,
             elements_pool,
@@ -235,14 +276,29 @@ if __name__ == '__main__':
             crystal_structure,
             supercell_size,
             cell_parameters,
-            constraints=True,
+            constraints=False,
             cubik=cube,
             direction=surface,
             verbose=True,
         )
 
         shutil.move(os.path.join(output, 'structure.cif'), os.path.join(output, f'structure_{i:03d}.cif'))
-        # shutil.move(
-        #     os.path.join(
-        #         output, 'structure.png'), os.path.join(
-        #         output, f'structure_{i:03d}.png'))
+
+        scripts.append(scrip_t)
+        fitnesses.append(fitnes)
+
+    fitnesses = np.array(fitnesses)
+    indices = fitnesses.argsort()
+    ofile = os.path.join(output, 'generation.log')
+    ofile = open(ofile, "w")
+    ofile.write('# Generated structures sorted by total fitness')
+    ofile.write('\n\n')
+    for _, s in enumerate(indices):
+        ofile.write(f'{"="*30} structure_{s:03d}.cif {"="*31}')
+        ofile.write(scripts[s])
+    ofile.close()
+
+    # shutil.move(
+    #     os.path.join(
+    #         output, 'structure.png'), os.path.join(
+    #         output, f'structure_{i:03d}.png'))

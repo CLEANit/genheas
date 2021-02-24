@@ -71,7 +71,6 @@ input_size = n_neighbours * len(properties_list)
 
 output_size = len(elements_pool)
 
-
 # ==============================  Training ===============================
 
 for generation in generations:
@@ -111,5 +110,5 @@ for generation in generations:
         crystal_structure,
         training_size,
         cell_parameters,
-        constraints=True,
+        constraints=False,
     )

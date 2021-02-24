@@ -24,13 +24,13 @@ sys.path.insert(0, os.path.abspath('../../hea'))
 # -- Project information -----------------------------------------------------
 thisyear = datetime.datetime.now().year
 project = 'PyHEA'
-author = hea.__author__
+author = 'Conrard TETSASSI'
 copyright = '{}, {} (National Reserved Council Canada'.format(thisyear, author)
 
 warnings.simplefilter('ignore', DeprecationWarning)
 
 # The full version, including alpha/beta/rc tags
-release = hea.__version__
+release = '1.0'
 
 # -- General configuration ---------------------------------------------------
 

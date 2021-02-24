@@ -12,7 +12,7 @@ import pathlib
 import pickle
 import random
 import time
-from math import prod
+# from math import prod
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -54,6 +54,10 @@ opt_parameters_list = [
     'input_size',
     'output_size',
     'step_time',
+    'cell_size',
+    'cell_param',
+    'cubik',
+    'direction'
 ]
 
 
@@ -75,14 +79,12 @@ def plot_optimization(data_filepath, skiprows=1):
     plt.xticks(fontsize=16)
     plt.legend(fontsize=15, loc='upper right')
     plt.savefig(f'{data_filepath}/optimization_curve.png', dpi=600, transparent=True, bbox_inches='tight')
-    plt.show()
+    # plt.show()
 
 
-def training_0(AlloyGen, structure, element_pool, nb_network_per_policy, input_size, output_size, cutoff, device='cpu'):
+def training(AlloyGen, networks, structure, element_pool, cutoff, device='cpu'):
     """
-    :param output_size:
-    :param input_size:
-    :param nb_network_per_policy:
+    :param  networks:
     :param AlloyGen:
     :param structure:
     :param element_pool:
@@ -90,54 +92,6 @@ def training_0(AlloyGen, structure, element_pool, nb_network_per_policy, input_s
     :param device:
     :return:
     """
-
-    networks = [Feedforward(input_size, output_size) for i in range(nb_network_per_policy)]
-    networks = [network.to(device) for network in networks]
-
-    network_weights = [network.l1.weight.data for network in networks]
-
-    # random.shuffle(atom_list)
-    # atoms.set_chemical_symbols(atom_list)
-
-    structureX = AseAtomsAdaptor.get_structure(structure)
-
-    configuration = AlloyGen.generate_configuration(structureX, element_pool, cutoff, networks, device=device)
-
-    return configuration, network_weights
-
-
-def training_1(
-    AlloyGen,
-    networks,
-    network_weights,
-    structure,
-    element_pool,
-    nb_network_per_policy,
-    input_size,
-    output_size,
-    cutoff,
-    device='cpu',
-):
-    """
-    :param networks:
-    :param network_weights:
-    :param output_size:
-    :param input_size:
-    :param nb_network_per_policy:
-    :param AlloyGen:
-    :param structure:
-    :param element_pool:
-    :param cutoff:
-    :param device:
-    :return:
-    """
-    #
-
-    for j, w in enumerate(network_weights):
-        networks[j].l1.weight = torch.nn.Parameter(w)
-
-    # random.shuffle(atom_list)
-    # atoms.set_chemical_symbols(atom_list)
 
     structureX = AseAtomsAdaptor.get_structure(structure)
 
@@ -147,22 +101,22 @@ def training_1(
 
 
 def train_policy(
-    crystal_structure,
-    element_pool,
-    concentrations,
-    nb_generation,
-    cell_size,
-    cell_param,
-    device='cpu',
-    rate=0.25,
-    alpha=0.1,
-    nn_per_policy=1,
-    nb_policies=8,
-    oxidation_states=None,
-    fitness_minimum=0,
-    patience=100,
-    cubik=False,
-    direction=None,
+        crystal_structure,
+        element_pool,
+        concentrations,
+        nb_generation,
+        cell_size,
+        cell_param,
+        device='cpu',
+        rate=0.25,
+        alpha=0.1,
+        nn_per_policy=1,
+        nb_policies=8,
+        oxidation_states=None,
+        fitness_minimum=0,
+        patience=100,
+        cubik=False,
+        direction=None,
 ):
     """
     :param direction:
@@ -225,10 +179,10 @@ def train_policy(
 
     max_diff_elements = AlloyGen.get_max_diff_elements(element_pool, concentrations, nb_atom)
 
-    if not prod(cell_size) == sum(max_diff_elements.values()):
+    if not nb_atom == sum(max_diff_elements.values()):
         logger.error(
             'the size : [{}] and the max_diff_elem : [{}] are not consistent'.format(
-                prod(cell_size), sum(max_diff_elements.values())
+                nb_atom, sum(max_diff_elements.values())
             )
         )
         raise Exception(
@@ -250,57 +204,65 @@ def train_policy(
     logger.info('Start Optimization')
     # with torch.set_grad_enabled(False):
     networks = None
-
+    input_structures = [
+        AlloyGen.gen_raw_crystal(crystal_structure, cell_size, lattice_param=cell_param, name=element_pool[0],
+                                 cubik=cubik, surface=direction) for _ in range(n_input)]
     for generation in range(nb_generation):
         since = time.time()
-        # input_structures, _ = AlloyGen.gen_alloy_supercell(
-        #     element_pool, concentrations, crystal_structure, cell_size, n_input, lattice_param=cell_param
-        # )
+        # input_structures, _ = AlloyGen.gen_alloy_supercell( element_pool, concentrations, crystal_structure,
+        # cell_size, n_input, lattice_param=cell_param, cubic=cubik)
 
-        input_structures = [
-            AlloyGen.gen_random_structure(
-                crystal_structure,
-                cell_size,
-                max_diff_elements,
-                lattice_param=cell_param,
-                name=element_pool[0],
-                cubik=cubik,
-                surface=direction,
-            )
-            for _ in range(n_input)
-        ]
+        # input_structures = [
+        #     AlloyGen.gen_random_structure(
+        #         crystal_structure,
+        #         cell_size,
+        #         max_diff_elements,
+        #         lattice_param=cell_param,
+        #         name=element_pool[0],
+        #         cubik=cubik,
+        #         surface=direction,
+        #     )
+        #     for _ in range(n_input)
+        # ]
 
         if networks is None:  # first iteration
-
+            # ---------------------- multi process-----------------------------
             network_weights_list = []
             configurations = []
+            networks_list = []
 
-            for _, structure in enumerate(input_structures):
+            for _ in range(len(input_structures)):
                 networks = [Feedforward(input_size, output_size) for i in range(nb_network_per_policy)]
                 networks = [network.to(device) for network in networks]
-
                 network_weights = [network.l1.weight.data for network in networks]
-
-                # random.shuffle(atom_list)
-                # atoms.set_chemical_symbols(atom_list)
-
-                structureX = AseAtomsAdaptor.get_structure(structure)
-
-                configuration = AlloyGen.generate_configuration(
-                    structureX, element_pool, cutoff, networks, device=device
-                )
-
-                configurations.append(configuration)
+                networks_list.append(networks)
                 network_weights_list.append(network_weights)
 
-            # pool = mp.Pool(mp.cpu_count())
-            # results = pool.starmap(training_0, [
-            #     (AlloyGen, structure, element_pool, nb_network_per_policy, input_size, output_size, cutoff) for
-            #     structure in input_structures])
-            # pool.close()
-            # configurations = [result[0] for result in results]
-            # network_weights_list = [result[1] for result in results]
+            # configurations = [training(AlloyGen, net, struc, element_pool, cutoff) for net, struc, in
+            #                   zip(networks_list, input_structures)]
 
+            #----------------------------------------------------------
+            # for _, structure in enumerate(input_structures):
+            #     networks = [Feedforward(input_size, output_size) for i in range(nb_network_per_policy)]
+            #     networks = [network.to(device) for network in networks]
+            #
+            #     network_weights = [network.l1.weight.data for network in networks]
+            #
+            #     structureX = AseAtomsAdaptor.get_structure(structure)
+            #
+            #     configuration = AlloyGen.generate_configuration(
+            #         structureX, element_pool, cutoff, networks, device=device
+            #     )
+            #
+            #     configurations.append(configuration)
+            #     network_weights_list.append(network_weights)
+            # --------------------------------------------------------------------
+
+            pool = mp.Pool(mp.cpu_count())
+            configurations = pool.starmap(training, [(AlloyGen, net, struc, element_pool, cutoff) for net, struc, in zip(networks_list, input_structures)])
+            pool.close()
+
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             configurations_fitness = GaNn.get_population_fitness(
                 configurations, concentrations, max_diff_elements, element_pool, crystal_structure, cutoff
             )
@@ -319,31 +281,40 @@ def train_policy(
 
             network_weights_list = GaNn.make_next_generation(sorted_weights_list, rate=rate)  # list of list
 
-            configurations = []
-            for i, structure in enumerate(input_structures):
-
+            for i, _ in enumerate(networks_list):
                 network_weights = network_weights_list[i]
 
                 for j, w in enumerate(network_weights):
-                    networks[j].l1.weight = torch.nn.Parameter(w)
-                # random.shuffle(atom_list)
-                # atoms.set_chemical_symbols(atom_list)
+                    networks_list[i][j].l1.weight = torch.nn.Parameter(w)
 
-                structureX = AseAtomsAdaptor.get_structure(structure)
+            # configurations = [training(AlloyGen, net, struc, element_pool, cutoff) for net, struc, in
+            #                   zip(networks_list, input_structures)]
 
-                configuration = AlloyGen.generate_configuration(
-                    structureX, element_pool, cutoff, networks, device=device
-                )
 
-                configurations.append(configuration)
+            # ---------------------- multi process-----------------------------
+            # configurations = []
+            # for i, structure in enumerate(input_structures):
+            #
+            #     network_weights = network_weights_list[i]
+            #
+            #     for j, w in enumerate(network_weights):
+            #         networks[j].l1.weight = torch.nn.Parameter(w)
 
-            # pool = mp.Pool(mp.cpu_count())
-            # configurations = pool.starmap(training_1, [(
-            #     AlloyGen, networks, network_weights, structure, element_pool, nb_network_per_policy, input_size,
-            #     output_size, cutoff) for
-            #     network_weights, structure in zip(network_weights_list, input_structures)])
-            # pool.close()
+            #
+            #     structureX = AseAtomsAdaptor.get_structure(structure)
+            #
+            #     configuration = AlloyGen.generate_configuration(
+            #         structureX, element_pool, cutoff, networks, device=device
+            #     )
+            #
+            #     configurations.append(configuration)
+            # ------------------------------------------------------------------------
 
+            pool = mp.Pool(mp.cpu_count())
+            configurations = pool.starmap(training, [(AlloyGen, net, struc, element_pool, cutoff) for net, struc, in zip(networks_list, input_structures)])
+            pool.close()
+
+            # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             configurations_fitness = GaNn.get_population_fitness(
                 configurations, concentrations, max_diff_elements, element_pool, crystal_structure, cutoff
             )

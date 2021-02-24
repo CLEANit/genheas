@@ -92,10 +92,12 @@ class AlloysGen:
         else:
             a = lattice_param[0]
             c = lattice_param[1]
-        if xref == 'fcc' or 'bcc':
-            return
-        else:
-            return a, c
+
+        # if xref == 'fcc' or 'bcc':
+        #     return
+        # else:
+        #     return a, c
+        return c
 
     @staticmethod
     def get_number_of_atom(crystalstructure, cel_size, cubik=False, direction=None):
@@ -228,31 +230,53 @@ class AlloysGen:
         # # Pymatgen Composition
         return alloyAtoms, lattice_param
 
+
     @staticmethod
-    def gen_raw_crystal(crystalstructure, size, element='X', lattice_param=None):
+    def gen_raw_crystal(crystalstructure, size, lattice_param=None, name=None, cubik=False, surface=None):
         """
-        generate a crystal filled with  element: 'element'
+        :param crystalstructure:
+        :param size:
+        :param lattice_param:
+        :param name:
+        :param cubik:
+        :param surface:
+        :return:
         """
 
-        if lattice_param is None:
-            raise Exception('Please provide the lattice parameter')
+        symmetries = ['fcc', 'bcc', 'hpc']
+        if crystalstructure not in symmetries:
+            raise Exception(' [{}] is not implemented '.format(crystalstructure))
 
-        elif crystalstructure == 'fcc':
+        Nb_atoms = AlloysGen.get_number_of_atom(crystalstructure, size, cubik=cubik, direction=surface)
+
+        if lattice_param is None and name is not None:
+            try:
+                Z = atomic_numbers[name]
+                ref = reference_states[
+                    Z
+                ]  # {'symmetry': 'bcc', 'a': 4.23} or {'symmetry': 'hcp', 'c/a': 1.622, 'a': 2.51}
+                xref = ref['symmetry']
+                a = ref['a']
+                if 'c/a' in ref.keys():
+                    c = ref['c/a'] * ref['a']
+                else:
+                    c = None
+            except KeyError:
+                raise KeyError('Please provide the lattice parameter')
+        elif lattice_param is not None:
             a = lattice_param[0]
-            prime = bulk(name=element, crystalstructure='fcc', a=a, b=None, c=None)
-            crystal = prime * tuple(size)
-
-        elif crystalstructure == 'bcc':
-            a = lattice_param[0]
-            prime = bulk(name=element, crystalstructure='bcc', a=a, b=None, c=None)
-            crystal = prime * tuple(size)
-        elif crystalstructure == 'hpc':
-
-            raise Exception('hpc is not yet implemented')
+            c = lattice_param[1]
         else:
-            raise Exception('Only fcc abd bcc are implemented')
+            raise Exception('Please give at least an atom type [name]')
 
-        return AseAtomsAdaptor.get_structure(crystal)
+        if surface is not None and crystalstructure == 'fcc':
+            atoms = FaceCenteredCubic(directions=surface, size=size, symbol=name, latticeconstant=a)
+        elif surface is not None and crystalstructure == 'bcc':
+            atoms = BodyCenteredCubic(directions=surface, size=size, symbol=name, latticeconstant=a)
+        else:
+            atoms = bulk(name=name, crystalstructure=crystalstructure, a=a, b=None, c=c, cubic=cubik) * tuple(size)
+
+        return atoms
 
     @staticmethod
     def gen_random_structure(

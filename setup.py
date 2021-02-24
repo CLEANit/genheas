@@ -2,7 +2,7 @@ import io
 import os
 import re
 
-import hea
+
 from setuptools import find_packages, setup
 
 
@@ -21,10 +21,10 @@ with open(requirements_txt, encoding='utf-8') as fin:
 setup(
     name='pyHEA',
     url='https://github.com/CLEANit/pyHEA',
-    version=hea.__version__,
-    author=hea.__author__,
-    author_email=hea.__email__,
-    description=hea.__doc__,
+    version='1.0',
+    author='Conrard TETSASSI',
+    author_email='ConrardGiresse.TetsassiFeugmo@nrc-cnrc.gc.ca',
+    description='Generative model for HEA',
     long_description=read('README.rst'),
     packages=find_packages(exclude=['docs', 'tests']),
     install_requires=requires,
@@ -41,4 +41,14 @@ setup(
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
     ],
+    include_package_data=True,
+    package_data={
+        # If any package contains *.txt or *.rst files, include them:
+        "": ["*.txt", "*.rst"],
+        # And include any *.yml files found in the "data" subdirectory
+        # of the "tools" package, also:
+        "hea": ["tools/data/*.yml"],
+    },
+    # ...but exclude README.txt from all packages
+    # exclude_package_data={"": ["README.txt"]},
 )

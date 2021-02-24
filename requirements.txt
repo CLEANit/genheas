@@ -2,23 +2,22 @@
 # $ conda create --name <env> --file <this file>
 # platform: linux-64
 
-ase>=3.20.1
+ase>=3.19.0
 clusterx==1.0.0.dev8
 loguru>=0.5.3
 matplotlib>=3.3.2
 numpy>=1.19.2
-pandas>=1.1.5
+pandas>=1.1.3
 pillow>=8.0.1
 
 
 pyaml>=0.2.5
 pymatgen>=2020.10.20
-pytest>=6.2.1
-pyxtal>=0.1.0
+pytest>=6.1.1
 pyyaml>=5.3.1
 scikit-learn>=0.23.2
 scipy>=1.5.2
 seaborn>=0.11.0
 setuptools>=50.3.1
 sklearn>=0.0
-torch
+

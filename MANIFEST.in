@@ -1,7 +1,7 @@
 include CHANGELOG.rst
 include README.rst
 include CONTRIBUTORS.txt
-#include LICENSE
+##include LICENSE
 include setup.py
 include tox.ini
 graft docs

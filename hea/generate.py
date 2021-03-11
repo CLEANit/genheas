@@ -66,11 +66,13 @@ def read_policy(file):
 
 
 def write_to_cif(name, configuration):
-    write(f'{name}/structure.cif', configuration)
+    formula = configuration.get_chemical_formula()
+    write(f'{name}/{formula}.cif', configuration)
 
 
 def write_to_png(name, configuration):
-    write(f'{name}/structure.png', configuration)
+    formula = configuration.get_chemical_formula()
+    write(f'{name}/{formula}.png', configuration)
 
 
 def generate_structure(

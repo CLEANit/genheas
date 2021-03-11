@@ -41,6 +41,7 @@ device = parameters['device']
 
 nn_per_policy = parameters['nn_per_policy']
 nb_policies = parameters['nb_policies']
+nb_worker = parameters['nb_worker']
 patience = parameters['patience']
 
 nb_species = len(elements_pool)
@@ -86,6 +87,7 @@ for generation in generations:
         alpha=alpha,
         nn_per_policy=nn_per_policy,
         nb_policies=nb_policies,
+        nb_worker=nb_worker,
         patience=patience,
         oxidation_states=oxidation_states,
         cubik=False,

@@ -61,12 +61,17 @@ opt_parameters_list = [
 ]
 
 
-# data_filepath = "training_data/{}a-{}p-{}n-{}m.csv".format(alpha,nb_policies,nb_network_per_policy)
-
-# By default we skip the first row, which contains the headers
-# By skipping 2 rows, you can disregard the first data-point (0,0) to get
-# a closer look
 def plot_optimization(data_filepath, skiprows=1):
+    """
+    data_filepath = "training_data/{}a-{}p-{}n-{}m.csv".format(alpha,nb_policies,nb_network_per_policy)
+
+    By default we skip the first row, which contains the headers
+    By skipping 2 rows, you can disregard the first data-point (0,0) to get
+    a closer look
+    :param data_filepath:
+    :param skiprows:
+    :return:
+    """
     plt.close()
     for filename in glob.glob(data_filepath + '/*.csv'):
         x, y = np.loadtxt(filename, delimiter=',', unpack=True, usecols=(0, 1), skiprows=skiprows)
@@ -95,9 +100,17 @@ def training(AlloyGen, networks, structure, element_pool, cutoff, device='cpu'):
 
     structureX = AseAtomsAdaptor.get_structure(structure)
 
-    configuration = AlloyGen.generate_configuration(structureX, element_pool, cutoff, networks, device=device)
+    config = AlloyGen.generate_configuration(structureX, element_pool, cutoff, networks, device=device)
 
-    return configuration
+    return config
+
+
+def multiprocessing_training(workers, AlloyGen, list_networks, list_structures, element_pool, cutoff):
+    pool = mp.Pool(workers)
+    configs = pool.starmap(training, [(AlloyGen, net, struc, element_pool, cutoff) for net, struc, in
+                                      zip(list_networks, list_structures)])
+    pool.close()
+    return configs
 
 
 def train_policy(
@@ -112,6 +125,7 @@ def train_policy(
         alpha=0.1,
         nn_per_policy=1,
         nb_policies=8,
+        nb_worker=1,
         oxidation_states=None,
         fitness_minimum=0,
         patience=100,
@@ -241,7 +255,7 @@ def train_policy(
             # configurations = [training(AlloyGen, net, struc, element_pool, cutoff) for net, struc, in
             #                   zip(networks_list, input_structures)]
 
-            #----------------------------------------------------------
+            # ----------------------------------------------------------
             # for _, structure in enumerate(input_structures):
             #     networks = [Feedforward(input_size, output_size) for i in range(nb_network_per_policy)]
             #     networks = [network.to(device) for network in networks]
@@ -258,9 +272,8 @@ def train_policy(
             #     network_weights_list.append(network_weights)
             # --------------------------------------------------------------------
 
-            pool = mp.Pool(mp.cpu_count())
-            configurations = pool.starmap(training, [(AlloyGen, net, struc, element_pool, cutoff) for net, struc, in zip(networks_list, input_structures)])
-            pool.close()
+            configurations = multiprocessing_training(nb_worker, AlloyGen, networks_list, input_structures,
+                                                      element_pool, cutoff)
 
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             configurations_fitness = GaNn.get_population_fitness(
@@ -275,7 +288,6 @@ def train_policy(
 
             # sorted_configurations_fitness = GaNn.sort_population_by_fitness(configurations_fitness,
             #                                                                 configurations_fitness)
-            # print(sorted_configurations_fitness)
 
         else:
 
@@ -289,7 +301,6 @@ def train_policy(
 
             # configurations = [training(AlloyGen, net, struc, element_pool, cutoff) for net, struc, in
             #                   zip(networks_list, input_structures)]
-
 
             # ---------------------- multi process-----------------------------
             # configurations = []
@@ -310,9 +321,7 @@ def train_policy(
             #     configurations.append(configuration)
             # ------------------------------------------------------------------------
 
-            pool = mp.Pool(mp.cpu_count())
-            configurations = pool.starmap(training, [(AlloyGen, net, struc, element_pool, cutoff) for net, struc, in zip(networks_list, input_structures)])
-            pool.close()
+            configurations = multiprocessing_training(nb_worker, AlloyGen, networks_list, input_structures, element_pool, cutoff)
 
             # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             configurations_fitness = GaNn.get_population_fitness(
@@ -327,16 +336,11 @@ def train_policy(
 
             # sorted_configurations_fitness = GaNn.sort_population_by_fitness(configurations_fitness,
             #                                                                 configurations_fitness)
-            # print(sorted_configurations_fitness)
 
         # save the current training information
 
         step_time = time.time() - since
         min_fitness.append([generation + 1, np.min(configurations_fitness), step_time])
-
-        # compute *average* objective
-        # mean_fitness.append(
-        #     [generation + 1, np.mean(configurations_fitness), step_time])
 
         logger.info(
             'generation: {:6d}/{} |fitness {:10.6f} *** time/step: {:.1f}s'.format(

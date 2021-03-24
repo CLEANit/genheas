@@ -1,7 +1,8 @@
 genheas
 =======
 
-genheas (Generate High Entropy Alloys Structures) is a python codes, scripts, and datasets for High Entropy Alloys
+genheas (Generate High Entropy Alloys Structures) is a a neural evolution structures (NESs) generation methodology
+combining artificial neural networks (ANNs) and evolutionary algorithms (EAs) to generate High Entropy Alloys (HEAs).
 
 
 Support and Documentation

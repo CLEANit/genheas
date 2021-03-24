@@ -1,0 +1,64 @@
+#----------------Optimization parameter --------
+
+nb_generation : 5000
+rate: 0.25
+alpha: 0.1
+nn_per_policy: 4
+nb_policies: 64
+patience: 2000
+
+device: 'cpu'
+nb_worker: 8
+
+#------------------- Input Structure --------------
+crystalstructure : 'fcc'
+
+#elements_pool : ['Co', 'Cr', 'Fe', 'Cu', 'Ni']
+#concentrations : {'Co': 0.2, 'Cr': 0.2, 'Fe': 0.2, 'Cu': 0.2, 'Ni': 0.2}
+#oxidation_states : {'Co': 0, 'Cr': 0, 'Fe': 0, 'Cu': 0, 'Ni':0}
+#cell_parameters : [3.54, 3.54, 3.54]
+
+elements_pool : ['Cu', 'Ni', 'Co', 'Cr']
+concentrations : {'Cu': 0.25, 'Ni': 0.25, 'Co': 0.25, 'Cr': 0.25}
+oxidation_states : {'Cu': 0, 'Ni': 0, 'Co': 0, 'Cr': 0}
+cell_parameters : [3.61, 3.61, 3.61]
+#
+#elements_pool : ['Ag', 'Pd']
+#concentrations : {'Ag': 0.5, 'Pd': 0.5}
+#oxidation_states : {'Ag': 0, 'Pd': 0}
+#cell_parameters : [4.09,4.09,4.09 ]
+
+
+
+cell_size: [2,2,2]
+
+cubic_train: True # False: orthorombic, True: cubic
+# with a cubic the number of atom is equal to 4x2x2x2 = 32
+###############################################################################
+
+#----------- Generate structure--------------------
+
+
+
+model_path : 'Cu_Ni_Co_Cr/generations_2500/BestWeights_0.1a-64p-4n.pkl'
+nb_structures : 1
+
+supercell_size: [4,4,4]
+
+cubic_gen : True # False: orthorombic, True: cubic
+
+
+#----------------Surface -----------------------------
+
+#    111: [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+#    100: [[1, 0, 0], [0, 0, 0], [0, 0, 1]]
+#    110: [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+
+surfaces:
+
+
+
+
+
+
+

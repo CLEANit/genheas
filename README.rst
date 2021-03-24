@@ -1,7 +1,7 @@
 genheas
 =======
 
-genheas (Generate High Entropy Alloys Structures) is a a neural evolution structures (NESs) generation methodology
+genheas (Generate High Entropy Alloys Structures) is a  neural evolution structures (NESs) generation methodology
 combining artificial neural networks (ANNs) and evolutionary algorithms (EAs) to generate High Entropy Alloys (HEAs).
 
 

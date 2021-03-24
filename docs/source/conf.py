@@ -16,14 +16,13 @@ import os
 import sys
 import warnings
 
-import hea
 
 # sys.path.insert(0, os.path.abspath('..'))
-sys.path.insert(0, os.path.abspath('../../hea'))
+sys.path.insert(0, os.path.abspath('../../genheas'))
 
 # -- Project information -----------------------------------------------------
 thisyear = datetime.datetime.now().year
-project = 'PyHEA'
+project = 'genheas'
 author = 'Conrard TETSASSI'
 copyright = '{}, {} (National Reserved Council Canada'.format(thisyear, author)
 
@@ -77,7 +76,7 @@ html_sidebars = {'**': ['localtoc.html', 'ethicalads.html',
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-html_title = 'PyHEA v{}'.format(release)
+html_title = 'genheas v{}'.format(release)
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.

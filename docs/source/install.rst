@@ -1,14 +1,14 @@
 .. _install:
 
 =================
-Installing PyHEA
+Installing genheas
 =================
 
 
 Normal installation
 ===================
 
-to install the latest version of  pyHEA:
+to install the latest version of  genheas:
 
 .. code-block:: bash
 

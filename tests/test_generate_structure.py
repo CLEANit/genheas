@@ -10,14 +10,14 @@
 """
 
 from genheas import generate
-from genheas.tools.evolution import NnGa
+from genheas.tools.evolution import NnEa
 from genheas.tools.alloysgen import (
     AlloysGen,
     coordination_numbers,
     properties_list,
 )
 
-GaNn = NnGa()
+GaNn = NnEa()
 AlloyGen = AlloysGen(['Ag', 'Pd'], {'Ag': 0.5, 'Pd': 0.5}, 'fcc')
 
 

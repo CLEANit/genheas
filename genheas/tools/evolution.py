@@ -9,7 +9,7 @@ from genheas.tools.alloysgen import AlloysGen, coordination_numbers
 # from ase.data import atomic_numbers
 
 
-class NnGa:
+class NnEa:
     """"""
 
     def __init__(self, rate=0.25, alpha=0.1, device='cpu'):

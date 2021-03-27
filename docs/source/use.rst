@@ -1,18 +1,18 @@
 =================
-How to use PyHEA
+How to use genheas
 =================
 
 Overview
 ========
 
-PyHEA is a series of python codes and  scripts for High Entropy Alloys (HEAs)
+Generate High Entropy Alloys Structures
 
-+ hea-gen : A  Combination of  Artificial Neural Network (ANN) and a Genetic
-    Algorithm (GA) to generate HEAs structure
-+ pyhea : ML model to predict HEAs properties
++ A  neural evolution structures (NESs) generation methodology
+combining artificial neural networks (ANNs) and evolutionary algorithms (EAs) to generate High Entropy Alloys (HEAs)
 
 
-hea-gen workflow
+
+genheas workflow
 ================
 
 Here is the schematic of the workflow to generate HEAs structures:
@@ -48,8 +48,8 @@ Therefore, it should looks like:
     touch  parameters.yml
 
     # run
-    hea_gen.py
+    run.py
 
 
-pyhea
+genheas
 =====

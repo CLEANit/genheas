@@ -10,7 +10,7 @@
 """
 
 from genheas import generate
-from genheas.tools.evolution import NnGa
+from genheas.tools.evolution import NnEa
 from genheas.tools.alloysgen import (
     AlloysGen,
     coordination_numbers,

@@ -36,14 +36,18 @@ direktions = {
 
 
 class AlloysGen:
+    combination = []
+    atom_properties = {}
+
     def __init__(self, element_pool, concentration, crystalstructure, oxidation_states=None):
+
         self.element_pool = element_pool
         self.concentration = concentration
         self.crystalstructure = crystalstructure
         self.oxidation_states = oxidation_states
         self.combination = self.get_combination(self.element_pool)
         self.input_size = None
-        self.atomic_properties = self.get_atom_properties(element_pool, oxidation_states)
+        self.atom_properties = self.get_atom_properties(self.element_pool, self.oxidation_states)
 
     @staticmethod
     def get_cutoff(name, crystalstructure, lattice_param=None):
@@ -81,12 +85,13 @@ class AlloysGen:
     @staticmethod
     def get_number_of_atom(crystalstructure, cel_size, cubik=False, direction=None):
         """
+        :param cubik:
+        :param cel_size:
         :param crystalstructure:
-        :param size:
-        :param cubic:
         :param direction:
         :return: number of atom in the cell
         """
+
         a = 3
         c = None
         if crystalstructure == 'hcp':
@@ -112,7 +117,6 @@ class AlloysGen:
         for i in range(len(element_pool)):
             for j in range(len(element_pool)):
                 combinations.append(element_pool[i] + '-' + element_pool[j])
-
         return combinations
 
     @staticmethod
@@ -593,7 +597,6 @@ class AlloysGen:
          'Pd-Pd': [4, 6, 6, 4]}
         """
         CN_list = {}
-
         for combi in self.combination:
             atm1, atm2 = combi.split('-')
             try:
@@ -619,64 +622,15 @@ class AlloysGen:
         return CN1_list, CN2_list
 
     @staticmethod
-    def get_atom_properties2(element_pool, oxidation_states=None):
+    def _print_dict(dictionary):
+        logger.info('atomic properties')
+        for key, value in dictionary.items():
+            value = np.array(value)
+            logger.info(f'{key}: {np.around(value, decimals=2)}')
+
+    def get_atom_properties(self, element_pool, oxidation_states=None, verbose=False):
         """
-        oxidation_state: dictionay with oxydation state of element
-
-        return : dictionary with properties of each atom
-
-        """
-
-        loc = os.path.dirname(os.path.abspath(__file__))
-        try:
-            with open(os.path.join(loc, 'data/VEC.yml')) as fr:
-                VEC = yaml.safe_load(fr)
-
-        except Exception as e:
-            raise Exception(e)
-
-        properties = {}
-
-        for el in element_pool:
-            elm = Element(el)
-            props = []
-            for prop in atomic_properties:
-                if prop == 'oxidation_states':
-                    if oxidation_states is not None:
-                        try:
-                            props.append(0)
-                            # props.append(oxidation_states[elm.name])
-                        except Exception as e:
-                            logger.error(f'{e}')
-                            logger.warning(f'oxidation of {elm.name} set to 0')
-                            props.append(0)
-                    else:
-                        props.append(0)
-                elif prop == 'VEC':
-                    try:
-                        props.append(VEC[elm.name])  # valence
-
-                    except Exception as e:
-                        raise Exception(e)
-                elif prop == 'electronegativity':
-                    try:
-                        props.append(elm.X)  # electronegativity
-                    except Exception as e:
-                        raise Exception(e)
-                else:
-                    try:
-                        props.append(float(getattr(elm, prop)))
-                    except Exception as e:
-                        raise Exception(e)
-
-            properties[elm.name] = props
-
-        properties['X'] = [0.0] * len(properties[element_pool[0]])
-        return properties
-
-    @staticmethod
-    def get_atom_properties(element_pool, oxidation_states=None):
-        """
+        :param verbose:
         :param oxidation_states:
         :param element_pool:
         :return:
@@ -689,21 +643,23 @@ class AlloysGen:
             properti[el] = props
 
         properti['X'] = [0.0] * len(properti[element_pool[0]])
+        if verbose:
+            self._print_dict(properti)
         return properti
 
-    @staticmethod
-    def _scaler(vector):
-        """
-        Standardization + MaxAbsScaler  --> [-1,1] by dividing it by the maximum value
-        :param vector:
-        :return:
-        """
-        X = np.array(vector)
-        X_normed = (X - X.min()) / (X.max() - X.min())
-
-        X_scaled = (X - X.mean()) / X.std()
-        X_scaled = X_scaled/np.abs(X_scaled).max()
-        return X
+    # @staticmethod
+    # def _scaler(vector):
+    #     """
+    #     Standardization + MaxAbsScaler  --> [-1,1] by dividing it by the maximum value
+    #     :param vector:
+    #     :return:
+    #     """
+    #     X = np.array(vector)
+    #     X_normed = (X - X.min()) / (X.max() - X.min())
+    #
+    #     X_scaled = (X - X.mean()) / X.std()
+    #     X_scaled = X_scaled / np.abs(X_scaled).max()
+    #     return X
 
     def get_input_vector_2(self, neighbors_list, alloy_structure):
         """
@@ -712,10 +668,10 @@ class AlloysGen:
         apply transformation by site
         """
         species = np.array(alloy_structure.species)
-        scaler1 = StandardScaler()
-        scaler2 = MaxAbsScaler()
+        # scaler1 = StandardScaler()
+        # scaler2 = MaxAbsScaler()
 
-        vector = [self.atomic_properties[elm.name] for elm in species[neighbors_list]]
+        vector = [self.atom_properties[elm.name] for elm in species[neighbors_list]]
         vector = np.array(vector)
 
         # Standardized by column
@@ -725,14 +681,14 @@ class AlloysGen:
 
         return vector
 
-    def get_inputs_vectors(self, all_neighbors_list,  alloy_structure):
+    def get_inputs_vectors(self, all_neighbors_list, alloy_structure):
         """
         all_neighbors_list: list of array with the list the neighbors  of each atom
         properties: dictionary with properties of each atom type
         apply transformation to  the entire input vector matrix
         """
         species = np.array(alloy_structure.species)
-        col = len(list(self.atomic_properties.values())[0])
+        col = len(list(self.atom_properties.values())[0])
         row = len(all_neighbors_list[0])
         scaler1 = StandardScaler()
         scaler2 = MaxAbsScaler()
@@ -741,7 +697,7 @@ class AlloysGen:
 
         for nb_list in all_neighbors_list:
             for elm in species[nb_list]:
-                prop = self.atomic_properties[elm.name]
+                prop = self.atom_properties[elm.name]
                 vectors.append(prop)
         vectors = np.array(vectors)
         # Standardized by column
@@ -762,7 +718,7 @@ class AlloysGen:
         scaler1 = StandardScaler()
         scaler2 = MaxAbsScaler()
 
-        vector = [self.atomic_properties[elm.name] for elm in species[neighbors_list]]
+        vector = [self.atom_properties[elm.name] for elm in species[neighbors_list]]
         vector = np.array(vector)
         vector = scaler2.fit_transform(vector)
         vector = np.apply_along_axis(AlloysGen._scaler, -1, vector)

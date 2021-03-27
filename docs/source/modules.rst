@@ -1,9 +1,9 @@
-PyHEA
-=====
+genheas
+=======
 
 .. toctree::
    :maxdepth: 4
 
-   hea
-   setup
+   genheas
+   septup
    tests

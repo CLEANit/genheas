@@ -26,7 +26,7 @@ from genheas.tools.alloysgen import (
 from genheas.tools.properties import atomic_properties
 from genheas.tools.feedforward import Feedforward
 from genheas.utilities.log import logger
-from genheas.tools.evolution import NnGa
+from genheas.tools.evolution import NnEa
 
 
 # import pymatgen as pmg
@@ -99,7 +99,7 @@ def generate_structure(
     nn_in_shell1 = coordination_numbers[cryst_structure][0]
     nn_in_shell2 = coordination_numbers[cryst_structure][1]
 
-    GaNn = NnGa()
+    GaNn = NnEa()
     AlloyGen = AlloysGen(element_pool, conc, cryst_structure)
 
     # nb_atom = prod(cell_size)

@@ -28,7 +28,7 @@ from genheas.tools.alloysgen import (
 from genheas.tools.properties import atomic_properties
 from genheas.tools.feedforward import Feedforward
 from genheas.utilities.log import logger
-from genheas.tools.evolution import NnGa
+from genheas.tools.evolution import NnEa
 
 # from genheas.optimize import output
 # Scheduler import
@@ -133,6 +133,7 @@ def train_policy(
         direction=None,
 ):
     """
+    :param nb_worker:
     :param direction:
     :param cubik:
     :param patience: (int) nb generations to wait before early stop
@@ -160,10 +161,10 @@ def train_policy(
 
     # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    GaNn = NnGa(rate=rate, alpha=alpha, device=device)
-    AlloyGen = AlloysGen(element_pool, concentrations, crystal_structure, oxidation_states)
+    NEs = NnEa(rate=rate, alpha=alpha, device=device)
+    alloy_gen = AlloysGen(element_pool, concentrations, crystal_structure, oxidation_states)
 
-    # combinations = AlloyGen.get_combination(element_pool)
+    # combinations = alloy_gen.get_combination(element_pool)
 
     nb_species = len(element_pool)
     output = os.path.join("_".join(element_pool), 'generations_' + str(nb_generation))
@@ -189,9 +190,9 @@ def train_policy(
     # my_model = Feedforward(input_size, output_size)
     # my_model.to(device)
     since0 = time.time()
-    nb_atom = AlloyGen.get_number_of_atom(crystal_structure, cell_size, cubik=cubik, direction=direction)
+    nb_atom = alloy_gen.get_number_of_atom(crystal_structure, cell_size, cubik=cubik, direction=direction)
 
-    max_diff_elements = AlloyGen.get_max_diff_elements(element_pool, concentrations, nb_atom)
+    max_diff_elements = alloy_gen.get_max_diff_elements(element_pool, concentrations, nb_atom)
 
     if not nb_atom == sum(max_diff_elements.values()):
         logger.error(
@@ -205,7 +206,7 @@ def train_policy(
             )
         )
 
-    # atoms = AlloyGen.gen_random_structure(crystal_structure, cell_size, max_diff_elements, cell_param)
+    # atoms = alloy_gen.gen_random_structure(crystal_structure, cell_size, max_diff_elements, cell_param)
     logger.info('Generating the Input structure')
     n_input = nb_policies
 
@@ -219,15 +220,15 @@ def train_policy(
     # with torch.set_grad_enabled(False):
     networks = None
     input_structures = [
-        AlloyGen.gen_raw_crystal(crystal_structure, cell_size, lattice_param=cell_param, name=element_pool[0],
+        alloy_gen.gen_raw_crystal(crystal_structure, cell_size, lattice_param=cell_param, name=element_pool[0],
                                  cubik=cubik, surface=direction) for _ in range(n_input)]
     for generation in range(nb_generation):
         since = time.time()
-        # input_structures, _ = AlloyGen.gen_alloy_supercell( element_pool, concentrations, crystal_structure,
+        # input_structures, _ = alloy_gen.gen_alloy_supercell( element_pool, concentrations, crystal_structure,
         # cell_size, n_input, lattice_param=cell_param, cubic=cubik)
 
         # input_structures = [
-        #     AlloyGen.gen_random_structure(
+        #     alloy_gen.gen_random_structure(
         #         crystal_structure,
         #         cell_size,
         #         max_diff_elements,
@@ -253,7 +254,7 @@ def train_policy(
                 network_weights_list.append(network_weights)
 
             # ----------------------------------------------------------
-            # configurations = [training(AlloyGen, net, struc, element_pool, cutoff) for net, struc, in
+            # configurations = [training(alloy_gen, net, struc, element_pool, cutoff) for net, struc, in
             #                   zip(networks_list, input_structures)]
             #
             # for _, structure in enumerate(input_structures):
@@ -264,7 +265,7 @@ def train_policy(
             #
             #     structureX = AseAtomsAdaptor.get_structure(structure)
             #
-            #     configuration = AlloyGen.generate_configuration(
+            #     configuration = alloy_gen.generate_configuration(
             #         structureX, element_pool, cutoff, networks, device=device
             #     )
             #
@@ -273,26 +274,26 @@ def train_policy(
 
             # ---------------------- multi process-----------------------------
 
-            configurations = multiprocessing_training(nb_worker, AlloyGen, networks_list, input_structures,
+            configurations = multiprocessing_training(nb_worker, alloy_gen, networks_list, input_structures,
                                                       element_pool, cutoff)
 
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            configurations_fitness = GaNn.get_population_fitness(
+            configurations_fitness = NEs.get_population_fitness(
                 configurations, concentrations, max_diff_elements, element_pool, crystal_structure, cutoff
             )
 
             # Rank the policies
 
-            sorted_weights_list = GaNn.sort_population_by_fitness(
+            sorted_weights_list = NEs.sort_population_by_fitness(
                 network_weights_list, configurations_fitness
             )  # list of list
 
-            # sorted_configurations_fitness = GaNn.sort_population_by_fitness(configurations_fitness,
+            # sorted_configurations_fitness = NEs.sort_population_by_fitness(configurations_fitness,
             #                                                                 configurations_fitness)
 
         else:
 
-            network_weights_list = GaNn.make_next_generation(sorted_weights_list, rate=rate)  # list of list
+            network_weights_list = NEs.make_next_generation(sorted_weights_list, rate=rate)  # list of list
 
             for i, _ in enumerate(networks_list):
                 network_weights = network_weights_list[i]
@@ -301,7 +302,7 @@ def train_policy(
                     networks_list[i][j].l1.weight = torch.nn.Parameter(w)
 
             # ------------------------------------------------------------------------
-            # configurations = [training(AlloyGen, net, struc, element_pool, cutoff) for net, struc, in
+            # configurations = [training(alloy_gen, net, struc, element_pool, cutoff) for net, struc, in
             #                   zip(networks_list, input_structures)]
             # configurations = []
             # for i, structure in enumerate(input_structures):
@@ -313,28 +314,28 @@ def train_policy(
             #
             #     structureX = AseAtomsAdaptor.get_structure(structure)
             #
-            #     configuration = AlloyGen.generate_configuration(
+            #     configuration = alloy_gen.generate_configuration(
             #         structureX, element_pool, cutoff, networks, device=device
             #     )
             #
             #     configurations.append(configuration)
             # ---------------------- multi process-----------------------------
 
-            configurations = multiprocessing_training(nb_worker, AlloyGen, networks_list, input_structures,
+            configurations = multiprocessing_training(nb_worker, alloy_gen, networks_list, input_structures,
                                                       element_pool, cutoff)
 
             # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            configurations_fitness = GaNn.get_population_fitness(
+            configurations_fitness = NEs.get_population_fitness(
                 configurations, concentrations, max_diff_elements, element_pool, crystal_structure, cutoff
             )
 
             # Rank the policies
 
-            sorted_weights_list = GaNn.sort_population_by_fitness(
+            sorted_weights_list = NEs.sort_population_by_fitness(
                 network_weights_list, configurations_fitness
             )  # list of list
 
-            # sorted_configurations_fitness = GaNn.sort_population_by_fitness(configurations_fitness,
+            # sorted_configurations_fitness = NEs.sort_population_by_fitness(configurations_fitness,
             #                                                                 configurations_fitness)
 
         # save the current training information

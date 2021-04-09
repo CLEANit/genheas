@@ -32,7 +32,7 @@ cell_parameters : [3.61, 3.61, 3.61]
 
 cell_size: [2,2,2]
 
-cubic_train: False # False: orthorombic, True: cubic
+cubic_train: True # False: orthorombic, True: cubic
 # with a cubic the number of atom is equal to 4x2x2x2 = 32
 ###############################################################################
 
@@ -40,7 +40,7 @@ cubic_train: False # False: orthorombic, True: cubic
 
 
 
-model_path : 'Cu_Ni_Co_Cr/generations_2500/BestWeights_0.1a-64p-4n.pkl'
+model_path : 'Cu_Ni_Co_Cr/generations_3000/BestWeights_0.1a-32p-4n.pkl'
 nb_structures : 1
 
 supercell_size: [4,4,4]

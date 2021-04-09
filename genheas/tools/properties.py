@@ -9,33 +9,23 @@ from genheas.utilities.log import logger
 from sklearn.preprocessing import MinMaxScaler
 
 __all__ = ['Property', 'atomic_properties', 'list_of_elements']
-
-# atomic_properties = [
-#     'number',
-#     'group',
-#     'row',
-#     # 'is_metal',
-#     'is_transition_metal',
-#     'is_alkali',
-#     'is_alkaline',
-#     'is_metalloid',
-#     'atomic_radius',
-#     # 'oxidation_states',
-#     'VEC',
-#     'electronegativity',
-# ]
-
+blocks = {'s': 1, 'p': 2, 'd': 3, 'f': 4}
 atomic_properties = {
     "atomic_number": 'number',
-    "periodic_table_group": 'group',
-    "periodic_table_row": 'row',
+    "group_number": 'group',
+    "period_number": 'row',
+    "block": 'block',
     # "is an alkaline metal": 'is_metal',
-    "is_transition_metal": 'is_transition_metal',
-    "is_alkali": 'is_alkali',
-    "is_alkaline": 'is_alkaline',
-    "is_metalloid": 'is_metalloid',
+    # "is_transition_metal": 'is_transition_metal',
+    # "is_alkali": 'is_alkali',
+    # "is_alkaline": 'is_alkaline',
+    # "is_metalloid": 'is_metalloid',
+    "first_ionization_energy": 'ionenergies',
+    "electron_affinity": 'electron_affinity',
     "atomic_radius": 'atomic_radius',
-    # "is_chalcogen": 'is_chalcogen',
+    "atomic_mass": 'atomic_mass',
+    "atomic_volume":'atomic_volume',
+    #"is_chalcogen": 'is_chalcogen',
     # "oxidation_states": "oxidation_states",
     "Valence_electron_concentration": 'VEC',
     "electronegativity": "X"
@@ -48,7 +38,7 @@ list_of_elements = ['Li', 'Be', 'Na', 'Mg', 'Al', 'K', 'Ca', 'Sc', 'Ti', 'V',
                     'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu', 'Hf',
                     'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg', 'Tl', 'Pb',
                     'Bi', 'Po', 'Ra', 'Ac', 'Th', 'Pa', 'U', 'Np', 'Pu',
-                    'Am']
+                    'Am', 'H', 'B', 'N', 'O', 'C']
 
 
 class Property:
@@ -152,18 +142,30 @@ class Property:
         :param elm: str(atomic symbol)
         :return: transformed value between -1 and 1
         """
-        datas = np.array([Element(element).number for element in list_of_elements])
+        datas = np.array([Element(elmt).number for elmt in list_of_elements])
         val = Element(elm).number
-        return self._transfromed_data(val, datas)
+        val = self._transfromed_data(val, datas)
+        return round(val, 2)
 
     def get_group(self, elm):
         """
         :param elm: str(atomic symbol)
         :return:
         """
-        datas = np.array([Element(element).group for element in list_of_elements])
+        datas = np.array([Element(elemt).group for elemt in list_of_elements])
         val = Element(elm).group
-        return self._transfromed_data(val, datas)
+        val = self._transfromed_data(val, datas)
+        return round(val, 2)
+
+    def get_block(self, elm):
+        """
+        :param elm: str(atomic symbol)
+        :return:
+        """
+        datas = np.array([blocks[Element(elemt).block] for elemt in list_of_elements])
+        val = blocks[Element(elm).blocks]
+        val = self._transfromed_data(val, datas)
+        return round(val, 2)
 
     def get_row(self, elm):
         """
@@ -171,18 +173,64 @@ class Property:
         :return:
         """
 
-        datas = np.array([Element(element).row for element in list_of_elements])
+        datas = np.array([Element(elemt).row for elemt in list_of_elements])
         val = Element(elm).row
-        return self._transfromed_data(val, datas)
+        val = self._transfromed_data(val, datas)
+        return round(val, 2)
 
     def get_atomic_radius(self, elm):
         """
         :param elm: str(atomic symbol)
         :return:
         """
-        datas = np.array([Element(element).atomic_radius for element in list_of_elements])
+        datas = np.array([Element(elemt).atomic_radius for elemt in list_of_elements])
         val = Element(elm).atomic_radius
-        return self._transfromed_data(val, datas)
+        val = self._transfromed_data(val, datas)
+        return round(val, 2)
+
+    def get_atomic_mass(self, elm):
+        """
+        :param elm: str(atomic symbol)
+        :return:
+        """
+        datas = np.array([Element(elemt).atomic_mass for elemt in list_of_elements])
+        val = Element(elm).atomic_mass
+        val = self._transfromed_data(val, datas)
+        return round(val, 2)
+
+    def get_atomic_volume(self, elm):
+        """
+        :param elm: str(atomic symbol)
+        :return:
+        """
+        datas = np.array([mendeleev.element(elemt).atomic_volume for elemt in list_of_elements])
+        val = mendeleev.element(elm).atomic_volume
+        val = self._transfromed_data(val, datas)
+        return round(val, 2)
+
+    def get_electron_affinity(self, elm):
+        """
+        :param elm: str(atomic symbol)
+        :return:
+        """
+        datas = np.array([mendeleev.element(elemt).electron_affinity for elemt in list_of_elements])
+        val = mendeleev.element(elm).electron_affinity
+        val = self._transfromed_data(val, datas)
+        return round(val, 2)
+
+    def get_ionenergies(self, elm):
+        """
+        :param elm: str(atomic symbol)
+        :return:
+        """
+        datas = np.array([mendeleev.element(elemt).ionenergies[1] for elemt in list_of_elements])
+        val = mendeleev.element(elm).ionenergies[1]
+        val = self._transfromed_data(val, datas)
+        return round(val, 2)
+
+
+
+
 
     def get_X(self, elm):
         """
@@ -191,9 +239,10 @@ class Property:
         :return:
         """
 
-        datas = np.array([Element(element).X for element in list_of_elements])
+        datas = np.array([Element(elemt).X for elemt in list_of_elements])
         val = Element(elm).X
-        return self._transfromed_data(val, datas)
+        val = self._transfromed_data(val, datas)
+        return round(val, 2)
 
     def get_VEC(self, elm):
         """
@@ -206,18 +255,18 @@ class Property:
         datas = np.array([self.VEC_data[element] for element in list_of_elements])
         val = self.VEC_data[elm]
         val = self._transfromed_data(val, datas)
-        return val
+        return round(float(val), 2)
 
     def get_is_metal(self, elm):
         """
         :param elm: str(atomic symbol)
         :return:
         """
-        datas = np.array([float(Element(element).is_metal) for element in list_of_elements])
+        datas = np.array([float(Element(elemt).is_metal) for elemt in list_of_elements])
         val = Element(elm).is_metal
 
-        val = self._transfromed_data(val, datas)
-        return val
+        # val = self._transfromed_data(val, datas)
+        return round(float(val), 2)
 
     def get_is_transition_metal(self, elm):
         """
@@ -225,11 +274,11 @@ class Property:
         :return:
         """
 
-        datas = np.array([float(Element(element).is_transition_metal) for element in list_of_elements])
+        datas = np.array([float(Element(elemt).is_transition_metal) for elemt in list_of_elements])
         val = Element(elm).is_transition_metal
 
-        val = self._transfromed_data(val, datas)
-        return val
+        # val = self._transfromed_data(val, datas)
+        return round(float(val), 2)
 
     def get_is_alkali(self, elm):
         """
@@ -237,11 +286,11 @@ class Property:
         :return:
         """
 
-        datas = np.array([float(Element(element).is_alkali) for element in list_of_elements])
+        datas = np.array([float(Element(elemt).is_alkali) for elemt in list_of_elements])
         val = Element(elm).is_alkali
 
-        val = self._transfromed_data(val, datas)
-        return val
+        # val = self._transfromed_data(val, datas)
+        return round(float(val), 2)
 
     def get_is_alkaline(self, elm):
         """
@@ -249,11 +298,11 @@ class Property:
         :return:
         """
 
-        datas = np.array([float(Element(element).is_alkaline) for element in list_of_elements])
+        datas = np.array([float(Element(elemt).is_alkaline) for elemt in list_of_elements])
         val = Element(elm).is_alkaline
 
-        val = self._transfromed_data(val, datas)
-        return val
+        # val = self._transfromed_data(val, datas)
+        return round(float(val), 2)
 
     def get_is_metalloid(self, elm):
         """
@@ -261,8 +310,20 @@ class Property:
         :return:
         """
 
-        datas = np.array([float(Element(element).is_metalloid) for element in list_of_elements])
+        datas = np.array([float(Element(elemt).is_metalloid) for elemt in list_of_elements])
         val = Element(elm).is_metalloid
 
-        val = self._transfromed_data(val, datas)
-        return val
+        # val = self._transfromed_data(val, datas)
+        return round(float(val), 2)
+
+    def get_is_chalcogen(self, elm):
+        """
+        :param elm: str(atomic symbol)
+        :return:
+        """
+
+        datas = np.array([float(Element(elemt).is_chalcogen) for elemt in list_of_elements])
+        val = Element(elm).is_metalloid
+
+        # val = self._transfromed_data(val, datas)
+        return round(float(val), 2)

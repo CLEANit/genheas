@@ -1,10 +1,11 @@
-#----------------Optimization parameter --------
-
-nb_generation : 3000
+###############################################################################
+#             ----------- Train model --------------------
+###############################################################################
+nb_generation: 100
 rate: 0.25
 alpha: 0.1
 nn_per_policy: 4
-nb_policies: 32
+nb_policies: 16
 patience: 2000
 
 device: 'cpu'
@@ -13,48 +14,43 @@ nb_worker: 8
 #------------------- Input Structure --------------
 crystalstructure : 'fcc'
 
-#elements_pool : ['Co', 'Cr', 'Fe', 'Cu', 'Ni']
-#concentrations : {'Co': 0.2, 'Cr': 0.2, 'Fe': 0.2, 'Cu': 0.2, 'Ni': 0.2}
+elements_pool : ['Co', 'Mo', 'Fe', 'Ni', 'Cu']
+concentrations : {'Co': 0.2, 'Mo': 0.2, 'Fe': 0.2, 'Ni': 0.2, 'Cu': 0.2}
 #oxidation_states : {'Co': 0, 'Cr': 0, 'Fe': 0, 'Cu': 0, 'Ni':0}
-#cell_parameters : [3.54, 3.54, 3.54]
+cell_parameters : [3.6, 3.6, 3.6]
 
-elements_pool : ['Cu', 'Ni', 'Co', 'Cr']
-concentrations : {'Cu': 0.25, 'Ni': 0.25, 'Co': 0.25, 'Cr': 0.25}
-oxidation_states : {'Cu': 0, 'Ni': 0, 'Co': 0, 'Cr': 0}
-cell_parameters : [3.61, 3.61, 3.61]
-#
-#elements_pool : ['Ag', 'Pd']
-#concentrations : {'Ag': 0.5, 'Pd': 0.5}
-#oxidation_states : {'Ag': 0, 'Pd': 0}
-#cell_parameters : [4.09,4.09,4.09 ]
+#elements_pool : ['Cu', 'Ni', 'Co', 'Cr']
+#concentrations : {'Cu': 0.25, 'Ni': 0.25, 'Co': 0.25, 'Cr': 0.25}
+#oxidation_states : {'Cu': 0, 'Ni': 0, 'Co': 0, 'Cr': 0}
+#cell_parameters : [3.61, 3.61, 3.61]
 
 
 
-cell_size: [2,2,2]
+cell_size: [2,2,1] # size of the training cell
 
 cubic_train: True # False: orthorombic, True: cubic
 # with a cubic the number of atom is equal to 4x2x2x2 = 32
+
+###############################################################################
+#             ----------- Generate structure--------------------
 ###############################################################################
 
-#----------- Generate structure--------------------
 
-
-
-model_path : 'Cu_Ni_Co_Cr/generations_3000/BestWeights_0.1a-32p-4n.pkl'
+model_path : 'Co_Mo_Fe_Ni_Cu/generations_100/BestWeights_0.1a-16p-4n.pkl'
 nb_structures : 1
 
-supercell_size: [4,4,4]
+supercell_size: [4,4,1] #size of the cell to generate
 
 cubic_gen : True # False: orthorombic, True: cubic
 
 
 #----------------Surface -----------------------------
-
+# to generate a surface
 #    111: [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
 #    100: [[1, 0, 0], [0, 0, 0], [0, 0, 1]]
 #    110: [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
 
-surfaces:
+surfaces: [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
 
 
 

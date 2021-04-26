@@ -10,9 +10,13 @@
 """
 
 from genheas import generate
+from genheas.tools.alloysgen import AlloysGen
+from genheas.tools.alloysgen import coordination_numbers
 from genheas.tools.evolution import NnEa
-from genheas.tools.alloysgen import (
-    AlloysGen,
-    coordination_numbers,
-    properties_list,
-)
+
+
+def test_fitness():
+    """read cif file"""
+    # cif = ase.io.read('tests_files/Fe_mp-13_primitive.cif')
+
+    assert True

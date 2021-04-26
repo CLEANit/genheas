@@ -15,41 +15,63 @@ combining artificial neural networks (ANNs) and evolutionary algorithms (EAs) to
 genheas workflow
 ================
 
-Here is the schematic of the workflow to generate HEAs structures:
 
+Here is the schematic of the workflow to generate HEAs structures:
 
 
 + train.y
 
-    use small structure to train the model
-
+    use small cell to train the model
 
 .. figure:: ./images/workflow.png
    :align: center
 
-
 + generate.py
 
-    use the trained model to general big structures
-
+    use the trained model to general large cell
 
 .. figure:: ./images/gen_configuration.png
    :align: center
 
+
 Therefore, it should looks like:
 
-.. sourcecode:: bash
 
-    # create subdirectory:
-    mkdir new_directory
-    cd new_directory
+1- Train the model  and generate structure
 
-    # create the inputs parameter file:
-    touch  parameters.yml
+    - Edit the configuration file both training and generation part
 
-    # run
-    run.py
+    .. sourcecode:: bash
 
+        vi parameters.yml
 
+    - run
+    .. sourcecode:: bash
+
+        poetry run python main.py
+
+2- Only train a model
+    - Edit the configuration file : training part
+
+    .. sourcecode:: bash
+
+        vi parameters.yml
+
+    - run
+    .. sourcecode:: bash
+
+        poetry run python train.py
+
+3 - Using a pre-trained model to generate cell
+    - Edit the configuration file : generation part
+
+    .. sourcecode:: bash
+
+        vi parameters.yml
+
+    - run
+    .. sourcecode:: bash
+
+        poetry run python generate.py
 genheas
 =====

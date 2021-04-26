@@ -5,5 +5,4 @@ genheas
    :maxdepth: 4
 
    genheas
-   septup
    tests

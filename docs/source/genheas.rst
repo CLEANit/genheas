@@ -1,5 +1,5 @@
-hea package
-===========
+genheas package
+===============
 
 Subpackages
 -----------
@@ -7,39 +7,32 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   hea.tools
+   genheas.tools
+   genheas.utilities
 
 Submodules
 ----------
 
-hea.generate module
+genheas.generate module
+-----------------------
+
+.. automodule:: genheas.generate
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+genheas.main module
 -------------------
 
-.. automodule:: hea.generate
+.. automodule:: genheas.main
    :members:
    :undoc-members:
    :show-inheritance:
 
-hea.hea\_gen module
--------------------
+genheas.train module
+--------------------
 
-.. automodule:: hea.hea_gen
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-hea.pyhea module
-----------------
-
-.. automodule:: hea.pyhea
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-hea.train module
-----------------
-
-.. automodule:: hea.train
+.. automodule:: genheas.train
    :members:
    :undoc-members:
    :show-inheritance:
@@ -47,7 +40,7 @@ hea.train module
 Module contents
 ---------------
 
-.. automodule:: hea
+.. automodule:: genheas
    :members:
    :undoc-members:
    :show-inheritance:

@@ -1,1 +1,22 @@
 [96m03-26-2021 15:41:51[0m | [96mproperties[0m - [96mgenheas.tools.properties[0m | [91mERROR[0m: [97m<class 'AttributeError'>[0m
+[96m04-26-2021 15:06:48[0m | [96mtrain[0m - [96mgenheas.train[0m | [91mERROR[0m: [97mwhile parsing a block mapping
+  in "./parameters.yml", line 6, column 1
+expected <block end>, but found '<scalar>'
+  in "./parameters.yml", line 47, column 25[0m
+[96m04-26-2021 15:07:48[0m | [96mtrain[0m - [96mgenheas.train[0m | [91mERROR[0m: [97mwhile parsing a block mapping
+  in "./parameters.yml", line 4, column 1
+expected <block end>, but found '<scalar>'
+  in "./parameters.yml", line 45, column 25[0m
+[96m04-26-2021 15:09:27[0m | [96mtrain[0m - [96mgenheas.train[0m | [91mERROR[0m: [97mwhile parsing a block mapping
+  in "./parameters.yml", line 4, column 1
+expected <block end>, but found '<scalar>'
+  in "./parameters.yml", line 45, column 25[0m
+[96m04-26-2021 15:11:26[0m | [96mtrain[0m - [96m__main__[0m | [91mERROR[0m: [97m<oxidation_states> should match <elements_pool>[0m
+[96m04-26-2021 15:53:27[0m | [96mgenerate[0m - [96m__main__[0m | [91mERROR[0m: [97mwhile scanning a simple key
+  in "./parameters.yml", line 39, column 1
+could not find expected ':'
+  in "./parameters.yml", line 40, column 1[0m
+[96m04-26-2021 15:53:59[0m | [96mgenerate[0m - [96m__main__[0m | [91mERROR[0m: [97mwhile scanning a quoted scalar
+  in "./parameters.yml", line 39, column 14
+found unexpected end of stream
+  in "./parameters.yml", line 61, column 1[0m

@@ -3,16 +3,19 @@ import random
 import numpy as np
 import pymatgen as pmg
 import torch
-from genheas.tools.alloysgen import AlloysGen, coordination_numbers
+
+from genheas.tools.alloysgen import AlloysGen
+from genheas.tools.alloysgen import coordination_numbers
+from pymatgen.core import Composition
 
 
 # from ase.data import atomic_numbers
 
 
 class NnEa:
-    """"""
+    """ """
 
-    def __init__(self, rate=0.25, alpha=0.1, device='cpu'):
+    def __init__(self, rate=0.25, alpha=0.1, device="cpu"):
         """
         #nb_polocies: int : nber of polocies generated at each generation
         n_structures: int :  nber of structure generated for each policies
@@ -32,7 +35,7 @@ class NnEa:
         combinations = []
         for i in range(len(element_pool)):
             for j in range(len(element_pool)):
-                combinations.append(element_pool[i] + '-' + element_pool[j])
+                combinations.append(element_pool[i] + "-" + element_pool[j])
         return combinations
 
     @staticmethod
@@ -63,7 +66,7 @@ class NnEa:
         target = 0
 
         for key, val in cn1_list.items():
-            atm1, atm2 = key.split('-')
+            atm1, atm2 = key.split("-")
             if atm1 == atm2:
                 fitness[key] = self._rmsd(val, target)
 
@@ -78,7 +81,7 @@ class NnEa:
         target = n_neighbours
 
         for key, val in cn1_list.items():
-            atm1, atm2 = key.split('-')
+            atm1, atm2 = key.split("-")
             if atm1 == atm2:
                 fitness[key] = self._rmsd(val, target)
 
@@ -100,7 +103,7 @@ class NnEa:
         nb_species = len(concentrations.keys())
 
         for key, val in cn1_list.items():
-            atm1, atm2 = key.split('-')
+            atm1, atm2 = key.split("-")
             if atm1 != atm2:
                 param = n_neighbours * concentrations[atm2]
                 target = n_neighbours * concentrations[atm1] + (param / (nb_species - 1))
@@ -117,7 +120,7 @@ class NnEa:
         # element_list = alloy_atoms.get_chemical_symbols()
         # max_diff_elem = {x: element_list.count(x) for x in element_list}
         fitness = {}
-        comp = pmg.Composition(alloy_atoms.get_chemical_formula())
+        comp = Composition(alloy_atoms.get_chemical_formula())
         max_diff_elem = comp.as_dict()
 
         for key, val in max_diff_elem.items():
@@ -130,9 +133,9 @@ class NnEa:
         max_diff_element : maximun number of each specie
 
         """
-        target_comp = pmg.Composition(max_diff_element)
+        target_comp = Composition(max_diff_element)
 
-        comp = pmg.Composition(alloy_atoms.get_chemical_formula())
+        comp = Composition(alloy_atoms.get_chemical_formula())
 
         fitness = {}
 
@@ -161,9 +164,9 @@ class NnEa:
             max_diff_element_fitness = self.get_max_diff_element_fitness(max_diff_element, configuration)
             fitness = (
                 # sum(shell1_fitness_AA.values())
-                    +sum(max_diff_element_fitness.values())
-                    + sum(shell1_fitness_AB.values())
-                    + sum(shell2_fitness_AA.values())
+                +sum(max_diff_element_fitness.values())
+                + sum(shell1_fitness_AB.values())
+                + sum(shell2_fitness_AA.values())
             )
 
             pop_fitness.append(fitness)

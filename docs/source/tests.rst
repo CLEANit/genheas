@@ -4,18 +4,26 @@ tests package
 Submodules
 ----------
 
-tests.test\_Constants module
-----------------------------
+tests.test\_AtomInitializer module
+----------------------------------
 
-.. automodule:: tests.test_Constants
+.. automodule:: tests.test_AtomInitializer
    :members:
    :undoc-members:
    :show-inheritance:
 
-tests.test\_Properties module
------------------------------
+tests.test\_fitness module
+--------------------------
 
-.. automodule:: tests.test_Properties
+.. automodule:: tests.test_fitness
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+tests.test\_generate\_structure module
+--------------------------------------
+
+.. automodule:: tests.test_generate_structure
    :members:
    :undoc-members:
    :show-inheritance:

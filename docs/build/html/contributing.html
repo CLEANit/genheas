@@ -1,0 +1,303 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Contributing &mdash; genheas v1.0</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="genheas" href="modules.html" />
+    <link rel="prev" title="How to use genheas" href="use.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> genheas
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing genheas</a></li>
+<li class="toctree-l1"><a class="reference internal" href="use.html">How to use genheas</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Contributing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#fork-on-github-and-clone">Fork on GitHub and clone</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#building-html-documentation">Building HTML Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#getting-started-with-sphinx">Getting Started with Sphinx</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">genheas</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">genheas</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Contributing</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/contributing.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="contributing">
+<h1>Contributing<a class="headerlink" href="#contributing" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="fork-on-github-and-clone">
+<h2>Fork on GitHub and clone<a class="headerlink" href="#fork-on-github-and-clone" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Create a writeable fork on GitHub and clone it to implement your changes</p></li>
+</ul>
+</div>
+<div class="section" id="building-html-documentation">
+<h2>Building HTML Documentation<a class="headerlink" href="#building-html-documentation" title="Permalink to this headline">¶</a></h2>
+<p>genheas uses   Sphinx (<a class="reference external" href="https://docs.readthedocs.io/en/stable/intro/getting-started-with-sphinx.html">https://docs.readthedocs.io/en/stable/intro/getting-started-with-sphinx.html</a>) to generate the HTMLK documentation</p>
+<ul class="simple">
+<li><p>Install Sphinx:</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pip install sphinx
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Edit the module.rst. Add the name of the module if you have created new module</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ <span class="nb">cd</span>  docs
+$ vi module.rst
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Run sphinx-apidoc</p></li>
+</ul>
+<p>sphinx-apidoc is a tool for automatic generation of Sphinx sources that, using the autodoc extension,
+document a whole package in the
+style of other automatic API documentation tools.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ <span class="nb">cd</span>  docs
+$  sphinx-apidoc  -f -o source/ ../
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Use  tox to generate the documentation  see <a class="reference external" href="https://github.com/CLEANit/genheas/blob/master/docs/source/installg.rst">install.rst</a></p></li>
+</ul>
+</div>
+<div class="section" id="getting-started-with-sphinx">
+<h2>Getting Started with Sphinx<a class="headerlink" href="#getting-started-with-sphinx" title="Permalink to this headline">¶</a></h2>
+<p>This is just for information  please do not run the following command. The docs directory already exist</p>
+<ul class="simple">
+<li><p>Create a directory inside your project to hold your docs:</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ <span class="nb">cd</span> /path/to/project
+$ mkdir docs
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Run sphinx-quickstart in there:</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ <span class="nb">cd</span>  docs
+$ sphinx-quickstart
+</pre></div>
+</div>
+<p>This quick start will walk you through creating the basic configuration;
+in most cases, you can just accept the defaults. When it’s done, you’ll have an index.rst,
+a conf.py and some other files. Add these to revision control.</p>
+<p>Now, edit your index.rst and add some information about your project. Include as much detail as you like</p>
+<p>For the contribution</p>
+<p># language: python
+# python:
+# - 3.6
+# env:
+#   global:
+#   - secure: &quot;&lt;encrypted MYPYPI_USER=username&gt;&quot;
+#   - secure: &quot;&lt;encrypted <a class="reference external" href="mailto:MYPYPI_PASS=p&#37;&#52;&#48;ssword">MYPYPI_PASS=p<span>&#64;</span>ssword</a>&gt;&quot;
+# before_install:
+# - pip install poetry
+# install:
+# - poetry install
+# script:
+# - poetry run flake8 my_package test
+# - poetry run coverage run --source=my_package -m unittest discover -b
+# before_deploy:
+# - poetry config repositories.mypypi <a class="reference external" href="http://mypypi.example.com/simple">http://mypypi.example.com/simple</a>
+# - poetry config http-basic.mypypi $MYPYPI_USER $MYPYPI_PASS
+# - poetry build -f sdist
+# deploy:
+#   provider: script
+#   script: poetry publish -r mypypi
+#   skip_cleanup: true
+#   on:
+#     tags: true</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="modules.html" class="btn btn-neutral float-right" title="genheas" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="use.html" class="btn btn-neutral float-left" title="How to use genheas" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Conrard TETSASSI (National Reserved Council Canada.
+      <span class="lastupdated">
+        Last updated on Apr 26, 2021.
+      </span>
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

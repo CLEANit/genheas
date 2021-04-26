@@ -1,0 +1,308 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Installing genheas &mdash; genheas v1.0</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="How to use genheas" href="use.html" />
+    <link rel="prev" title="Welcome to genheas documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> genheas
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installing genheas</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#normal-installation">Normal installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installation-for-contributors">Installation for contributors</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="use.html">How to use genheas</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">genheas</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">genheas</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Installing genheas</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/install.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="installing-genheas">
+<span id="install"></span><h1>Installing genheas<a class="headerlink" href="#installing-genheas" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="normal-installation">
+<h2>Normal installation<a class="headerlink" href="#normal-installation" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p>Install poetry (<a class="reference external" href="https://github.com/python-poetry/poetry">https://github.com/python-poetry/poetry</a>)</p>
+<blockquote>
+<div><ul>
+<li><dl>
+<dt>osx / linux / bashonwindows install instructions</dt><dd><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py <span class="p">|</span> python -
+or
+$ pip install poetry
+</pre></div>
+</div>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>windows powershell install instructions</dt><dd><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ <span class="o">(</span>Invoke-WebRequest -Uri https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py -UseBasicParsing<span class="o">)</span>.Content <span class="p">|</span> python -
+or
+$ pip install poetry
+</pre></div>
+</div>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>Once Poetry is installed you can execute the following:</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ poetry --version
+
+$ poetry self update
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Clone the repo</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ git clone  https://github.com/CLEANit/genheas
+
+$ <span class="nb">cd</span> genheas
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>install the packages</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">$genheas</span> peotry install
+
+<span class="nv">$genheas</span> peotry check
+<span class="c1"># $genheas poetry run pytest</span>
+
+<span class="nv">$genheas</span> poetry build
+</pre></div>
+</div>
+<ul>
+<li><p>Listing the current configuration</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">$genheas</span> poetry config --list
+</pre></div>
+</div>
+<p>which will give you something similar to this</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cache-dir <span class="o">=</span> <span class="s2">&quot;/path/to/cache/directory&quot;</span>
+virtualenvs.create <span class="o">=</span> <span class="nb">true</span>
+virtualenvs.in-project <span class="o">=</span> null
+virtualenvs.path <span class="o">=</span> <span class="s2">&quot;{cache-dir}/virtualenvs&quot;</span>  <span class="c1"># /path/to/cache/directory/virtualenvs</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ul>
+</div>
+<div class="section" id="installation-for-contributors">
+<h2>Installation for contributors<a class="headerlink" href="#installation-for-contributors" title="Permalink to this headline">¶</a></h2>
+<p>To contribute to the project, you need to clone the repository:</p>
+<ul class="simple">
+<li><p>Clone it: <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">clone</span> <span class="pre">https://github.com/CLEANit/pyHEA</span></code>.</p></li>
+<li><p>Create virtualenv and activate it:</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>virtualenv venv --python<span class="o">=</span>python3
+<span class="c1"># activate virtualenv (you need to do that every time)</span>
+<span class="nb">source</span> venv/bin/activate
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Install (dev) dependencies : <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install-dependencies-dev</span></code>.</p></li>
+<li><p>Finally, “install” the pakage: <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">.</span></code></p></li>
+<li><p>Don’t forget to create a separate branch to implement your changes (see <a class="reference external" href="contributing.html">the contribution part</a>)</p></li>
+</ul>
+<p>You can launch the tests series with <code class="docutils literal notranslate"><span class="pre">tox</span></code></p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="use.html" class="btn btn-neutral float-right" title="How to use genheas" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to genheas documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Conrard TETSASSI (National Reserved Council Canada.
+      <span class="lastupdated">
+        Last updated on Apr 26, 2021.
+      </span>
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

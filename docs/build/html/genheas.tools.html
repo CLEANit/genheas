@@ -1,0 +1,1021 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>genheas.tools package &mdash; genheas v1.0</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="genheas.utilities package" href="genheas.utilities.html" />
+    <link rel="prev" title="genheas package" href="genheas.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> genheas
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing genheas</a></li>
+<li class="toctree-l1"><a class="reference internal" href="use.html">How to use genheas</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">genheas</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="genheas.html">genheas package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="genheas.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">genheas.tools package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="genheas.utilities.html">genheas.utilities package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="genheas.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="genheas.html#module-genheas.generate">genheas.generate module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="genheas.html#module-genheas.main">genheas.main module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="genheas.html#module-genheas.train">genheas.train module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="genheas.html#module-genheas">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tests.html">tests package</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">genheas</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="modules.html">genheas</a> &raquo;</li>
+        
+          <li><a href="genheas.html">genheas package</a> &raquo;</li>
+        
+      <li>genheas.tools package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/genheas.tools.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="genheas-tools-package">
+<h1>genheas.tools package<a class="headerlink" href="#genheas-tools-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-genheas.tools.alloysgen">
+<span id="genheas-tools-alloysgen-module"></span><h2>genheas.tools.alloysgen module<a class="headerlink" href="#module-genheas.tools.alloysgen" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="genheas.tools.alloysgen.AlloysGen">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">AlloysGen</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element_pool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">concentration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crystalstructure</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.alloysgen.AlloysGen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt id="genheas.tools.alloysgen.AlloysGen.atom_features">
+<code class="sig-name descname"><span class="pre">atom_features</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;genheas.tools.properties.AtomJSONInitializer</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#genheas.tools.alloysgen.AlloysGen.atom_features" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="genheas.tools.alloysgen.AlloysGen.atom_properties">
+<code class="sig-name descname"><span class="pre">atom_properties</span></code><em class="property"> <span class="pre">=</span> <span class="pre">{}</span></em><a class="headerlink" href="#genheas.tools.alloysgen.AlloysGen.atom_properties" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="genheas.tools.alloysgen.AlloysGen.combination">
+<code class="sig-name descname"><span class="pre">combination</span></code><em class="property"> <span class="pre">=</span> <span class="pre">[]</span></em><a class="headerlink" href="#genheas.tools.alloysgen.AlloysGen.combination" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.alloysgen.AlloysGen.count_neighbors_by_shell">
+<code class="sig-name descname"><span class="pre">count_neighbors_by_shell</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">neighbors_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alloy_atoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">element_pool</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.alloysgen.AlloysGen.count_neighbors_by_shell" title="Permalink to this definition">¶</a></dt>
+<dd><p>retrun list of dictionary</p>
+<blockquote>
+<div><p>for each atom the number of  nearest neighbor of each type
+in the first (12) and second (6) shells for fcc</p>
+<p>n_neighbours number of first nearest neighbours</p>
+<p>return list of dictionanry with number of neighbour of each type</p>
+</div></blockquote>
+<dl class="simple">
+<dt>[{'Ag': 4, 'Pd': 8},  # first atom</dt><dd><p>{'Ag': 6, 'Pd': 6},  # second atom
+{'Ag': 6, 'Pd': 6},
+{'Ag': 8, 'Pd': 4},
+{'Ag': 8, 'Pd': 4},
+{'Ag': 6, 'Pd': 6},
+{'Ag': 6, 'Pd': 6},
+{'Ag': 4, 'Pd': 8}]   # ....</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.alloysgen.AlloysGen.count_occurence_to_dict">
+<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">count_occurence_to_dict</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">element_pool</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.alloysgen.AlloysGen.count_occurence_to_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>count occurence in numpy array and
+return a list dictinnary</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.alloysgen.AlloysGen.gen_alloy_supercell">
+<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">gen_alloy_supercell</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element_pool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">concentrations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crystalstructure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_structure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lattice_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cubic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.alloysgen.AlloysGen.gen_alloy_supercell" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nb_structure</strong> -- </p></li>
+<li><p><strong>cubic</strong> -- </p></li>
+<li><p><strong>lattice_param</strong> -- </p></li>
+<li><p><strong>element_pool</strong> -- list of element in the alloy</p></li>
+<li><p><strong>concentrations</strong> -- </p></li>
+<li><p><strong>crystalstructure</strong> -- fcc or bcc</p></li>
+<li><p><strong>size</strong> -- </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Alloy supercell</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.alloysgen.AlloysGen.gen_random_structure">
+<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">gen_random_structure</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">crystalstructure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_diff_elem</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lattice_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cubik</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">surface</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.alloysgen.AlloysGen.gen_random_structure" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>crystalstructure</strong> -- </p></li>
+<li><p><strong>size</strong> -- </p></li>
+<li><p><strong>max_diff_elem</strong> -- </p></li>
+<li><p><strong>lattice_param</strong> -- </p></li>
+<li><p><strong>name</strong> -- </p></li>
+<li><p><strong>cubik</strong> -- </p></li>
+<li><p><strong>surface</strong> -- </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.alloysgen.AlloysGen.gen_raw_crystal">
+<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">gen_raw_crystal</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">crystalstructure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lattice_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cubik</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">surface</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.alloysgen.AlloysGen.gen_raw_crystal" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>crystalstructure</strong> -- </p></li>
+<li><p><strong>size</strong> -- </p></li>
+<li><p><strong>lattice_param</strong> -- </p></li>
+<li><p><strong>name</strong> -- </p></li>
+<li><p><strong>cubik</strong> -- </p></li>
+<li><p><strong>surface</strong> -- </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.alloysgen.AlloysGen.generate_configuration">
+<code class="sig-name descname"><span class="pre">generate_configuration</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">element_pool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">models</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_diff_element</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constrained</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.alloysgen.AlloysGen.generate_configuration" title="Permalink to this definition">¶</a></dt>
+<dd><p>add a contrain to the for the max_diff_element</p>
+<p>structureX: empty structure to be filled ( N sites)
+element_pool : list of dieffernet species
+max_diff_element: maximum nunber of different species
+model: NN model to train
+return generated Atoms configuration</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.alloysgen.AlloysGen.get_CN_list">
+<code class="sig-name descname"><span class="pre">get_CN_list</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shell</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alloy_atoms</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.alloysgen.AlloysGen.get_CN_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>combinations list of  unique pair of atom in the structure
+symbols_indexes : dictionary with the indexes of each element in the structure
+return dictionannry with the list of neighbor of each atom by type
+{'Ag-Ag': [6, 4, 4, 6], # Ag around Ag</p>
+<blockquote>
+<div><p>'Ag-Pd': [8, 6, 6, 8], # Ag around Pd
+'Pd-Ag': [6, 8, 8, 6],
+'Pd-Pd': [4, 6, 6, 4]}</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.alloysgen.AlloysGen.get_combination">
+<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">get_combination</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element_pool</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.alloysgen.AlloysGen.get_combination" title="Permalink to this definition">¶</a></dt>
+<dd><p>combinations list of  unique pair of atom in the structure</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.alloysgen.AlloysGen.get_coordination_numbers">
+<code class="sig-name descname"><span class="pre">get_coordination_numbers</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alloy_atoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.alloysgen.AlloysGen.get_coordination_numbers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.alloysgen.AlloysGen.get_cutoff">
+<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">get_cutoff</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crystalstructure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lattice_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.alloysgen.AlloysGen.get_cutoff" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> -- element name</p></li>
+<li><p><strong>crystalstructure</strong> -- </p></li>
+<li><p><strong>lattice_param</strong> -- </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.alloysgen.AlloysGen.get_input_vector_2">
+<code class="sig-name descname"><span class="pre">get_input_vector_2</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">neighbors_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alloy_structure</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.alloysgen.AlloysGen.get_input_vector_2" title="Permalink to this definition">¶</a></dt>
+<dd><p>all_neighbors_list: list of array with the list the neighbors  of each atom
+properties: dictionary with properties of each atom type
+apply transformation by site</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.alloysgen.AlloysGen.get_max_diff_elements">
+<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">get_max_diff_elements</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element_pool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">concentrations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_atm</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.alloysgen.AlloysGen.get_max_diff_elements" title="Permalink to this definition">¶</a></dt>
+<dd><p>compute the maximun number of different element base on concentration
+and the total number of atoms</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.alloysgen.AlloysGen.get_neighbor_type">
+<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">get_neighbor_type</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">neighbors_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alloy_atoms</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.alloysgen.AlloysGen.get_neighbor_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>neighbors_list: list
+return  atomic numbers and symbols of the neighbours list</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.alloysgen.AlloysGen.get_neighbor_type2">
+<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">get_neighbor_type2</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">neighbors_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alloy_atoms</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.alloysgen.AlloysGen.get_neighbor_type2" title="Permalink to this definition">¶</a></dt>
+<dd><p>neighbors_list: list
+return  atomic number and symbol of the neighbours list</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.alloysgen.AlloysGen.get_neighbors_type">
+<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">get_neighbors_type</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_neighbors_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alloy_atoms</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.alloysgen.AlloysGen.get_neighbors_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>neighbors_list: list of list
+return  atomic numbers and symbols of the neighbours list
+considered site is  not include in the list</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.alloysgen.AlloysGen.get_neighbors_type2">
+<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">get_neighbors_type2</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_neighbors_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alloy_atoms</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.alloysgen.AlloysGen.get_neighbors_type2" title="Permalink to this definition">¶</a></dt>
+<dd><p>neighbors_list: list of list
+return  atomic number and symbol of the neighbours list
+The considered site is  not include in the list</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.alloysgen.AlloysGen.get_number_of_atom">
+<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">get_number_of_atom</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">crystalstructure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cel_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cubik</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.alloysgen.AlloysGen.get_number_of_atom" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cubik</strong> -- </p></li>
+<li><p><strong>cel_size</strong> -- </p></li>
+<li><p><strong>crystalstructure</strong> -- </p></li>
+<li><p><strong>direction</strong> -- </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>number of atom in the cell</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.alloysgen.AlloysGen.get_symbols_indexes">
+<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">get_symbols_indexes</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alloy_atoms</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.alloysgen.AlloysGen.get_symbols_indexes" title="Permalink to this definition">¶</a></dt>
+<dd><p>retrun dictionanry with indexes of each type of atom</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.alloysgen.AlloysGen.site_neighbor_list">
+<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">site_neighbor_list</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">site_number</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.alloysgen.AlloysGen.site_neighbor_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>structure :  pymatgen structure class</p>
+<p>cutoff : distance cutoff</p>
+<p>return list  neighbors of the site &quot;site_number&quot;</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.alloysgen.AlloysGen.site_neighbor_list2">
+<code class="sig-name descname"><span class="pre">site_neighbor_list2</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">site_number</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.alloysgen.AlloysGen.site_neighbor_list2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.alloysgen.AlloysGen.sites_neighbor_list">
+<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">sites_neighbor_list</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">site_number</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.alloysgen.AlloysGen.sites_neighbor_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>structure :  pymatgen structure class</p>
+<p>cutoff : distance cutoff</p>
+<p>return list of numpy array with the neighbors of each site</p>
+<p>center_indices, points_indices, offset_vectors, distances
+0  1  [ 0.  0. -1.] 2.892
+0  2  [ 0. -1.  0.] 2.892
+0  5  [ 0.  0. -1.] 2.892
+0  6  [ 0. -1.  0.] 2.892
+0  4  [-1.  0.  0.] 2.892
+0  3  [ 0.  0. -1.] 2.892
+0  6  [-1.  0.  0.] 2.892
+0  3  [ 0. -1.  0.] 2.892
+0  5  [-1.  0.  0.] 2.892
+0  4  [0. 0. 0.]    2.892
+0  2  [0. 0. 0.]    2.892
+0  1  [0. 0. 0.]    2.892</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-genheas.tools.evolution">
+<span id="genheas-tools-evolution-module"></span><h2>genheas.tools.evolution module<a class="headerlink" href="#module-genheas.tools.evolution" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="genheas.tools.evolution.NnEa">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">NnEa</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.evolution.NnEa" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt id="genheas.tools.evolution.NnEa.choice_random">
+<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">choice_random</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">population</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.evolution.NnEa.choice_random" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.evolution.NnEa.get_composition_fitness">
+<code class="sig-name descname"><span class="pre">get_composition_fitness</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_diff_element</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alloy_atoms</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.evolution.NnEa.get_composition_fitness" title="Permalink to this definition">¶</a></dt>
+<dd><p>max_diff_element : maximun number of each specie</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.evolution.NnEa.get_max_diff_element_fitness">
+<code class="sig-name descname"><span class="pre">get_max_diff_element_fitness</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_diff_element</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alloy_atoms</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.evolution.NnEa.get_max_diff_element_fitness" title="Permalink to this definition">¶</a></dt>
+<dd><p>max_diff_element : maximun number of each specie</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.evolution.NnEa.get_population_fitness">
+<code class="sig-name descname"><span class="pre">get_population_fitness</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">configurations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">concentrations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_diff_element</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">element_pool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.evolution.NnEa.get_population_fitness" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.evolution.NnEa.get_shell1_fitness_AA">
+<code class="sig-name descname"><span class="pre">get_shell1_fitness_AA</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cn1_list</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.evolution.NnEa.get_shell1_fitness_AA" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Minimize the $N_{aa}$ in the first coordination shell</dt><dd><p>CN_list:list of dictionanry</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.evolution.NnEa.get_shell1_fitness_AB">
+<code class="sig-name descname"><span class="pre">get_shell1_fitness_AB</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cn1_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">concentrations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_neighbours</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.evolution.NnEa.get_shell1_fitness_AB" title="Permalink to this definition">¶</a></dt>
+<dd><p>Homogenize the $N_{a b}$ in the first coordination shell</p>
+<p>CN_list:list of dictionanry
+alloy_atoms: structure(Atoms class)
+n_neighbours:  ( number of neighbours in the shell)
+return a dictionary:</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.evolution.NnEa.get_shell2_fitness_AA">
+<code class="sig-name descname"><span class="pre">get_shell2_fitness_AA</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cn1_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_neighbours</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.evolution.NnEa.get_shell2_fitness_AA" title="Permalink to this definition">¶</a></dt>
+<dd><p>Maximize the $N_{aa}$ in the second coordination shell
+CN_list:list of dictionanry</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.evolution.NnEa.make_next_generation">
+<code class="sig-name descname"><span class="pre">make_next_generation</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">previous_population</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.evolution.NnEa.make_next_generation" title="Permalink to this definition">¶</a></dt>
+<dd><p>population is supposed to be sorted by fitness
+previous_population: list of list</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.evolution.NnEa.mutate">
+<code class="sig-name descname"><span class="pre">mutate</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">individual</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.evolution.NnEa.mutate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.evolution.NnEa.sort_population_by_fitness">
+<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">sort_population_by_fitness</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">population</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.evolution.NnEa.sort_population_by_fitness" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-genheas.tools.feedforward">
+<span id="genheas-tools-feedforward-module"></span><h2>genheas.tools.feedforward module<a class="headerlink" href="#module-genheas.tools.feedforward" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="genheas.tools.feedforward.Feedforward">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">Feedforward</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_size</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.feedforward.Feedforward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<dl class="py method">
+<dt id="genheas.tools.feedforward.Feedforward.forward">
+<code class="sig-name descname"><span class="pre">forward</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.feedforward.Feedforward.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="genheas.tools.feedforward.Feedforward.training">
+<code class="sig-name descname"><span class="pre">training</span></code><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#genheas.tools.feedforward.Feedforward.training" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-genheas.tools.model">
+<span id="genheas-tools-model-module"></span><h2>genheas.tools.model module<a class="headerlink" href="#module-genheas.tools.model" title="Permalink to this headline">¶</a></h2>
+<p>Created on Fri Oct 16 23:27:41 2020</p>
+<p>&#64;author: Conrard TETSASSI</p>
+<dl class="py function">
+<dt id="genheas.tools.model.multiprocessing_training">
+<code class="sig-name descname"><span class="pre">multiprocessing_training</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">AlloyGen</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">list_networks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">list_structures</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">element_pool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.model.multiprocessing_training" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="genheas.tools.model.plot_optimization">
+<code class="sig-name descname"><span class="pre">plot_optimization</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skiprows</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.model.plot_optimization" title="Permalink to this definition">¶</a></dt>
+<dd><p>data_filepath = &quot;training_data/{}a-{}p-{}n-{}m.csv&quot;.format(alpha,nb_policies,nb_network_per_policy)</p>
+<p>By default we skip the first row, which contains the headers
+By skipping 2 rows, you can disregard the first data-point (0,0) to get
+a closer look
+:param data_filepath:
+:param skiprows:
+:return:</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="genheas.tools.model.train_policy">
+<code class="sig-name descname"><span class="pre">train_policy</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">crystal_structure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">element_pool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">concentrations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_generation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nn_per_policy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_policies</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_worker</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness_minimum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patience</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cubik</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.model.train_policy" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nb_worker</strong> -- </p></li>
+<li><p><strong>direction</strong> -- </p></li>
+<li><p><strong>cubik</strong> -- </p></li>
+<li><p><strong>patience</strong> -- (int) nb generations to wait before early stop</p></li>
+<li><p><strong>fitness_minimum</strong> -- (float) minimum fitness to reach</p></li>
+<li><p><strong>nb_generation</strong> -- (int) number of generation to run</p></li>
+<li><p><strong>nb_policies</strong> -- (int) number of policies = input structures</p></li>
+<li><p><strong>nn_per_policy</strong> -- (int) number of network per policy</p></li>
+<li><p><strong>alpha</strong> -- (float) scaling factor for the weight mutation</p></li>
+<li><p><strong>rate</strong> -- (float) % of policy to keep at each generation</p></li>
+<li><p><strong>device</strong> -- cpu or gpu</p></li>
+<li><p><strong>cell_param</strong> -- (array) lattice constant of the input structure [3.61, 3.61, 3.61]</p></li>
+<li><p><strong>cell_size</strong> -- (array) size of the input structure  [4,4,4]</p></li>
+<li><p><strong>concentrations</strong> -- (dict) concentration of each element {'Ag': 0.5, 'Pd': 0.5}</p></li>
+<li><p><strong>element_pool</strong> -- list of element ['Ag', 'Pd']</p></li>
+<li><p><strong>crystal_structure</strong> -- (str) 'fcc' 'bcc' 'hpc'</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>list with the best weight</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="genheas.tools.model.training">
+<code class="sig-name descname"><span class="pre">training</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">AlloyGen</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">networks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">element_pool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.model.training" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>networks</strong> -- </p></li>
+<li><p><strong>AlloyGen</strong> -- </p></li>
+<li><p><strong>structure</strong> -- </p></li>
+<li><p><strong>element_pool</strong> -- </p></li>
+<li><p><strong>cutoff</strong> -- </p></li>
+<li><p><strong>device</strong> -- </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-genheas.tools.properties">
+<span id="genheas-tools-properties-module"></span><h2>genheas.tools.properties module<a class="headerlink" href="#module-genheas.tools.properties" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="genheas.tools.properties.AtomInitializer">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">AtomInitializer</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_types</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.properties.AtomInitializer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Base class for intializing the vector representation for atoms.
+!!! Use one AtomInitializer per dataset !!!</p>
+<dl class="py method">
+<dt id="genheas.tools.properties.AtomInitializer.decode">
+<code class="sig-name descname"><span class="pre">decode</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.properties.AtomInitializer.decode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.properties.AtomInitializer.get_atom_fea">
+<code class="sig-name descname"><span class="pre">get_atom_fea</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.properties.AtomInitializer.get_atom_fea" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.properties.AtomInitializer.load_state_dict">
+<code class="sig-name descname"><span class="pre">load_state_dict</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.properties.AtomInitializer.load_state_dict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.properties.AtomInitializer.state_dict">
+<code class="sig-name descname"><span class="pre">state_dict</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.properties.AtomInitializer.state_dict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.properties.AtomInitializer.write_atom_init_json">
+<code class="sig-name descname"><span class="pre">write_atom_init_json</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.properties.AtomInitializer.write_atom_init_json" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="genheas.tools.properties.AtomJSONInitializer">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">AtomJSONInitializer</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elem_embedding_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/home/ctetsass/python/genheas/genheas/tools/data/atom_init.json'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rewrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.properties.AtomJSONInitializer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#genheas.tools.properties.AtomInitializer" title="genheas.tools.properties.AtomInitializer"><code class="xref py py-class docutils literal notranslate"><span class="pre">genheas.tools.properties.AtomInitializer</span></code></a></p>
+<p>Initialize atom feature vectors using a JSON file, which is a python
+dictionary mapping from element number to a list representing the
+feature vector of the element.
+:param elem_embedding_file: The path to the .json file
+:type elem_embedding_file: str</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="genheas.tools.properties.Property">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">Property</span></code><a class="headerlink" href="#genheas.tools.properties.Property" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt id="genheas.tools.properties.Property.get_VEC">
+<code class="sig-name descname"><span class="pre">get_VEC</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elm</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.properties.Property.get_VEC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Valence electron concentration
+:param VEC: valence electron data
+:param elm: str(atomic symbol)
+:return:</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.properties.Property.get_VEC_datas">
+<code class="sig-name descname"><span class="pre">get_VEC_datas</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.properties.Property.get_VEC_datas" title="Permalink to this definition">¶</a></dt>
+<dd><p>Valence electron concentration
+:param VEC: valence electron data
+:param elm: str(atomic symbol)
+:return:</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.properties.Property.get_X">
+<code class="sig-name descname"><span class="pre">get_X</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elm</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.properties.Property.get_X" title="Permalink to this definition">¶</a></dt>
+<dd><p>electronegativity
+:param elm: str(atomic symbol)
+:return:</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.properties.Property.get_X_datas">
+<code class="sig-name descname"><span class="pre">get_X_datas</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.properties.Property.get_X_datas" title="Permalink to this definition">¶</a></dt>
+<dd><p>electronegativity
+:param elm: str(atomic symbol)
+:return:</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.properties.Property.get_atomic_mass">
+<code class="sig-name descname"><span class="pre">get_atomic_mass</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elm</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.properties.Property.get_atomic_mass" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>elm</strong> -- str(atomic symbol)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.properties.Property.get_atomic_mass_datas">
+<code class="sig-name descname"><span class="pre">get_atomic_mass_datas</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.properties.Property.get_atomic_mass_datas" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>elm</strong> -- str(atomic symbol)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.properties.Property.get_atomic_radius">
+<code class="sig-name descname"><span class="pre">get_atomic_radius</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elm</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.properties.Property.get_atomic_radius" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>elm</strong> -- str(atomic symbol)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.properties.Property.get_atomic_radius_datas">
+<code class="sig-name descname"><span class="pre">get_atomic_radius_datas</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.properties.Property.get_atomic_radius_datas" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>elm</strong> -- str(atomic symbol)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.properties.Property.get_atomic_volume">
+<code class="sig-name descname"><span class="pre">get_atomic_volume</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elm</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.properties.Property.get_atomic_volume" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>elm</strong> -- str(atomic symbol)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.properties.Property.get_atomic_volume_datas">
+<code class="sig-name descname"><span class="pre">get_atomic_volume_datas</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.properties.Property.get_atomic_volume_datas" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>elm</strong> -- str(atomic symbol)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.properties.Property.get_block">
+<code class="sig-name descname"><span class="pre">get_block</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elm</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.properties.Property.get_block" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>elm</strong> -- str(atomic symbol)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.properties.Property.get_block_datas">
+<code class="sig-name descname"><span class="pre">get_block_datas</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.properties.Property.get_block_datas" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>elm</strong> -- str(atomic symbol)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.properties.Property.get_electron_affinity">
+<code class="sig-name descname"><span class="pre">get_electron_affinity</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elm</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.properties.Property.get_electron_affinity" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>elm</strong> -- str(atomic symbol)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.properties.Property.get_electron_affinity_datas">
+<code class="sig-name descname"><span class="pre">get_electron_affinity_datas</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.properties.Property.get_electron_affinity_datas" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>elm</strong> -- str(atomic symbol)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.properties.Property.get_group">
+<code class="sig-name descname"><span class="pre">get_group</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elm</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.properties.Property.get_group" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>elm</strong> -- str(atomic symbol)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.properties.Property.get_group_datas">
+<code class="sig-name descname"><span class="pre">get_group_datas</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.properties.Property.get_group_datas" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>elm</strong> -- str(atomic symbol)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.properties.Property.get_ionenergies">
+<code class="sig-name descname"><span class="pre">get_ionenergies</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elm</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.properties.Property.get_ionenergies" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>elm</strong> -- str(atomic symbol)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.properties.Property.get_ionenergies_datas">
+<code class="sig-name descname"><span class="pre">get_ionenergies_datas</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.properties.Property.get_ionenergies_datas" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>elm</strong> -- str(atomic symbol)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.properties.Property.get_number">
+<code class="sig-name descname"><span class="pre">get_number</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elm</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.properties.Property.get_number" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>elm</strong> -- str(atomic symbol)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>transformed value between -1 and 1</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.properties.Property.get_number_datas">
+<code class="sig-name descname"><span class="pre">get_number_datas</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.properties.Property.get_number_datas" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>elm</strong> -- str(atomic symbol)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>transformed value between -1 and 1</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.properties.Property.get_property">
+<code class="sig-name descname"><span class="pre">get_property</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elemen</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.properties.Property.get_property" title="Permalink to this definition">¶</a></dt>
+<dd><p>get any type of property
+param name:name of the property</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.properties.Property.get_property_names">
+<code class="sig-name descname"><span class="pre">get_property_names</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.properties.Property.get_property_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>param:name:either usual name or operator name of a property
+return:( usual name, operator name + ending _deriv part) of the property</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.properties.Property.get_row">
+<code class="sig-name descname"><span class="pre">get_row</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elm</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.properties.Property.get_row" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>elm</strong> -- str(atomic symbol)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="genheas.tools.properties.Property.get_row_datas">
+<code class="sig-name descname"><span class="pre">get_row_datas</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#genheas.tools.properties.Property.get_row_datas" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>elm</strong> -- str(atomic symbol)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-genheas.tools">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-genheas.tools" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="genheas.utilities.html" class="btn btn-neutral float-right" title="genheas.utilities package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="genheas.html" class="btn btn-neutral float-left" title="genheas package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Conrard TETSASSI (National Reserved Council Canada.
+      <span class="lastupdated">
+        Last updated on Apr 26, 2021.
+      </span>
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -140,7 +140,7 @@ Here is the schematic of the workflow to generate HEAs structures:
 Developing and Contributing
 ---------------------------
 See
-`contributing.md <https://https://github.com/CLEANit/genheas/docs/contributing.rst>`_
+`contributing.md <https://https://github.com/CLEANit/genheas/docs/source/contributing.rst>`_
 for guidelines on running tests, adding features, coding style, and updating
 documentation when developing in or contributing to genheas
 

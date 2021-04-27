@@ -7,10 +7,6 @@
 @Project : genheas
 @Software: PyCharm
 """
-from genheas import generate
-from genheas.tools.alloysgen import AlloysGen
-from genheas.tools.alloysgen import coordination_numbers
-from genheas.tools.evolution import NnEa
 
 
 def test_fitness():

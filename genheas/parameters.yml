@@ -1,7 +1,7 @@
 ###############################################################################
 #             ----------- Train model --------------------
 ###############################################################################
-nb_generation: 100
+nb_generation: 5000
 rate: 0.25
 alpha: 0.1
 nn_per_policy: 4
@@ -9,7 +9,7 @@ nb_policies: 16
 patience: 2000
 
 device: 'cpu'
-nb_worker: 8
+nb_worker: 1
 
 #------------------- Input Structure --------------
 crystalstructure : 'fcc'
@@ -26,9 +26,9 @@ cell_parameters : [3.6, 3.6, 3.6]
 
 
 
-cell_size: [2,2,1] # size of the training cell
+cell_size: [5,5,1] # size of the training cell
 
-cubic_train: True # False: orthorombic, True: cubic
+cubic_train: False # False: orthorombic, True: cubic
 # with a cubic the number of atom is equal to 4x2x2x2 = 32
 
 ###############################################################################
@@ -37,7 +37,7 @@ cubic_train: True # False: orthorombic, True: cubic
 
 
 model_path : 'Co_Mo_Fe_Ni_Cu/generations_100/BestWeights_0.1a-16p-4n.pkl'
-nb_structures : 1
+nb_structures : 10
 
 supercell_size: [4,4,1] #size of the cell to generate
 
@@ -48,7 +48,7 @@ cubic_gen : True # False: orthorombic, True: cubic
 # to generate a surface
 #    111: [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
 #    100: [[1, 0, 0], [0, 0, 0], [0, 0, 1]]
-#    110: [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+#    110: [[1, 0, 0], [0, 1, 0], [0, 0, 0]]
 
 surfaces: [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
 

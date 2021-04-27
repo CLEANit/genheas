@@ -28,7 +28,6 @@ from genheas.utilities.log import logger
 # import torch.nn.init as init
 from pymatgen.io.ase import AseAtomsAdaptor
 
-
 # from math import prod
 
 
@@ -108,6 +107,7 @@ def training(AlloyGen, networks, structure, element_pool, cutoff, device="cpu"):
 
 
 def multiprocessing_training(workers, AlloyGen, list_networks, list_structures, element_pool, cutoff):
+    # logger.info('multiprocessing training')
     pool = mp.Pool(workers)
     configs = pool.starmap(
         training, [(AlloyGen, net, struc, element_pool, cutoff) for net, struc, in zip(list_networks, list_structures)]
@@ -116,23 +116,30 @@ def multiprocessing_training(workers, AlloyGen, list_networks, list_structures, 
     return configs
 
 
+def serial_training(AlloyGen, list_networks, list_structures, element_pool, cutoff):
+    # logger.info('serial training')
+    configs = [training(AlloyGen, net, struc, element_pool, cutoff) for net, struc, in
+               zip(list_networks, list_structures)]
+    return configs
+
+
 def train_policy(
-    crystal_structure,
-    element_pool,
-    concentrations,
-    nb_generation,
-    cell_size,
-    cell_param,
-    device="cpu",
-    rate=0.25,
-    alpha=0.1,
-    nn_per_policy=1,
-    nb_policies=8,
-    nb_worker=1,
-    fitness_minimum=0,
-    patience=100,
-    cubik=False,
-    direction=None,
+        crystal_structure,
+        element_pool,
+        concentrations,
+        nb_generation,
+        cell_size,
+        cell_param,
+        device="cpu",
+        rate=0.25,
+        alpha=0.1,
+        nn_per_policy=1,
+        nb_policies=8,
+        nb_worker=1,
+        fitness_minimum=0,
+        patience=100,
+        cubik=False,
+        direction=None,
 ):
     """
     :param nb_worker:
@@ -278,9 +285,14 @@ def train_policy(
 
             # ---------------------- multi process-----------------------------
 
-            configurations = multiprocessing_training(
-                nb_worker, alloy_gen, networks_list, input_structures, element_pool, cutoff
-            )
+            assert 1 <= nb_worker <= mp.cpu_count(), '1 <= nb_worker <= max_cpu'
+
+            if nb_worker == 1:
+                configurations = serial_training(alloy_gen, networks_list, input_structures, element_pool, cutoff)
+            else:
+                configurations = multiprocessing_training(
+                    nb_worker, alloy_gen, networks_list, input_structures, element_pool, cutoff
+                )
 
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             configurations_fitness = NEs.get_population_fitness(
@@ -325,10 +337,16 @@ def train_policy(
             #
             #     configurations.append(configuration)
             # ---------------------- multi process-----------------------------
+            if nb_worker == 1:
+                configurations = serial_training(alloy_gen, networks_list, input_structures, element_pool, cutoff)
+            else:
+                configurations = multiprocessing_training(
+                    nb_worker, alloy_gen, networks_list, input_structures, element_pool, cutoff
+                )
 
-            configurations = multiprocessing_training(
-                nb_worker, alloy_gen, networks_list, input_structures, element_pool, cutoff
-            )
+            # configurations = multiprocessing_training(
+            #     nb_worker, alloy_gen, networks_list, input_structures, element_pool, cutoff
+            # )
 
             # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             configurations_fitness = NEs.get_population_fitness(

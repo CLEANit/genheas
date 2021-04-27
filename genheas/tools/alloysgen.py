@@ -13,7 +13,7 @@ from ase.data import atomic_numbers
 from ase.data import reference_states
 from ase.lattice.cubic import BodyCenteredCubic
 from ase.lattice.cubic import FaceCenteredCubic
-
+from sklearn.preprocessing import StandardScaler,  MaxAbsScaler
 # from ase.lattice.hexagonal import Hexagonal, HexagonalClosedPacked
 from clusterx.parent_lattice import ParentLattice
 from clusterx.structures_set import StructuresSet
@@ -35,7 +35,7 @@ coordination_numbers = {"fcc": [12, 6, 24], "bcc": [8, 6, 12], "hpc": [12, 0, 0]
 direktions = {
     111: [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
     100: [[1, 0, 0], [0, 0, 0], [0, 0, 1]],
-    110: [[1, 0, 0], [0, 1, 0], [0, 0, 10]],
+    110: [[1, 0, 0], [0, 1, 0], [0, 0, 0]],
 }
 
 
@@ -675,6 +675,15 @@ class AlloysGen:
 
         atom_fea = np.vstack([self.atom_features.get_atom_fea(elm.name) for elm in species[neighbors_list]])
 
+        # row, col = atom_fea.shape
+        # scaler1 = StandardScaler()
+        # scaler2 = MaxAbsScaler()
+        #
+        # # Standardized by column
+        # atom_fea = scaler1.fit_transform(atom_fea.reshape(-1, atom_fea.shape[-1])).reshape(atom_fea.shape)
+        #
+        # atom_fea = scaler2.fit_transform(atom_fea)
+        # atom_fea = atom_fea.reshape(-1, row, col)
         return atom_fea
 
     # def get_inputs_vectors(self, all_neighbors_list, alloy_structure):
@@ -774,8 +783,8 @@ class AlloysGen:
                 output_tensor = torch.mean(torch.stack(output_tensors), dim=0)  # average
                 output_tensor = f.normalize(output_tensor, p=1, dim=0)  # Normalization
 
-            # choice = torch.argmax(output_tensor)
-            choice = output_tensor.multinomial(num_samples=1, replacement=replace)
+            choice = torch.argmax(output_tensor)
+            # choice = output_tensor.multinomial(num_samples=1, replacement=replace)
 
             atm = element_pool[choice]
 

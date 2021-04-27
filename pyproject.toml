@@ -141,3 +141,5 @@ exclude = '''
 
 [tool.doc8]
 max-line-length = 120
+
+[tool.pre-commit]

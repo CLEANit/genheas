@@ -24,9 +24,10 @@ from genheas.tools.evolution import NnEa
 from genheas.tools.feedforward import Feedforward
 from genheas.tools.properties import atomic_properties
 from genheas.utilities.log import logger
+from pymatgen.io.ase import AseAtomsAdaptor
+
 
 # import torch.nn.init as init
-from pymatgen.io.ase import AseAtomsAdaptor
 
 # from math import prod
 
@@ -110,7 +111,8 @@ def multiprocessing_training(workers, AlloyGen, list_networks, list_structures, 
     # logger.info('multiprocessing training')
     pool = mp.Pool(workers)
     configs = pool.starmap(
-        training, [(AlloyGen, net, struc, element_pool, cutoff) for net, struc, in zip(list_networks, list_structures)]
+        training,
+        [(AlloyGen, net, struc, element_pool, cutoff) for net, struc, in zip(list_networks, list_structures)],
     )
     pool.close()
     return configs
@@ -118,28 +120,29 @@ def multiprocessing_training(workers, AlloyGen, list_networks, list_structures, 
 
 def serial_training(AlloyGen, list_networks, list_structures, element_pool, cutoff):
     # logger.info('serial training')
-    configs = [training(AlloyGen, net, struc, element_pool, cutoff) for net, struc, in
-               zip(list_networks, list_structures)]
+    configs = [
+        training(AlloyGen, net, struc, element_pool, cutoff) for net, struc, in zip(list_networks, list_structures)
+    ]
     return configs
 
 
 def train_policy(
-        crystal_structure,
-        element_pool,
-        concentrations,
-        nb_generation,
-        cell_size,
-        cell_param,
-        device="cpu",
-        rate=0.25,
-        alpha=0.1,
-        nn_per_policy=1,
-        nb_policies=8,
-        nb_worker=1,
-        fitness_minimum=0,
-        patience=100,
-        cubik=False,
-        direction=None,
+    crystal_structure,
+    element_pool,
+    concentrations,
+    nb_generation,
+    cell_size,
+    cell_param,
+    device="cpu",
+    rate=0.25,
+    alpha=0.1,
+    nn_per_policy=1,
+    nb_policies=8,
+    nb_worker=1,
+    fitness_minimum=0,
+    patience=100,
+    cubik=False,
+    direction=None,
 ):
     """
     :param nb_worker:
@@ -205,13 +208,15 @@ def train_policy(
     if not nb_atom == sum(max_diff_elements.values()):
         logger.error(
             "the size : [{}] and the max_diff_elem : [{}] are not consistent".format(
-                nb_atom, sum(max_diff_elements.values())
-            )
+                nb_atom,
+                sum(max_diff_elements.values()),
+            ),
         )
         raise Exception(
             "the size : [{}] and the max_diff_elem : [{}] are not consistent".format(
-                nb_atom, sum(max_diff_elements.values())
-            )
+                nb_atom,
+                sum(max_diff_elements.values()),
+            ),
         )
 
     # atoms = alloy_gen.gen_random_structure(crystal_structure, cell_size, max_diff_elements, cell_param)
@@ -229,7 +234,12 @@ def train_policy(
     networks = None
     input_structures = [
         alloy_gen.gen_raw_crystal(
-            crystal_structure, cell_size, lattice_param=cell_param, name=element_pool[0], cubik=cubik, surface=direction
+            crystal_structure,
+            cell_size,
+            lattice_param=cell_param,
+            name=element_pool[0],
+            cubik=cubik,
+            surface=direction,
         )
         for _ in range(n_input)
     ]
@@ -285,24 +295,35 @@ def train_policy(
 
             # ---------------------- multi process-----------------------------
 
-            assert 1 <= nb_worker <= mp.cpu_count(), '1 <= nb_worker <= max_cpu'
+            assert 1 <= nb_worker <= mp.cpu_count(), "1 <= nb_worker <= max_cpu"
 
             if nb_worker == 1:
                 configurations = serial_training(alloy_gen, networks_list, input_structures, element_pool, cutoff)
             else:
                 configurations = multiprocessing_training(
-                    nb_worker, alloy_gen, networks_list, input_structures, element_pool, cutoff
+                    nb_worker,
+                    alloy_gen,
+                    networks_list,
+                    input_structures,
+                    element_pool,
+                    cutoff,
                 )
 
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             configurations_fitness = NEs.get_population_fitness(
-                configurations, concentrations, max_diff_elements, element_pool, crystal_structure, cutoff
+                configurations,
+                concentrations,
+                max_diff_elements,
+                element_pool,
+                crystal_structure,
+                cutoff,
             )
 
             # Rank the policies
 
             sorted_weights_list = NEs.sort_population_by_fitness(
-                network_weights_list, configurations_fitness
+                network_weights_list,
+                configurations_fitness,
             )  # list of list
 
             # sorted_configurations_fitness = NEs.sort_population_by_fitness(configurations_fitness,
@@ -341,7 +362,12 @@ def train_policy(
                 configurations = serial_training(alloy_gen, networks_list, input_structures, element_pool, cutoff)
             else:
                 configurations = multiprocessing_training(
-                    nb_worker, alloy_gen, networks_list, input_structures, element_pool, cutoff
+                    nb_worker,
+                    alloy_gen,
+                    networks_list,
+                    input_structures,
+                    element_pool,
+                    cutoff,
                 )
 
             # configurations = multiprocessing_training(
@@ -350,13 +376,19 @@ def train_policy(
 
             # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             configurations_fitness = NEs.get_population_fitness(
-                configurations, concentrations, max_diff_elements, element_pool, crystal_structure, cutoff
+                configurations,
+                concentrations,
+                max_diff_elements,
+                element_pool,
+                crystal_structure,
+                cutoff,
             )
 
             # Rank the policies
 
             sorted_weights_list = NEs.sort_population_by_fitness(
-                network_weights_list, configurations_fitness
+                network_weights_list,
+                configurations_fitness,
             )  # list of list
 
             # sorted_configurations_fitness = NEs.sort_population_by_fitness(configurations_fitness,
@@ -369,8 +401,11 @@ def train_policy(
 
         logger.info(
             "generation: {:6d}/{} |fitness {:10.6f} *** time/step: {:.1f}s".format(
-                generation + 1, nb_generation, np.min(configurations_fitness), step_time
-            )
+                generation + 1,
+                nb_generation,
+                np.min(configurations_fitness),
+                step_time,
+            ),
         )
 
         if min_fitness[generation][1] < fitness_minimum:
@@ -407,11 +442,12 @@ def train_policy(
     opt_time = time.time() - since0
     logger.info(
         "Cumulative optimization time after  {} generations [h:m:s] ::  {}".format(
-            generation + 1, str(datetime.timedelta(seconds=opt_time))
-        )
+            generation + 1,
+            str(datetime.timedelta(seconds=opt_time)),
+        ),
     )
     np.savetxt(
-        "{}/{}a-{}p-{}n.csv".format(output, alpha, nb_policies, nb_network_per_policy),
+        f"{output}/{alpha}a-{nb_policies}p-{nb_network_per_policy}n.csv",
         min_fitness,
         delimiter=",",
         header="Generation, min_fitness, time",

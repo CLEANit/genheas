@@ -1,8 +1,8 @@
 .. _install:
 
-=================
+==================
 Installing genheas
-=================
+==================
 
 
 Normal installation
@@ -41,6 +41,7 @@ Normal installation
     $ cd genheas
 
 - install the packages
+
 .. sourcecode:: bash
 
     $genheas peotry install

@@ -1,7 +1,6 @@
 import random
 
 import numpy as np
-import pymatgen as pmg
 import torch
 
 from genheas.tools.alloysgen import AlloysGen

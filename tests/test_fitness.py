@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 @Time    : Jan 18 3:23 p.m. 2021
 @Author  : Conrard TETSASSI
@@ -8,7 +7,6 @@
 @Project : genheas
 @Software: PyCharm
 """
-
 from genheas import generate
 from genheas.tools.alloysgen import AlloysGen
 from genheas.tools.alloysgen import coordination_numbers

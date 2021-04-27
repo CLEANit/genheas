@@ -115,7 +115,7 @@ loc = os.path.dirname(os.path.abspath(__file__))
 atom_init_file = os.path.join(loc, "data/atom_init.json")
 
 
-class AtomInitializer(object):
+class AtomInitializer:
     """
     Base class for intializing the vector representation for atoms.
     !!! Use one AtomInitializer per dataset !!!
@@ -177,13 +177,13 @@ class AtomJSONInitializer(AtomInitializer):
                 elem_embedding = json.load(f)
             elem_embedding = {key: value for key, value in elem_embedding.items()}
             atom_types = set(elem_embedding.keys())
-            super(AtomJSONInitializer, self).__init__(atom_types)
+            super().__init__(atom_types)
             for key, value in elem_embedding.items():
                 self._embedding[key] = np.array(value, dtype=float)
         else:
             logger.info("computing atom_init file")
-            super(AtomJSONInitializer, self).__init__(list_of_elements)
-            atomfeatures = super(AtomJSONInitializer, self).write_atom_init_json()
+            super().__init__(list_of_elements)
+            atomfeatures = super().write_atom_init_json()
             for key, value in atomfeatures.items():
                 self._embedding[key] = np.array(value, dtype=float)
 
@@ -198,7 +198,6 @@ class Property:
 
     @staticmethod
     def _load_vec_data():
-
         """
         Load VEC data from "data/VEC.yml"
         :return:
@@ -240,7 +239,7 @@ class Property:
             return None
 
         try:
-            prop = eval('self.get_{}("{}")'.format(operator, elemen))
+            prop = eval(f'self.get_{operator}("{elemen}")')
             return prop
         except AttributeError:
             logger.error(f"{AttributeError}")
@@ -264,7 +263,7 @@ class Property:
                 return None
 
             try:
-                property_data[operator] = eval("self.get_{}_datas()".format(operator))
+                property_data[operator] = eval(f"self.get_{operator}_datas()")
 
             except AttributeError:
                 logger.error(f"{AttributeError}")
@@ -411,7 +410,7 @@ class Property:
         :return:
         """
         datas = np.array([mendeleev.element(elemt).atomic_volume for elemt in list_of_elements])
-        datas = np.where(datas == None, 0.0, datas)
+        datas = np.where(datas is None, 0.0, datas)
         return self._fitted_scaler(datas)
 
     def get_electron_affinity(self, elm):
@@ -432,7 +431,7 @@ class Property:
         :return:
         """
         datas = np.array([mendeleev.element(elemt).electron_affinity for elemt in list_of_elements])
-        datas = np.where(datas == None, 0.0, datas)
+        datas = np.where(datas is None, 0.0, datas)
         return self._fitted_scaler(datas)
 
     def get_ionenergies(self, elm):

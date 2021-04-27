@@ -12,7 +12,6 @@ import shutil
 import time
 
 import numpy as np
-import pymatgen as pmg
 import torch
 import yaml
 
@@ -125,7 +124,12 @@ def generate_structure(
     #     surface=direction,
     # )
     raw_crystal = AlloyGen.gen_raw_crystal(
-        cryst_structure, cell_size, lattice_param=cell_param, name=element_pool[0], cubik=cubik, surface=direction
+        cryst_structure,
+        cell_size,
+        lattice_param=cell_param,
+        name=element_pool[0],
+        cubik=cubik,
+        surface=direction,
     )
 
     logger.info(f"Number of atoms : {nb_atom}")
@@ -177,7 +181,7 @@ def generate_structure(
     print("shell2_fitness_AA: {:6.2f}".format(sum(shell2_fitness_AA.values())))
     print("shell1_fitness_AB: {:6.2f}".format(sum(shell1_fitness_AB.values())))
     print("max_diff_element_fitness: {:6.2f}\n".format(sum(max_diff_element_fitness.values())))
-    print("Total fitness: {:6.2f}\n".format(fitness))
+    print(f"Total fitness: {fitness:6.2f}\n")
 
     print(f"<.cif> files have been saved in [{output_name}]")
     print("Total time for the generation h:m:s ::  {}".format(str(datetime.timedelta(seconds=time.time() - since))))
@@ -190,23 +194,23 @@ def generate_structure(
 
     target_comp = Composition(max_diff_elements)
     script = "\n"
-    script += "Total fitness (shell2_AA + shell1_AB+ max_diff_element): {:6.2f}\n".format(fitness)
+    script += f"Total fitness (shell2_AA + shell1_AB+ max_diff_element): {fitness:6.2f}\n"
     script += "\n"
     script += "shell2_fitness_AA: {:6.2f}\n".format(sum(shell2_fitness_AA.values()))
     script += "shell1_fitness_AB: {:6.2f}\n".format(sum(shell1_fitness_AB.values()))
     script += "\n"
-    script += "Target chemical formula: {}\n".format(target_comp)
-    script += "Generated chemical formula: {}\n".format(composition)
+    script += f"Target chemical formula: {target_comp}\n"
+    script += f"Generated chemical formula: {composition}\n"
     script += "max_diff_element_fitness: {:6.2f}\n".format(sum(max_diff_element_fitness.values()))
     script += "\n"
-    script += "Target composition: {}\n".format(target_comp.fractional_composition)
-    script += "Generated composition: {}\n".format(composition.fractional_composition)
+    script += f"Target composition: {target_comp.fractional_composition}\n"
+    script += f"Generated composition: {composition.fractional_composition}\n"
     script += "composition_fitness: {:6.4f}\n".format(sum(composition_fitness.values()))
     script += "\n"
     # f.write('shell1_fitness_AA: {:6.2f}\n'.format(sum(shell1_fitness_AA.values())))
 
     script += "Total time for the generation h:m:s ::  {}\n".format(
-        str(datetime.timedelta(seconds=time.time() - since))
+        str(datetime.timedelta(seconds=time.time() - since)),
     )
 
     script += "*" * 80

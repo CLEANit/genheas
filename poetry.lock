@@ -1092,6 +1092,18 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 dev = ["pre-commit", "tox"]
 
 [[package]]
+name = "poetry-githooks"
+version = "1.1.3"
+description = "Simple git hooks with poetry"
+category = "dev"
+optional = false
+python-versions = ">=3.6,<4.0"
+
+[package.dependencies]
+click = ">=7.1.2,<8.0.0"
+toml = ">=0.10.2,<0.11.0"
+
+[[package]]
 name = "pre-commit"
 version = "2.12.1"
 description = "A framework for managing and maintaining multi-language pre-commit hooks."
@@ -1974,7 +1986,7 @@ test = []
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "62e187e9abd7846c45375b9bdf2cda1ee8eaa048e237a89d72636c1f3c401a2b"
+content-hash = "b1661fa9f6cf56d7d9526f1c62d168c9a1bec0501ffabe12cae619b619e00cc2"
 
 [metadata.files]
 alabaster = [
@@ -2660,6 +2672,10 @@ plotly = [
 pluggy = [
     {file = "pluggy-0.13.1-py2.py3-none-any.whl", hash = "sha256:966c145cd83c96502c3c3868f50408687b38434af77734af1e9ca461a4081d2d"},
     {file = "pluggy-0.13.1.tar.gz", hash = "sha256:15b2acde666561e1298d71b523007ed7364de07029219b604cf808bfa1c765b0"},
+]
+poetry-githooks = [
+    {file = "poetry-githooks-1.1.3.tar.gz", hash = "sha256:fd18222e1b3279fc32ff82d1ef26faf839339c34b3d584989584d779ac14653a"},
+    {file = "poetry_githooks-1.1.3-py3-none-any.whl", hash = "sha256:c1bc51994d98ee1e73e1fc8894739c982656ab731eee714e3afb0ca54b18fdc1"},
 ]
 pre-commit = [
     {file = "pre_commit-2.12.1-py2.py3-none-any.whl", hash = "sha256:70c5ec1f30406250b706eda35e868b87e3e4ba099af8787e3e8b4b01e84f4712"},

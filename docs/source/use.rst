@@ -1,13 +1,13 @@
-=================
+====================
 How to use genheas
-=================
+====================
 
 Overview
 ========
 
 Generate High Entropy Alloys Structures
 
-+ A  neural evolution structures (NESs) generation methodology
+A  neural evolution structures (NESs) generation methodology
 combining artificial neural networks (ANNs) and evolutionary algorithms (EAs) to generate High Entropy Alloys (HEAs)
 
 
@@ -39,39 +39,45 @@ Therefore, it should looks like:
 
 1- Train the model  and generate structure
 
-    - Edit the configuration file both training and generation part
+    + Edit the configuration file both training and generation part
 
     .. sourcecode:: bash
 
         vi parameters.yml
 
-    - run
+    + run
+
     .. sourcecode:: bash
 
         poetry run python main.py
 
 2- Only train a model
-    - Edit the configuration file : training part
+
+    + Edit the configuration file : training part
 
     .. sourcecode:: bash
 
         vi parameters.yml
 
-    - run
+    + run
+
     .. sourcecode:: bash
 
         poetry run python train.py
 
 3 - Using a pre-trained model to generate cell
-    - Edit the configuration file : generation part
+
+    + Edit the configuration file : generation part
 
     .. sourcecode:: bash
 
         vi parameters.yml
 
-    - run
+    + run
+
     .. sourcecode:: bash
 
         poetry run python generate.py
-genheas
-=====
+
+
+

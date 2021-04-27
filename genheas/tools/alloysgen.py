@@ -1,33 +1,35 @@
 import copy
-import os
 import random
 import sys
 
 import numpy as np
 import torch
 import torch.nn.functional as f
-import yaml
 
 from ase.build import bulk
 from ase.data import atomic_numbers
 from ase.data import reference_states
 from ase.lattice.cubic import BodyCenteredCubic
 from ase.lattice.cubic import FaceCenteredCubic
-from sklearn.preprocessing import StandardScaler,  MaxAbsScaler
-# from ase.lattice.hexagonal import Hexagonal, HexagonalClosedPacked
 from clusterx.parent_lattice import ParentLattice
 from clusterx.structures_set import StructuresSet
 from clusterx.super_cell import SuperCell
 from genheas.tools.properties import AtomJSONInitializer
 from genheas.utilities.log import logger
-
-# from pymatgen import Element
 from pymatgen.io.ase import AseAtomsAdaptor
 from pymatgen.transformations.site_transformations import (
     ReplaceSiteSpeciesTransformation,
 )
 from torch.autograd import Variable
 from tqdm import tqdm
+
+
+# from sklearn.preprocessing import MaxAbsScaler
+# from sklearn.preprocessing import StandardScaler
+
+
+# from ase.lattice.hexagonal import Hexagonal, HexagonalClosedPacked
+# from pymatgen import Element
 
 
 coordination_numbers = {"fcc": [12, 6, 24], "bcc": [8, 6, 12], "hpc": [12, 0, 0]}
@@ -124,7 +126,13 @@ class AlloysGen:
 
     @staticmethod
     def gen_alloy_supercell(
-        element_pool, concentrations, crystalstructure, size, nb_structure, lattice_param=None, cubic=False
+        element_pool,
+        concentrations,
+        crystalstructure,
+        size,
+        nb_structure,
+        lattice_param=None,
+        cubic=False,
     ):
         """
         :param nb_structure:
@@ -231,7 +239,7 @@ class AlloysGen:
 
         symmetries = ["fcc", "bcc", "hpc"]
         if crystalstructure not in symmetries:
-            raise Exception(" [{}] is not implemented ".format(crystalstructure))
+            raise Exception(f" [{crystalstructure}] is not implemented ")
 
         Nb_atoms = AlloysGen.get_number_of_atom(crystalstructure, size, cubik=cubik, direction=surface)
 
@@ -266,7 +274,13 @@ class AlloysGen:
 
     @staticmethod
     def gen_random_structure(
-        crystalstructure, size, max_diff_elem, lattice_param=None, name=None, cubik=False, surface=None
+        crystalstructure,
+        size,
+        max_diff_elem,
+        lattice_param=None,
+        name=None,
+        cubik=False,
+        surface=None,
     ):
         """
         :param crystalstructure:
@@ -281,15 +295,16 @@ class AlloysGen:
 
         symmetries = ["fcc", "bcc", "hpc"]
         if crystalstructure not in symmetries:
-            raise Exception(" [{}] is not implemented ".format(crystalstructure))
+            raise Exception(f" [{crystalstructure}] is not implemented ")
 
         Nb_atoms = AlloysGen.get_number_of_atom(crystalstructure, size, cubik=cubik, direction=surface)
 
         if not Nb_atoms == sum(max_diff_elem.values()):
             raise Exception(
                 "the size : [{}] and the max_diff_elem : [{}] are not consistent".format(
-                    Nb_atoms, sum(max_diff_elem.values())
-                )
+                    Nb_atoms,
+                    sum(max_diff_elem.values()),
+                ),
             )
 
         elements_list = []
@@ -466,7 +481,7 @@ class AlloysGen:
 
         for nb_list in all_neighbors_list:
             numbers_vec.append(
-                [atomicnumbers[i] for i in nb_list[1:]]
+                [atomicnumbers[i] for i in nb_list[1:]],
             )  # exclude the fisrt atom because it is the site considered
             symbols_vec.append([symbols[i] for i in nb_list[1:]])
         return np.array(numbers_vec), np.array(symbols_vec)
@@ -746,7 +761,15 @@ class AlloysGen:
     #     return atmm, output
 
     def generate_configuration(
-        self, config, element_pool, cutoff, models, device, max_diff_element=None, constrained=False, verbose=False
+        self,
+        config,
+        element_pool,
+        cutoff,
+        models,
+        device,
+        max_diff_element=None,
+        constrained=False,
+        verbose=False,
     ):
         """
         add a contrain to the for the max_diff_element

@@ -71,7 +71,7 @@ a conf.py and some other files. Add these to revision control.
 
 Now, edit your index.rst and add some information about your project. Include as much detail as you like
 
-
+pre-commit install
 git commit -m "Release v0.1.6" pyproject.toml
 
 For the contribution
@@ -88,6 +88,8 @@ For the contribution
 # install:
 # - poetry install
 # script:
+# - poetry run pre-commit install
+# - poetry run pre-commit
 # - poetry run flake8 my_package test
 # - poetry run coverage run --source=my_package -m unittest discover -b
 # before_deploy:
@@ -100,3 +102,6 @@ For the contribution
 #   skip_cleanup: true
 #   on:
 #     tags: true
+
+
+

@@ -1,8 +1,8 @@
 ###############################################################################
 #             ----------- Train model --------------------
 ###############################################################################
-nb_generation: 2500
-rate: 0.5
+nb_generation: 100
+rate: 0.25
 alpha: 0.1
 nn_per_policy: 4
 nb_policies: 16
@@ -14,19 +14,19 @@ nb_worker: 1
 #------------------- Input Structure --------------
 crystalstructure : 'fcc'
 
-elements_pool : ['Co', 'Mo', 'Fe', 'Ni', 'Cu']
-concentrations : {'Co': 0.2, 'Mo': 0.2, 'Fe': 0.2, 'Ni': 0.2, 'Cu': 0.2}
-#oxidation_states : {'Co': 0, 'Cr': 0, 'Fe': 0, 'Cu': 0, 'Ni':0}
-cell_parameters : [3.6, 3.6, 3.6]
+#elements_pool : ['Co', 'Mo', 'Fe', 'Ni', 'Cu']
+#concentrations : {'Co': 0.2, 'Mo': 0.2, 'Fe': 0.2, 'Ni': 0.2, 'Cu': 0.2}
+##oxidation_states : {'Co': 0, 'Cr': 0, 'Fe': 0, 'Cu': 0, 'Ni':0}
+#cell_parameters : [3.6, 3.6, 3.6]
 
-#elements_pool : ['Cu', 'Ni', 'Co', 'Cr']
-#concentrations : {'Cu': 0.25, 'Ni': 0.25, 'Co': 0.25, 'Cr': 0.25}
-##oxidation_states : {'Cu': 0, 'Ni': 0, 'Co': 0, 'Cr': 0}
-#cell_parameters : [3.61, 3.61, 3.61]
+elements_pool : ['Cu', 'Ni', 'Co', 'Cr']
+concentrations : {'Cu': 0.25, 'Ni': 0.25, 'Co': 0.25, 'Cr': 0.25}
+#oxidation_states : {'Cu': 0, 'Ni': 0, 'Co': 0, 'Cr': 0}
+cell_parameters : [3.61, 3.61, 3.61]
 
 
 
-cell_size: [5,5,1] # size of the training cell
+cell_size: [2,2,2] # size of the training cell
 
 cubic_train: False # False: orthorombic, True: cubic
 # with a cubic the number of atom is equal to 4x2x2x2 = 32
@@ -37,9 +37,9 @@ cubic_train: False # False: orthorombic, True: cubic
 
 
 model_path : 'Co_Mo_Fe_Ni_Cu/generations_100/BestWeights_0.1a-16p-4n.pkl'
-nb_structures : 100
+nb_structures : 10
 
-supercell_size: [4,4,1] #size of the cell to generate
+supercell_size: [4,4,4] #size of the cell to generate
 
 cubic_gen : True # False: orthorombic, True: cubic
 
@@ -50,8 +50,7 @@ cubic_gen : True # False: orthorombic, True: cubic
 #    100: [[1, 0, 0], [0, 0, 0], [0, 0, 1]]
 #    110: [[1, 0, 0], [0, 1, 0], [0, 0, 0]]
 
-surfaces: [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
-
+surfaces:
 
 
 

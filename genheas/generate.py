@@ -114,18 +114,19 @@ def generate_structure(
 
     cutof = AlloyGen.get_cutoff(element_pool[0], cryst_structure, cell_param)
 
-    # structureX = AlloyGen.gen_random_structure(
+    # raw_crystal = AlloyGen.gen_raw_crystal(
     #     cryst_structure,
     #     cell_size,
-    #     max_diff_elements,
     #     lattice_param=cell_param,
     #     name=element_pool[0],
     #     cubik=cubik,
     #     surface=direction,
     # )
-    raw_crystal = AlloyGen.gen_raw_crystal(
+
+    raw_crystal = AlloyGen.gen_random_structure(
         cryst_structure,
         cell_size,
+        max_diff_elements,
         lattice_param=cell_param,
         name=element_pool[0],
         cubik=cubik,
@@ -292,7 +293,7 @@ def main(policy_path=None):
             verbose=True,
         )
 
-        shutil.move(os.path.join(output, formula + ".cif"), os.path.join(output, f"{formula}_{i:03d}.cif"))
+        shutil.move(os.path.join(output, formula + ".cif"), os.path.join(output, f"{i:06d}_{formula}.cif"))
 
         scripts.append(scrip_t)
         fitnesses.append(fitnes)
@@ -304,7 +305,7 @@ def main(policy_path=None):
     ofile.write("# Generated structures sorted by total fitness")
     ofile.write("\n\n")
     for _, s in enumerate(indices):
-        ofile.write(f'{"=" * 30} {s:03d} {"=" * 31}')
+        ofile.write(f'{"=" * 30} {s:06d} {"=" * 31}')
         ofile.write(scripts[s])
     ofile.close()
 

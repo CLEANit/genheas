@@ -6,6 +6,7 @@ Created on Fri Oct 16 23:27:41 2020
 """
 import datetime
 import glob
+import json
 import multiprocessing as mp
 import os
 import pathlib
@@ -22,6 +23,7 @@ from genheas.tools.alloysgen import AlloysGen
 from genheas.tools.alloysgen import coordination_numbers
 from genheas.tools.evolution import NnEa
 from genheas.tools.feedforward import Feedforward
+from genheas.tools.properties import Property
 from genheas.tools.properties import atomic_properties
 from genheas.utilities.log import logger
 from pymatgen.io.ase import AseAtomsAdaptor
@@ -182,6 +184,15 @@ def train_policy(
 
     pathlib.Path(output).mkdir(parents=True, exist_ok=True)
 
+    atom_props = Property()
+    atomproperties = {}
+    for atom in sorted(element_pool):
+        value = [atom_props.get_property(prop, atom) for prop in atomic_properties]
+        atomproperties[atom] = value
+    with open(f"{output}/atom_feature.json", "w") as fp:
+        json.dump(atomproperties, fp, indent=4)
+    logger.info("writing atom_feature.json")
+
     nn_in_shell1 = coordination_numbers[crystal_structure][0]
     nn_in_shell2 = coordination_numbers[crystal_structure][1]
     n_neighbours = nn_in_shell1 + 1 + nn_in_shell2
@@ -232,10 +243,22 @@ def train_policy(
     logger.info("Start Optimization")
     # with torch.set_grad_enabled(False):
     networks = None
+    # input_structures = [
+    #     alloy_gen.gen_raw_crystal(
+    #         crystal_structure,
+    #         cell_size,
+    #         lattice_param=cell_param,
+    #         name=element_pool[0],
+    #         cubik=cubik,
+    #         surface=direction,
+    #     )
+    #     for _ in range(n_input)
+    # ]
     input_structures = [
-        alloy_gen.gen_raw_crystal(
+        alloy_gen.gen_random_structure(
             crystal_structure,
             cell_size,
+            max_diff_elements,
             lattice_param=cell_param,
             name=element_pool[0],
             cubik=cubik,

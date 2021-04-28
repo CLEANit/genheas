@@ -20,12 +20,10 @@ from pymatgen.io.ase import AseAtomsAdaptor
 from pymatgen.transformations.site_transformations import (
     ReplaceSiteSpeciesTransformation,
 )
+from sklearn.preprocessing import MaxAbsScaler
+from sklearn.preprocessing import StandardScaler
 from torch.autograd import Variable
 from tqdm import tqdm
-
-
-# from sklearn.preprocessing import MaxAbsScaler
-# from sklearn.preprocessing import StandardScaler
 
 
 # from ase.lattice.hexagonal import Hexagonal, HexagonalClosedPacked
@@ -699,6 +697,7 @@ class AlloysGen:
         #
         # atom_fea = scaler2.fit_transform(atom_fea)
         # atom_fea = atom_fea.reshape(-1, row, col)
+        # print(atom_fea)
         return atom_fea
 
     # def get_inputs_vectors(self, all_neighbors_list, alloy_structure):

@@ -1,8 +1,8 @@
 ###############################################################################
 #             ----------- Train model --------------------
 ###############################################################################
-nb_generation: 5000
-rate: 0.25
+nb_generation: 2500
+rate: 0.5
 alpha: 0.1
 nn_per_policy: 4
 nb_policies: 16
@@ -21,7 +21,7 @@ cell_parameters : [3.6, 3.6, 3.6]
 
 #elements_pool : ['Cu', 'Ni', 'Co', 'Cr']
 #concentrations : {'Cu': 0.25, 'Ni': 0.25, 'Co': 0.25, 'Cr': 0.25}
-#oxidation_states : {'Cu': 0, 'Ni': 0, 'Co': 0, 'Cr': 0}
+##oxidation_states : {'Cu': 0, 'Ni': 0, 'Co': 0, 'Cr': 0}
 #cell_parameters : [3.61, 3.61, 3.61]
 
 
@@ -37,7 +37,7 @@ cubic_train: False # False: orthorombic, True: cubic
 
 
 model_path : 'Co_Mo_Fe_Ni_Cu/generations_100/BestWeights_0.1a-16p-4n.pkl'
-nb_structures : 10
+nb_structures : 100
 
 supercell_size: [4,4,1] #size of the cell to generate
 

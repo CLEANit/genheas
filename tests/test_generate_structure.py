@@ -7,7 +7,8 @@
 @Project : genheas
 @Software: PyCharm
 """
-from genheas.tools.alloysgen import AlloysGen
+
+from genheas.tools.gencrystal import AlloysGen
 
 
 AlloyGen = AlloysGen(["Ag", "Pd"], {"Ag": 0.5, "Pd": 0.5}, "fcc")
@@ -21,12 +22,11 @@ AlloyGen = AlloysGen(["Ag", "Pd"], {"Ag": 0.5, "Pd": 0.5}, "fcc")
 
 def test_generate():
     try:
-        structureX = AlloyGen.gen_random_structure(
-            "fcc",
-            [2, 2, 2],
-            {"Ag": 4, "Pd": 4},
-            lattice_param=[4.09, 4.09, 4.09],
-        )
+        # structureX = AlloyGen.gen_crystall(
+        #     "fcc",
+        #     [2, 2, 2],
+        #     lattice_param=[4.09, 4.09, 4.09],
+        # )
         result = True
     except BaseException:
         result = False

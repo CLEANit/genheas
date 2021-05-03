@@ -16,10 +16,10 @@ import torch
 import yaml
 
 from ase.io import write
-from genheas.tools.alloysgen import AlloysGen
-from genheas.tools.alloysgen import coordination_numbers
 from genheas.tools.evolution import NnEa
 from genheas.tools.feedforward import Feedforward
+from genheas.tools.gencrystal import AlloysGen
+from genheas.tools.gencrystal import coordination_numbers
 from genheas.tools.properties import atomic_properties
 from genheas.utilities.log import logger
 from pymatgen.core import Composition
@@ -67,9 +67,14 @@ def read_policy(file):
         return
 
 
-def write_to_cif(name, configuration):
-    formula = configuration.get_chemical_formula()
-    write(f"{name}/{formula}.cif", configuration)
+def atom_to_cif(name, atom):
+    formula = atom.get_chemical_formula()
+    write(f"{name}/{formula}.cif", atom)
+
+
+def structure_to_cif(name, structure):
+    formula = structure.composition.alphabetical_formula.replace(" ", "")
+    structure.to(fmt="cif", filename=os.path.join(name, formula + ".cif"))
 
 
 def write_to_png(name, configuration):
@@ -87,7 +92,6 @@ def generate_structure(
     cell_param,
     constraints=True,
     cubik=False,
-    direction=None,
     device="cpu",
     verbose=False,
 ):
@@ -96,52 +100,40 @@ def generate_structure(
 
     pathlib.Path(output_name).mkdir(parents=True, exist_ok=True)
 
-    # cutof, cell_param = get_cutoff(cell_param, element_pool, cryst_structure)
-
-    nn_in_shell1 = coordination_numbers[cryst_structure][0]
-    nn_in_shell2 = coordination_numbers[cryst_structure][1]
-
-    GaNn = NnEa()
+    GaNn = NnEa(conc, element_pool, cryst_structure)
     AlloyGen = AlloysGen(element_pool, conc, cryst_structure)
 
-    # nb_atom = prod(cell_size)
-    nb_atom = AlloyGen.get_number_of_atom(cryst_structure, cell_size, cubik=cubik, direction=direction)
-    nb_atom
+    nb_atom = len(
+        AlloyGen.gen_crystal(
+            cryst_structure,
+            cell_size,
+            max_diff_elem=None,
+            lattice_param=None,
+            name=None,
+            cubik=cubik,
+            radom=False,
+        ),
+    )
 
-    max_diff_elements = AlloyGen.get_max_diff_elements(element_pool, conc, nb_atom)
+    max_diff_elements = AlloyGen.get_max_diff_elements(nb_atom)
 
-    # name = max(max_diff_elements , key=max_diff_elements.get)
-
-    cutof = AlloyGen.get_cutoff(element_pool[0], cryst_structure, cell_param)
-
-    # raw_crystal = AlloyGen.gen_raw_crystal(
-    #     cryst_structure,
-    #     cell_size,
-    #     lattice_param=cell_param,
-    #     name=element_pool[0],
-    #     cubik=cubik,
-    #     surface=direction,
-    # )
-
-    raw_crystal = AlloyGen.gen_random_structure(
+    structureX = AlloyGen.gen_crystal(
         cryst_structure,
         cell_size,
-        max_diff_elements,
+        max_diff_elem=None,
         lattice_param=cell_param,
         name=element_pool[0],
         cubik=cubik,
-        surface=direction,
+        radom=False,
     )
 
     logger.info(f"Number of atoms : {nb_atom}")
-    logger.info(f"Template structure : {raw_crystal.get_chemical_formula()}")
+    logger.info(f"Template structure : {structureX.composition.alphabetical_formula}")
     logger.info(f"Target max_diff_elements : {max_diff_elements}")
-    structureX = AseAtomsAdaptor.get_structure(raw_crystal)
 
     configuration = AlloyGen.generate_configuration(
         structureX,
         element_pool,
-        cutof,
         my_model,
         device=device,
         max_diff_element=max_diff_elements,
@@ -149,39 +141,42 @@ def generate_structure(
         verbose=verbose,
     )
 
-    # generated_structure = AseAtomsAdaptor.get_structure(configuration)
-
-    write_to_cif(output_name, configuration)
-    # write_to_png(output_name, configuration)
+    structure_to_cif(output_name, configuration)
 
     print("\n", "*" * 20, "Best structure", "*" * 20)
-    composition = Composition(configuration.get_chemical_formula(mode="metal"))
-    print("Generated chemical formula: ", composition, "\n")
 
-    print("Fractional composition: ", composition.fractional_composition, "\n")
+    print("Generated chemical formula: ", configuration.composition.alphabetical_formula, "\n")
 
-    CN1_list, CN2_list = AlloyGen.get_coordination_numbers(configuration, cutof)
+    print("Fractional composition: ", configuration.composition.fractional_composition, "\n")
 
-    # print('CN: ', cn1_list, '\n')
+    target_shell1 = GaNn.get_target_shell1()
+    target_shell2 = GaNn.get_target_shell2()
 
-    shell1_fitness_AA = GaNn.get_shell1_fitness_AA(CN1_list)
-    shell2_fitness_AA = GaNn.get_shell2_fitness_AA(CN2_list, nn_in_shell2)
-    shell1_fitness_AB = GaNn.get_shell1_fitness_AB(CN1_list, conc, nn_in_shell1)
-    max_diff_element_fitness = GaNn.get_max_diff_element_fitness(max_diff_elements, configuration)
+    _, _, shells = AlloyGen.get_sites_neighbor_list(configuration)
+
+    shell1 = GaNn.count_occurrence_to_dict(shells[0], element_pool)
+    shell2 = GaNn.count_occurrence_to_dict(shells[1], element_pool)
+
+    CN1_list = GaNn.get_CN_list(shell1, configuration)  # Coordination number
+    CN2_list = GaNn.get_CN_list(shell2, configuration)
+
+    shell1_fitness_AA, shell1_fitness_AB = GaNn.get_mae_shell(CN1_list, target_shell1)
+    shell2_fitness_AA, shell2_fitness_AB = GaNn.get_mae_shell(CN2_list, target_shell2)
     composition_fitness = GaNn.get_composition_fitness(max_diff_elements, configuration)
 
-    # print('shell1_fitness_AA: {:6.2f}'.format(sum(shell1_fitness_AA.values())))
-
     fitness = (
-        sum(max_diff_element_fitness.values())
-        + sum(shell1_fitness_AB.values())
-        + sum(shell2_fitness_AA.values())
-        # + sum(shell1_fitness_AA.values())
+        composition_fitness
+        # + shell1_fitness_AA
+        + shell1_fitness_AB
+        + shell2_fitness_AA
+        # + shell2_fitness_AB
     )
 
-    print("shell2_fitness_AA: {:6.2f}".format(sum(shell2_fitness_AA.values())))
-    print("shell1_fitness_AB: {:6.2f}".format(sum(shell1_fitness_AB.values())))
-    print("max_diff_element_fitness: {:6.2f}\n".format(sum(max_diff_element_fitness.values())))
+    # print("shell1_fitness_AA: {:6.2f}".format(shell1_fitness_AA))
+    print(f"shell1_fitness_AB: {shell1_fitness_AB:6.2f}")
+    print(f"shell2_fitness_AA: {shell2_fitness_AA:6.2f}")
+    # print("shell2_fitness_AB: {:6.2f}".format(shell2_fitness_AB))
+    print(f"composition_fitness: {composition_fitness:6.2f}\n")
     print(f"Total fitness: {fitness:6.2f}\n")
 
     print(f"<.cif> files have been saved in [{output_name}]")
@@ -189,24 +184,22 @@ def generate_structure(
     print("*" * 60)
     ###########################################################################
 
-    # img1 = Image.open(os.path.join(output_name, 'structure.png'))
-    # # plt.clf()
-    # plt.imshow(img1)
-
     target_comp = Composition(max_diff_elements)
     script = "\n"
     script += f"Total fitness (shell2_AA + shell1_AB+ max_diff_element): {fitness:6.2f}\n"
     script += "\n"
-    script += "shell2_fitness_AA: {:6.2f}\n".format(sum(shell2_fitness_AA.values()))
-    script += "shell1_fitness_AB: {:6.2f}\n".format(sum(shell1_fitness_AB.values()))
+    script += f"shell1_fitness_AA: {shell1_fitness_AA:6.2f}\n"
+    # script += "shell1_fitness_AB: {:6.2f}\n".format(shell1_fitness_AB))
+    # script += "shell2_fitness_AA: {:6.2f}\n".format(shell2_fitness_AA))
+    script += f"shell2_fitness_AB: {shell2_fitness_AB:6.2f}\n"
     script += "\n"
     script += f"Target chemical formula: {target_comp}\n"
-    script += f"Generated chemical formula: {composition}\n"
-    script += "max_diff_element_fitness: {:6.2f}\n".format(sum(max_diff_element_fitness.values()))
+    script += f"Generated chemical formula: {configuration.composition}\n"
+    script += f"max_diff_element_fitness: {composition_fitness:6.2f}\n"
     script += "\n"
     script += f"Target composition: {target_comp.fractional_composition}\n"
-    script += f"Generated composition: {composition.fractional_composition}\n"
-    script += "composition_fitness: {:6.4f}\n".format(sum(composition_fitness.values()))
+    script += f"Generated composition: {configuration.composition.fractional_composition}\n"
+    script += f"composition_fitness: {composition_fitness:6.4f}\n"
     script += "\n"
     # f.write('shell1_fitness_AA: {:6.2f}\n'.format(sum(shell1_fitness_AA.values())))
 
@@ -216,7 +209,7 @@ def generate_structure(
 
     script += "*" * 80
     script += "\n"
-    formula = configuration.get_chemical_formula()
+    formula = configuration.composition.alphabetical_formula.replace(" ", "")
     return script, formula, fitness
 
 
@@ -235,25 +228,16 @@ def main(policy_path=None):
     cell_parameters = params["cell_parameters"]
     elements_pool = params["elements_pool"]
     concentrations = params["concentrations"]
-    rate = params["rate"]
-    alpha = params["alpha"]
     device = params["device"]
-
     nb_structures = params["nb_structures"]
-    generation = params["nb_generation"]
     supercell_size = params["supercell_size"]
     cube = params["cubic_gen"]
-    surface = params["surfaces"]
 
     # ==========================  Analyse Parameters  ========================
 
     # cutoff, cell_parameters = get_cutoff(cell_parameters, elements_pool, crystal_structure)
     if policy_path is None:
         policy_path = params["model_path"]
-
-    # nb_atoms = np.prod(tuple(supecell_size))
-
-    nb_species = len(elements_pool)
 
     NN_in_shell1 = coordination_numbers[crystal_structure][0]
     NN_in_shell2 = coordination_numbers[crystal_structure][1]
@@ -264,8 +248,6 @@ def main(policy_path=None):
     output_size = len(elements_pool)
 
     # ==========================  Load the model  ============================
-
-    # output = os.path.join(str(nb_species) + '_elemetns', 'model_' + str(nb_generation))
 
     output = os.path.dirname(policy_path)
 
@@ -289,7 +271,6 @@ def main(policy_path=None):
             cell_parameters,
             constraints=False,
             cubik=cube,
-            direction=surface,
             verbose=True,
         )
 

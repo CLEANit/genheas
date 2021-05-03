@@ -7,7 +7,9 @@ import yaml
 
 from genheas.utilities.log import logger
 from pymatgen.core.periodic_table import Element
+from sklearn.preprocessing import MaxAbsScaler
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import StandardScaler
 
 
 __all__ = ["Property", "atomic_properties", "list_of_elements", "AtomInitializer", "AtomJSONInitializer"]
@@ -115,6 +117,28 @@ loc = os.path.dirname(os.path.abspath(__file__))
 atom_init_file = os.path.join(loc, "data/atom_init.json")
 
 
+class Normalizer:
+    """Normalize a Tensor and restore it later. """
+
+    def __init__(self, tensor):
+        """tensor is taken as a sample to calculate the mean and std"""
+        self.mean = np.mean(tensor)
+        self.std = np.std(tensor)
+
+    def norm(self, tensor):
+        return (tensor - self.mean) / self.std
+
+    def denorm(self, normed_tensor):
+        return normed_tensor * self.std + self.mean
+
+    def state_dict(self):
+        return {"mean": self.mean, "std": self.std}
+
+    def load_state_dict(self, state_dict):
+        self.mean = state_dict["mean"]
+        self.std = state_dict["std"]
+
+
 class AtomInitializer:
     """
     Base class for intializing the vector representation for atoms.
@@ -167,7 +191,7 @@ class AtomJSONInitializer(AtomInitializer):
         The path to the .json file
     """
 
-    def __init__(self, elem_embedding_file=atom_init_file, rewrite=False):
+    def __init__(self, elem_embedding_file=atom_init_file, rewrite=True):
         if os.path.exists(elem_embedding_file) and rewrite:
             os.remove(elem_embedding_file)
 
@@ -278,7 +302,9 @@ class Property:
         :return: Fitted scaler.
         """
         # scaler.fit_transform(number.reshape(-1, 1)).flatten()
-        scaler = MinMaxScaler(feature_range=(-1, 1))
+        # scaler = MinMaxScaler(feature_range=(-1, 1))
+        scaler = StandardScaler()
+        # scaler = MaxAbsScaler()
         return scaler.fit(feature_name.reshape(-1, 1))
 
     def _transfromed_data(self, value, scaled_datas):

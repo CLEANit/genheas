@@ -977,7 +977,7 @@
 
   // Partially apply a function by creating a version that has had some of its
   // arguments pre-filled, without changing its dynamic `this` context. `_` acts
-  // as a placeholder by default, allowing any combination of arguments to be
+  // as a placeholder by default, allowing any peers of arguments to be
   // pre-filled. Set `_.partial.placeholder` for a custom placeholder argument.
   var partial = restArguments(function(func, boundArgs) {
     var placeholder = partial.placeholder;

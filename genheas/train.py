@@ -13,8 +13,8 @@ import torch
 import yaml
 
 from genheas import generate
-from genheas.tools.alloysgen import coordination_numbers
 from genheas.tools.feedforward import Feedforward
+from genheas.tools.gencrystal import coordination_numbers
 from genheas.tools.model import train_policy
 from genheas.tools.properties import atomic_properties
 from genheas.utilities.log import logger
@@ -36,7 +36,7 @@ def main():
     cell_parameters = parameters["cell_parameters"]
     elements_pool = parameters["elements_pool"]
     concentrations = parameters["concentrations"]
-    # oxidation_states = parameters['oxidation_states']
+
     rate = parameters["rate"]
     alpha = parameters["alpha"]
     device = parameters["device"]
@@ -46,22 +46,10 @@ def main():
     nb_worker = parameters["nb_worker"]
     patience = parameters["patience"]
 
-    nb_species = len(elements_pool)
-
-    nb_structures = parameters["nb_structures"]
     training_size = parameters["cell_size"]
-    supercell_size = parameters["supercell_size"]
     cubic_train = parameters["cubic_train"]
-    surface = parameters["surfaces"]
 
     # ==========================  Analyze Parameters  ============================
-
-    # if not list(oxidation_states.keys()) == elements_pool:
-    #     logger.error('<oxidation_states> should match <elements_pool>')
-    #     raise Exception('<oxidation_states> should match <elements_pool>')
-    # elif sum(oxidation_states.values()) != 0:
-    #     logger.error('sum of oxidation states should be 0')
-    #     raise Exception('sum of oxidation states should be 0')
 
     logger.info("Input parameters have been retrieved")
 
@@ -90,7 +78,6 @@ def main():
         nb_worker=nb_worker,
         patience=patience,
         cubik=cubic_train,
-        direction=None,
     )
 
     # ============================  Generation  ==========================

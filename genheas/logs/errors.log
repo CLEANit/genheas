@@ -20,3 +20,7 @@ could not find expected ':'
   in "./parameters.yml", line 39, column 14
 found unexpected end of stream
   in "./parameters.yml", line 61, column 1[0m
+[96m05-02-2021 03:23:39[0m | [96mtrain[0m - [96m__main__[0m | [91mERROR[0m: [97mwhile scanning a simple key
+  in "./parameters.yml", line 38, column 1
+could not find expected ':'
+  in "./parameters.yml", line 40, column 1[0m

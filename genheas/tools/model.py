@@ -166,7 +166,7 @@ def train_policy(
 
     # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    NEs = NnEa(concentrations, element_pool, crystal_structure, rate=rate, alpha=alpha, device=device)
+    NEs = NnEa(element_pool, concentrations, crystal_structure, rate=rate, alpha=alpha, device=device)
 
     alloy_gen = AlloysGen(element_pool, concentrations, crystal_structure, radius=8.0)
 

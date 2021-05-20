@@ -18,13 +18,11 @@ from pymatgen.transformations.site_transformations import (
 from torch.autograd import Variable
 from tqdm import tqdm
 
-from tests.test_generate_structure import AlloyGen
-
 
 class NnEa(AlloysGen):
     """ """
 
-    def __init__(self, concentrations, element_pool, crystalstructure, rate=0.25, alpha=0.1, device="cpu"):
+    def __init__(self, element_pool, concentrations, crystalstructure, rate=0.25, alpha=0.1, device="cpu"):
         """
         :param concentrations:
         :param element_pool:
@@ -33,27 +31,29 @@ class NnEa(AlloysGen):
         :param alpha:  parameter for gene mutation
         :param device:
         """
+        super().__init__(element_pool, concentrations, crystalstructure)
         self.rate = rate
         self.alpha = alpha
         self.device = device
         self.element_pool = element_pool
         self.concentrations = concentrations
         self.crystalstructure = crystalstructure
-        self.peers = self.get_peers(self.element_pool)
+        # self.peers = self.get_peers(element_pool)
+        # self.peers = super(NnEa, self).get_peers(element_pool)
         self.NN1 = float(coordination_numbers[self.crystalstructure][0])
         self.NN2 = float(coordination_numbers[self.crystalstructure][1])
         # self.max_diff_element = max_diff_element
 
-    @staticmethod
-    def get_peers(element_pool):
-        """
-        list of  unique peer of atom in the structure
-        """
-        peers = []
-        for i in range(len(element_pool)):
-            for j in range(len(element_pool)):
-                peers.append(element_pool[i] + "-" + element_pool[j])
-        return peers
+    # @staticmethod
+    # def get_peers(element_pool):
+    #     """
+    #     list of  unique peer of atom in the structure
+    #     """
+    #     peers = []
+    #     for i in range(len(element_pool)):
+    #         for j in range(len(element_pool)):
+    #             peers.append(element_pool[i] + "-" + element_pool[j])
+    #     return peers
 
     def get_target_shell1(self):
         """
@@ -228,8 +228,9 @@ class NnEa(AlloysGen):
     def get_population_fitness(self, configurations, max_diff_element):
 
         pop_fitness = []
+
         for configuration in configurations:
-            _, _, shells = AlloyGen.get_sites_neighbor_list(configuration)
+            _, _, shells = super(NnEa, self).get_sites_neighbor_list(configuration)
 
             shell1 = self.count_occurrence_to_dict(shells[0], self.element_pool)
             shell2 = self.count_occurrence_to_dict(shells[1], self.element_pool)
@@ -238,14 +239,14 @@ class NnEa(AlloysGen):
             CN2_list = self.get_CN_list(shell2, configuration)
 
             shell1_fitness_AA, shell1_fitness_AB = self.get_mae_shell(CN1_list, self.target_shell1)
-            shell2_fitness_AA, shell2_fitness_AB = self.get_mae_shell(CN2_list, self.target_shell2)
+            # shell2_fitness_AA, shell2_fitness_AB = self.get_mae_shell(CN2_list, self.target_shell2)
             composition_fitness = self.get_composition_fitness(max_diff_element, configuration)
 
             fitness = (
                 composition_fitness
-                # + shell1_fitness_AA
-                + shell1_fitness_AB
-                + shell2_fitness_AA
+                + shell1_fitness_AA
+                # + shell1_fitness_AB
+                # + shell2_fitness_AA
                 # + shell2_fitness_AB)
             )
 

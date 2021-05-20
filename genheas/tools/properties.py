@@ -191,7 +191,7 @@ class AtomJSONInitializer(AtomInitializer):
         The path to the .json file
     """
 
-    def __init__(self, elem_embedding_file=atom_init_file, rewrite=True):
+    def __init__(self, elem_embedding_file=atom_init_file, rewrite=False):
         if os.path.exists(elem_embedding_file) and rewrite:
             os.remove(elem_embedding_file)
 

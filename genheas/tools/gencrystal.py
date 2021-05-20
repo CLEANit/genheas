@@ -42,7 +42,7 @@ coordination_numbers = {
     "fcc": [12, 6, 24],
     "bcc": [8, 6, 12],
     "hpc": [12, 0, 0],
-    "fcc111": [9, 3, 0],
+    "fcc111": [12, 6, 0],
     "fcc100": [12, 6, 24],
     "fcc110": [12, 6, 24],
     "bcc111": [4, 3, 0],
@@ -64,7 +64,7 @@ class AlloysGen:
         self.element_pool = element_pool
         self.concentrations = concentrations
         self.crystalstructure = crystalstructure
-        self.peers = self.get_peers(self.element_pool)
+        self.peers = AlloysGen.get_peers(element_pool)
         self.radius = radius
         self.input_size = None
 
@@ -106,6 +106,7 @@ class AlloysGen:
         """
         combinations list of  unique pair of atom in the structure
         """
+
         combinations = []
         for i in range(len(element_pool)):
             for j in range(len(element_pool)):
@@ -309,11 +310,15 @@ class AlloysGen:
 
         return AseAtomsAdaptor.get_structure(atoms)
 
-    def get_sites_neighbor_list(self, crystal, site_number=None):
+    def get_sites_neighbor_list(self, crystal, max_num_nbr=None, radius=None, site_number=None):
+
         NN1 = coordination_numbers[self.crystalstructure][0]
         NN2 = coordination_numbers[self.crystalstructure][1]
-        max_num_nbr = sum([NN1, NN2])
-        all_nbrs = crystal.get_all_neighbors(self.radius, include_index=True)
+        if max_num_nbr is None:
+            max_num_nbr = NN1 + NN2
+        if radius is None:
+            radius = self.radius
+        all_nbrs = crystal.get_all_neighbors(radius, include_index=True)
         all_nbrs = [sorted(nbrs, key=lambda x: x.nn_distance) for nbrs in all_nbrs]
         nbr_type_shell1, nbr_type_shell2 = [], []
         nbr_idx = []  # neighbors_index,
@@ -337,9 +342,10 @@ class AlloysGen:
                 nbr_type_shell1.append(types[:NN1])
                 nbr_type_shell2.append(types[NN1:])
                 # distances.append(list(map(lambda x: x.nn_distance, nbr[:max_num_nbr])))  # add dist 0
+
         nbr_type_shell1, nbr_type_shell2 = np.array(nbr_type_shell1), np.array(nbr_type_shell1)
         nbr_idx = np.array(nbr_idx)
-        nbr_type = np.array(nbr_idx)
+        nbr_type = np.array(nbr_type)
         # distances = np.array(distances)
 
         if site_number is None:
@@ -383,7 +389,6 @@ class AlloysGen:
         # self.get_target_shell2()
         self.max_diff_element = max_diff
         logger.info("max_diff_element Initialized ")
-        print(max_diff)
 
         return self.max_diff_element
 
@@ -396,9 +401,10 @@ class AlloysGen:
         """
         # species = np.array(crystal.species)
 
-        neighbor_list, neighbor_type, _ = self.get_sites_neighbor_list(crystal, atm)
+        neighbor_list, neighbor_type, _ = self.get_sites_neighbor_list(crystal, site_number=atm)
 
         atom_fea = np.vstack([self.atom_features.get_atom_fea(crystal[i].specie.name) for i in neighbor_list])
+
         # row, col = atom_fea.shape
         # scaler1 = StandardScaler()
         # # scaler2 = MaxAbsScaler()

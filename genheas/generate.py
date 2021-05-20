@@ -100,7 +100,7 @@ def generate_structure(
 
     pathlib.Path(output_name).mkdir(parents=True, exist_ok=True)
 
-    GaNn = NnEa(conc, element_pool, cryst_structure)
+    GaNn = NnEa(element_pool, conc, cryst_structure)
     AlloyGen = AlloysGen(element_pool, conc, cryst_structure)
 
     nb_atom = len(
@@ -166,15 +166,15 @@ def generate_structure(
 
     fitness = (
         composition_fitness
-        # + shell1_fitness_AA
-        + shell1_fitness_AB
-        + shell2_fitness_AA
+        + shell1_fitness_AA
+        # + shell1_fitness_AB
+        # + shell2_fitness_AA
         # + shell2_fitness_AB
     )
 
-    # print("shell1_fitness_AA: {:6.2f}".format(shell1_fitness_AA))
-    print(f"shell1_fitness_AB: {shell1_fitness_AB:6.2f}")
-    print(f"shell2_fitness_AA: {shell2_fitness_AA:6.2f}")
+    print("shell1_fitness_AA: {:6.2f}".format(shell1_fitness_AA))
+    # print(f"shell1_fitness_AB: {shell1_fitness_AB:6.2f}")
+    # print(f"shell2_fitness_AA: {shell2_fitness_AA:6.2f}")
     # print("shell2_fitness_AB: {:6.2f}".format(shell2_fitness_AB))
     print(f"composition_fitness: {composition_fitness:6.2f}\n")
     print(f"Total fitness: {fitness:6.2f}\n")
@@ -186,12 +186,12 @@ def generate_structure(
 
     target_comp = Composition(max_diff_elements)
     script = "\n"
-    script += f"Total fitness (shell2_AA + shell1_AB+ max_diff_element): {fitness:6.2f}\n"
+    script += f"Total fitness (shell2_AA +  max_diff_element): {fitness:6.2f}\n"
     script += "\n"
     script += f"shell1_fitness_AA: {shell1_fitness_AA:6.2f}\n"
     # script += "shell1_fitness_AB: {:6.2f}\n".format(shell1_fitness_AB))
     # script += "shell2_fitness_AA: {:6.2f}\n".format(shell2_fitness_AA))
-    script += f"shell2_fitness_AB: {shell2_fitness_AB:6.2f}\n"
+    # script += f"shell2_fitness_AB: {shell2_fitness_AB:6.2f}\n"
     script += "\n"
     script += f"Target chemical formula: {target_comp}\n"
     script += f"Generated chemical formula: {configuration.composition}\n"

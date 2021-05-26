@@ -7,7 +7,11 @@
 @Project : genheas
 @Software: PyCharm
 """
+import argparse
 import os
+import sys
+
+from pathlib import Path
 
 import torch
 import yaml
@@ -20,12 +24,21 @@ from genheas.tools.properties import atomic_properties
 from genheas.utilities.log import logger
 
 
-def main():
+parser = argparse.ArgumentParser(description="Molecular Modelling Control Software")
+parser.add_argument(
+    "config_options",
+    metavar="OPTIONS",
+    nargs="+",
+    help="configuration options, the path to  dir whit configuration file",
+)
+
+
+def main(root_dir):
     # ========================== Read Parameters  ============================
-    input_file = "parameters.yml"
+    input_file = os.path.join(root_dir, "parameters.yml")
 
     try:
-        with open(os.path.join("./", input_file)) as fr:
+        with open(input_file) as fr:
             parameters = yaml.safe_load(fr)
     except Exception as err:
         logger.error(f"{err}")
@@ -61,8 +74,9 @@ def main():
 
     output_size = len(elements_pool)
 
+    workdir = Path.cwd()
     # ==============================  Training ===============================
-    output = os.path.join("_".join(elements_pool), "generations_" + str(generations))
+    output = os.path.join(workdir, "_".join(elements_pool), "generations_" + str(generations))
 
     best_policy, best_policy_file = train_policy(
         crystal_structure,
@@ -103,4 +117,8 @@ def main():
 
 
 if __name__ == "__main__":
-    _, _ = main()
+    # args = parser.parse_args()
+    args = parser.parse_args(sys.argv[1:])
+
+    workdir = args.config_options[0]
+    _, _ = main(workdir)

@@ -173,7 +173,8 @@ def train_policy(
     # combinations = alloy_gen.get_peers(element_pool)
 
     # nb_species = len(element_pool)
-    output = os.path.join("_".join(element_pool), "generations_" + str(nb_generation))
+    workdir = pathlib.Path.cwd()
+    output = os.path.join(workdir, "_".join(element_pool), "generations_" + str(nb_generation))
 
     pathlib.Path(output).mkdir(parents=True, exist_ok=True)
 

@@ -4,11 +4,13 @@ Created on Fri Oct 16 23:27:41 2020
 
 @author: Conrard Tetsassi
 """
+import argparse
 import datetime
 import os
 import pathlib
 import pickle
 import shutil
+import sys
 import time
 
 import numpy as np
@@ -24,6 +26,15 @@ from genheas.tools.properties import atomic_properties
 from genheas.utilities.log import logger
 from pymatgen.core import Composition
 from pymatgen.io.ase import AseAtomsAdaptor
+
+
+parser = argparse.ArgumentParser(description="Molecular Modelling Control Software")
+parser.add_argument(
+    "config_options",
+    metavar="OPTIONS",
+    nargs="+",
+    help="configuration options, the path to  dir whit configuration file",
+)
 
 
 def read_model(path, element_pool, device, crystal_structure):
@@ -172,7 +183,7 @@ def generate_structure(
         # + shell2_fitness_AB
     )
 
-    print("shell1_fitness_AA: {:6.2f}".format(shell1_fitness_AA))
+    print(f"shell1_fitness_AA: {shell1_fitness_AA:6.2f}")
     # print(f"shell1_fitness_AB: {shell1_fitness_AB:6.2f}")
     # print(f"shell2_fitness_AA: {shell2_fitness_AA:6.2f}")
     # print("shell2_fitness_AB: {:6.2f}".format(shell2_fitness_AB))
@@ -213,12 +224,12 @@ def generate_structure(
     return script, formula, fitness
 
 
-def main(policy_path=None):
+def main(root_dir, policy_path=None):
     # ========================== Read Parameters  ============================
-
-    input_file = "parameters.yml"
+    input_file = os.path.join(root_dir, "parameters.yml")
+    # input_file = "parameters.yml"
     try:
-        with open(os.path.join("./", input_file)) as fr:
+        with open(input_file) as fr:
             params = yaml.safe_load(fr)
     except Exception as err:
         logger.error(f"{err}")
@@ -292,4 +303,7 @@ def main(policy_path=None):
 
 
 if __name__ == "__main__":
-    main()
+    args = parser.parse_args(sys.argv[1:])
+
+    workdir = args.config_options[0]
+    main(workdir)

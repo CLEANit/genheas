@@ -230,7 +230,7 @@ class NnEa(AlloysGen):
         pop_fitness = []
 
         for configuration in configurations:
-            _, _, shells = super(NnEa, self).get_sites_neighbor_list(configuration)
+            _, _, shells = super().get_sites_neighbor_list(configuration)
 
             shell1 = self.count_occurrence_to_dict(shells[0], self.element_pool)
             shell2 = self.count_occurrence_to_dict(shells[1], self.element_pool)

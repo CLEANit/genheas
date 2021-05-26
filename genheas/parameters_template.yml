@@ -1,0 +1,61 @@
+###############################################################################
+#             ----------- Train model --------------------
+###############################################################################
+nb_generation: 1010
+rate: 0.25
+alpha: 0.1
+nn_per_policy: 4
+nb_policies: 16
+patience: 2000
+
+device: 'cpu'
+nb_worker: 8
+
+#------------------- Input Structure --------------
+# fcc, bcc, hpc fcc111, fcc100, fcc110 bcc100, bcc110, bcc111 hcp0001, hcp10m10
+
+crystalstructure : 'fcc'
+
+elements_pool : ['Co', 'Fe', 'Ni']
+concentrations : {'Co': 0.34, 'Fe': 0.33, 'Ni': 0.33}
+#oxidation_states : {'Co': 0, 'Cr': 0, 'Fe': 0, 'Cu': 0, 'Ni':0}
+cell_parameters : [3.6, 3.6, 3.6]
+
+#elements_pool : ['Cu', 'Ni', 'Co', 'Cr']
+#concentrations : {'Cu': 0.25, 'Ni': 0.25, 'Co': 0.25, 'Cr': 0.25}
+##oxidation_states : {'Cu': 0, 'Ni': 0, 'Co': 0, 'Cr': 0}
+#cell_parameters : [3.61, 3.61, 3.61]
+
+
+
+cell_size: [3,3,3] # size of the training cell
+
+cubic_train: False # False: orthorombic, True: cubic
+
+#radius: 8 # cutoff for searching neighbor
+
+
+# with a cubic the number of atom is equal to 4x2x2x2 = 32
+
+###############################################################################
+#             ----------- Generate structure--------------------
+###############################################################################
+
+
+model_path :
+nb_structures : 10
+
+supercell_size: [3,3,3] #size of the cell to generate
+
+cubic_gen : True # False: orthorombic, True: cubic
+
+
+
+
+
+
+
+
+
+
+

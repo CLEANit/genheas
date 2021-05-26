@@ -49,9 +49,9 @@ Installation
 - install the packages
 .. sourcecode:: bash
 
-    $genheas peotry install
+    $genheas poetry install
 
-    $genheas peotry check
+    $genheas poetry check
 
     $genheas poetry run pytest
 

@@ -47,7 +47,9 @@ Installation
     $ cd genheas
 
 - Create a Virtual Environment
+
     By default, Poetry create virtual environment in $HOME/.cache/pypoetry/virtualenvs for cahcing/sharing purpose
+
         -   create virtual environment in th root directory of a Python project
         .. sourcecode:: bash
 

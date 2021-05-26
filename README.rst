@@ -106,6 +106,7 @@ Here is the schematic of the workflow to generate HEAs structures:
 
         .. sourcecode:: bash
             $genheas cd genheas
+            $genheas/genheas  cp  parameters_template.yml parameters.yml
             $genheas/genheas  vi parameters.yml
 
         - run

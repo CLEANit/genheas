@@ -46,6 +46,20 @@ Installation
 
     $ cd genheas
 
+- Create a Virtual Environment
+    By default, Poetry create virtual environment in $HOME/.cache/pypoetry/virtualenvs for cahcing/sharing purpose
+        -   create virtual environment in th root directory of a Python project
+        .. sourcecode:: bash
+
+            $genheas config virtualenvs.in-project true
+
+        - use poetry env use python_version to specify the Python version to use for the project.
+
+        .. sourcecode:: bash
+
+            $genheas poetry env use python3
+
+
 - install the packages
 .. sourcecode:: bash
 
@@ -64,6 +78,7 @@ Installation
 
         $genheas poetry config --list
 
+
     which will give you something similar to this
 
     .. sourcecode:: bash
@@ -73,6 +88,29 @@ Installation
         virtualenvs.in-project = null
         virtualenvs.path = "{cache-dir}/virtualenvs"  # /path/to/cache/directory/virtualenvs
 
++ Show Information of the Vitual Environment
+
+    .. sourcecode:: bash
+
+        poetry env info
+
+
+        Virtualenv
+        Python:         3.8.5
+        Implementation: CPython
+        Path:           "/path/to/cache/poetry virtual environment"
+        Valid:          True
+
+        System
+        Platform: linux
+        OS:       posix
+        Python:   /home/ctetsass/anaconda3
+
++ Activate Virtual Environment
+
+.. sourcecode:: bash
+
+    $genheas poetry shell
 
 Usage
 -------------------------
@@ -103,40 +141,45 @@ Here is the schematic of the workflow to generate HEAs structures:
 
     1- Train the model  and generate structure
         - Edit the configuration file both training and generation part
-
+        - copy the configuration file to the "root_dir" and edit
         .. sourcecode:: bash
-            $genheas cd genheas
-            $genheas/genheas  cp  parameters_template.yml parameters.yml
-            $genheas/genheas  vi parameters.yml
+            $genheas/  cp  genheas/parameters_template.yml  rootdir/parameters.yml
+            $root_dir  vi parameters.yml
 
-        - run
+        - running from  <workdir>
         .. sourcecode:: bash
 
-            $genheas/genheas poetry run python main.py
+            $ cd  workdir after the activation of the virtual enviroment
+            $workdir   python main.py rootdir
+
+        - running in the <genheas/genheas> directory
+        .. sourcecode:: bash
+
+            $genheas/genheas  poetry run python main.py rootdir
 
     2- Only train a model
         - Edit the configuration file : training part
 
         .. sourcecode:: bash
 
-            $genheas/genheas vi parameters.yml
+            $root_dir vi parameters.yml
 
         - run
         .. sourcecode:: bash
 
-            $genheas/genheas poetry run python train.py
+            $workdir   python train.py rootdir
 
     3 - Using a pre-trained model to generate cell
         - Edit the configuration file : generation part
 
         .. sourcecode:: bash
 
-            $genheas/genheas vi parameters.yml
+            $root_dir vi parameters.yml
 
         - run
         .. sourcecode:: bash
 
-            $genheas/genheas poetry run python generate.py
+            $workdir   python  generate.py root_dir
 
 Developing and Contributing
 ---------------------------

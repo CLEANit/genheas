@@ -23,6 +23,7 @@ from genheas.tools.feedforward import Feedforward
 from genheas.tools.gencrystal import AlloysGen
 from genheas.tools.gencrystal import coordination_numbers
 from genheas.tools.properties import atomic_properties
+from genheas.tools.properties import atomic_properties_categories
 from genheas.utilities.log import logger
 from pymatgen.core import Composition
 from pymatgen.io.ase import AseAtomsAdaptor
@@ -42,7 +43,7 @@ def read_model(path, element_pool, device, crystal_structure):
     nn_in_shell2 = coordination_numbers[crystal_structure][1]
     n_neighbours = nn_in_shell1 + 1 + nn_in_shell2
 
-    inputsize = n_neighbours * len(atomic_properties)
+    inputsize = n_neighbours * sum(atomic_properties_categories.values())
 
     outputsize = len(element_pool)
 
@@ -58,6 +59,29 @@ def read_model(path, element_pool, device, crystal_structure):
         logger.error(f"{err}")
         raise Exception(f"{err}")
     return my_model
+
+
+def load_model(path, element_pool, device, crystal_structure):
+    nn_in_shell1 = coordination_numbers[crystal_structure][0]
+    nn_in_shell2 = coordination_numbers[crystal_structure][1]
+    n_neighbours = nn_in_shell1 + 1 + nn_in_shell2
+
+    inputsize = n_neighbours * sum(atomic_properties_categories.values())
+
+    outputsize = len(element_pool)
+
+    my_model = Feedforward(inputsize, outputsize)
+    my_model.to(device)
+    assert os.path.exists(path), f"{path} does not exist!"
+    try:
+        checkpoint = torch.load(path)
+        networks_list = checkpoint["state_dict"]
+        network_list = [[my_model.load_state_dict(network) for network in networks] for networks in networks_list]
+
+    except Exception as err:
+        logger.error(f"{err}")
+        raise Exception(f"{err}")
+    return network_list
 
 
 def read_policy(file):

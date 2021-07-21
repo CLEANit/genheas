@@ -1,8 +1,11 @@
 import json
 import os
 
+from pathlib import Path
+
 import mendeleev
 import numpy as np
+import torch
 import yaml
 
 from genheas.utilities.log import logger
@@ -33,6 +36,20 @@ atomic_properties = {
     # "oxidation_states": "oxidation_states",
     "Valence_electron_concentration": "VEC",
     "electronegativity": "X",
+}
+
+atomic_properties_categories = {
+    # "atomic_number": "number",
+    "group": 18,
+    "row": 9,
+    "block": 4,
+    # "first_ionization_energy": "ionenergies",
+    # "electron_affinity": "electron_affinity",
+    # "atomic_radius": "atomic_radius",
+    # # "atomic_mass": "atomic_mass",
+    # "atomic_volume": "atomic_volume",
+    "VEC": 17,
+    # "electronegativity": "X",
 }
 
 list_of_elements = [
@@ -114,16 +131,23 @@ list_of_elements = [
 ]
 
 loc = os.path.dirname(os.path.abspath(__file__))
+
+workdir = Path.cwd()
 atom_init_file = os.path.join(loc, "data/atom_init.json")
 
 
-class Normalizer:
+# atom_init_file = os.path.join(workdir, "atom_init.json")
+
+
+class Normalizer(object):
     """Normalize a Tensor and restore it later. """
 
     def __init__(self, tensor):
         """tensor is taken as a sample to calculate the mean and std"""
-        self.mean = np.mean(tensor)
-        self.std = np.std(tensor)
+
+        tensor = tensor.type(torch.float)
+        self.mean = torch.mean(tensor)
+        self.std = torch.std(tensor)
 
     def norm(self, tensor):
         return (tensor - self.mean) / self.std
@@ -170,10 +194,13 @@ class AtomInitializer:
 
     def write_atom_init_json(self):
         atom_props = Property()
-        atomproperties = {"X": [0.0] * len(self.atomic_properties)}
+        atomproperties = {}
         for atom in sorted(self.atom_types):
-            value = [atom_props.get_property(prop, atom) for prop in self.atomic_properties]
-            atomproperties[atom] = value
+            value = torch.hstack([atom_props.get_property(prop, atom) for prop in self.atomic_properties])
+            atomproperties[atom] = value.tolist()
+
+        key = list(atomproperties.keys())[0]
+        atomproperties["X"] = [0.0] * len(atomproperties[key])
         with open(atom_init_file, "w") as fp:
             json.dump(atomproperties, fp, indent=6)
         logger.info("writing atom_init.json")
@@ -205,7 +232,7 @@ class AtomJSONInitializer(AtomInitializer):
             for key, value in elem_embedding.items():
                 self._embedding[key] = np.array(value, dtype=float)
         else:
-            logger.info("computing atom_init file")
+            logger.info("Initializing atom features ")
             super().__init__(list_of_elements)
             atomfeatures = super().write_atom_init_json()
             for key, value in atomfeatures.items():
@@ -218,7 +245,18 @@ class Property:
         self.VEC_data = self._load_vec_data()
         self.atomic_properties = atomic_properties
         self.list_of_elements = list_of_elements
-        self.property_data = self._get_property_data()
+        self.normalizer = self._get_property_normalizer()
+        # self.number_normilized = self.get_number_normalizer()
+        # self.group_normilized = self.get
+        # self.row_normilized = self.get
+        # self.block_normilized = self.get
+        # self.io_normilized = self.get
+        # self.ea_normilized = self.get
+        # self.radius_normilized = self.get
+        # self.mass_normilized = self.get
+        # self.volume_normilized = self.get
+        # self.vec_normilized = self.get
+        # self.X_normilized = self.get
 
     @staticmethod
     def _load_vec_data():
@@ -264,19 +302,19 @@ class Property:
 
         try:
             prop = eval(f'self.get_{operator}("{elemen}")')
+            # logger.info(f"getting  {operator}")
             return prop
         except AttributeError:
             logger.error(f"{AttributeError}")
             raise Exception(f'Property ["{name}"] not implemented')
             # return None
 
-    def _get_property_data(self):
+    def _get_property_normalizer(self):
         """
         get any type of property
         param name:name of the property
         """
-        property_data = {}
-
+        normalizer = {}
         # Get properties name and check it
         for name in self.atomic_properties:
             names = self.get_property_names(name)
@@ -287,216 +325,120 @@ class Property:
                 return None
 
             try:
-                property_data[operator] = eval(f"self.get_{operator}_datas()")
+                logger.info(f"Normalizing { name}")
+                normalizer[operator] = eval(f"self.get_{operator}_normalizer()")
 
             except AttributeError:
                 logger.error(f"{AttributeError}")
                 raise Exception(f'Property ["{name}"] not implemented')
                 # return None
-        return property_data
+        return normalizer
 
-    def _fitted_scaler(self, feature_name):
-        """
-        Compute the minimum and maximum to be used for later scaling.
-        :param feature_name:
-        :return: Fitted scaler.
-        """
-        # scaler.fit_transform(number.reshape(-1, 1)).flatten()
-        # scaler = MinMaxScaler(feature_range=(-1, 1))
-        scaler = StandardScaler()
-        # scaler = MaxAbsScaler()
-        return scaler.fit(feature_name.reshape(-1, 1))
+    # def _fitted_scaler(self, feature_name):
+    #     """
+    #     Compute the minimum and maximum to be used for later scaling.
+    #     :param feature_name:
+    #     :return: Fitted scaler.
+    #     """
+    #     # scaler.fit_transform(number.reshape(-1, 1)).flatten()
+    #     # scaler = MinMaxScaler(feature_range=(-1, 1))
+    #     scaler = StandardScaler()
+    #     # scaler = MaxAbsScaler()
+    #     return scaler.fit(feature_name.reshape(-1, 1))
 
-    def _transfromed_data(self, value, scaled_datas):
-        """
-
-        :param value: value to  transform (float)
-        :param scaled_datas: array of data
-        :return: Transformed value ( float value from array)
-        """
-        value = np.array([value])
-        return scaled_datas.transform(value.reshape(-1, 1)).flatten()[0]
+    # def _transfromed_data(self, value, scaled_datas):
+    #     """
+    #
+    #     :param value: value to  transform (float)
+    #     :param scaled_datas: array of data
+    #     :return: Transformed value ( float value from array)
+    #     """
+    #     value = np.array([value])
+    #     return scaled_datas.transform(value.reshape(-1, 1)).flatten()[0]
 
     def get_number(self, elm):
         """
         :param elm: str(atomic symbol)
         :return: transformed value between -1 and 1
         """
-        val = Element(elm).number
-        val = self._transfromed_data(val, self.property_data["number"])
-        return round(val, 2)
+        if not isinstance(elm, list):
+            elm = [elm]
+        val = torch.tensor([Element(el).number for el in elm])
+        val_normed = self.normalizer["number"].norm(val)
+        # val_normed = self.number_normalizer.norm(val)
 
-    def get_number_datas(self):
+        return val_normed
+
+    def get_number_normalizer(self):
         """
         :param elm: str(atomic symbol)
         :return: transformed value between -1 and 1
         """
-        datas = np.array([Element(elmt).number for elmt in list_of_elements])
-        return self._fitted_scaler(datas)
+        datas = torch.tensor([Element(elmt).number for elmt in list_of_elements])
+        return Normalizer(datas)
 
     def get_group(self, elm):
         """
         :param elm: str(atomic symbol)
         :return:
         """
-        val = Element(elm).group
-        val = self._transfromed_data(val, self.property_data["group"])
-        return round(val, 2)
+        if not isinstance(elm, list):
+            elm = [elm]
+        val = torch.tensor([Element(el).group for el in elm])
+        val_normed = self.normalizer["number"].norm(val)
+        # val_normed = self.group_normalizer.norm(val)
 
-    def get_group_datas(self):
+        return val_normed
+
+    def get_group_normalizer(self):
         """
         :param elm: str(atomic symbol)
         :return:
         """
-        datas = np.array([Element(elemt).group for elemt in list_of_elements])
-        return self._fitted_scaler(datas)
+        datas = torch.tensor([Element(elemt).group for elemt in list_of_elements])
+        return Normalizer(datas)
 
     def get_block(self, elm):
         """
         :param elm: str(atomic symbol)
         :return:
         """
-        val = blocks[Element(elm).block]
-        val = self._transfromed_data(val, self.property_data["block"])
-        return round(val, 2)
+        if not isinstance(elm, list):
+            elm = [elm]
+        val = torch.tensor([blocks[Element(el).block] for el in elm])
+        val_normed = self.normalizer["block"].norm(val)
+        # val_normed = self.block_normalizer.norm(val)
 
-    def get_block_datas(self):
+        return val_normed
+
+    def get_block_normalizer(self):
         """
         :param elm: str(atomic symbol)
         :return:
         """
-        datas = np.array([blocks[Element(elemt).block] for elemt in list_of_elements])
-        return self._fitted_scaler(datas)
+
+        datas = torch.tensor([blocks[Element(elemt).block] for elemt in list_of_elements])
+        return Normalizer(datas)
 
     def get_row(self, elm):
         """
         :param elm: str(atomic symbol)
         :return:
         """
-        val = Element(elm).row
-        val = self._transfromed_data(val, self.property_data["row"])
-        return round(val, 2)
+        if not isinstance(elm, list):
+            elm = [elm]
+        val = torch.tensor([Element(el).row for el in elm])
+        val_normed = self.normalizer["row"].norm(val)
+        # val_normed = self.row_normalizer.norm(val)
+        return val_normed
 
-    def get_row_datas(self):
+    def get_row_normalizer(self):
         """
         :param elm: str(atomic symbol)
         :return:
         """
-        datas = np.array([Element(elemt).row for elemt in list_of_elements])
-        return self._fitted_scaler(datas)
-
-    def get_atomic_radius(self, elm):
-        """
-        :param elm: str(atomic symbol)
-        :return:
-        """
-        val = Element(elm).atomic_radius
-        val = self._transfromed_data(val, self.property_data["atomic_radius"])
-        return round(val, 2)
-
-    def get_atomic_radius_datas(self):
-        """
-        :param elm: str(atomic symbol)
-        :return:
-        """
-        datas = np.array([Element(elemt).atomic_radius for elemt in list_of_elements])
-        return self._fitted_scaler(datas)
-
-    def get_atomic_mass(self, elm):
-        """
-        :param elm: str(atomic symbol)
-        :return:
-        """
-        val = Element(elm).atomic_mass
-        val = self._transfromed_data(val, self.property_data["atomic_mass"])
-        return round(val, 2)
-
-    def get_atomic_mass_datas(self):
-        """
-        :param elm: str(atomic symbol)
-        :return:
-        """
-        datas = np.array([Element(elemt).atomic_mass for elemt in list_of_elements])
-        return self._fitted_scaler(datas)
-
-    def get_atomic_volume(self, elm):
-        """
-        :param elm: str(atomic symbol)
-        :return:
-        """
-        val = mendeleev.element(elm).atomic_volume
-        if val is None:
-            val = 0.0
-        val = self._transfromed_data(val, self.property_data["atomic_volume"])
-        return round(val, 2)
-
-    def get_atomic_volume_datas(self):
-        """
-        :param elm: str(atomic symbol)
-        :return:
-        """
-        datas = np.array([mendeleev.element(elemt).atomic_volume for elemt in list_of_elements])
-        datas = np.where(datas is None, 0.0, datas)
-        return self._fitted_scaler(datas)
-
-    def get_electron_affinity(self, elm):
-        """
-        :param elm: str(atomic symbol)
-        :return:
-        """
-
-        val = mendeleev.element(elm).electron_affinity
-        if val is None:
-            val = 0.0
-        val = self._transfromed_data(val, self.property_data["electron_affinity"])
-        return round(val, 2)
-
-    def get_electron_affinity_datas(self):
-        """
-        :param elm: str(atomic symbol)
-        :return:
-        """
-        datas = np.array([mendeleev.element(elemt).electron_affinity for elemt in list_of_elements])
-        datas = np.where(datas is None, 0.0, datas)
-        return self._fitted_scaler(datas)
-
-    def get_ionenergies(self, elm):
-        """
-        :param elm: str(atomic symbol)
-        :return:
-        """
-        val = mendeleev.element(elm).ionenergies[1]
-        val = self._transfromed_data(val, self.property_data["ionenergies"])
-        return round(val, 2)
-
-    def get_ionenergies_datas(self):
-        """
-        :param elm: str(atomic symbol)
-        :return:
-        """
-        datas = np.array([mendeleev.element(elemt).ionenergies[1] for elemt in list_of_elements])
-        return self._fitted_scaler(datas)
-
-    def get_X(self, elm):
-        """
-        electronegativity
-        :param elm: str(atomic symbol)
-        :return:
-        """
-
-        val = Element(elm).X
-        val = self._transfromed_data(val, self.property_data["X"])
-        return round(val, 2)
-
-    def get_X_datas(self):
-        """
-        electronegativity
-        :param elm: str(atomic symbol)
-        :return:
-        """
-
-        datas = np.array([Element(elemt).X for elemt in list_of_elements])
-        return self._fitted_scaler(datas)
+        datas = torch.tensor([Element(elemt).row for elemt in list_of_elements])
+        return Normalizer(datas)
 
     def get_VEC(self, elm):
         """
@@ -505,11 +447,15 @@ class Property:
         :param elm: str(atomic symbol)
         :return:
         """
-        val = self.VEC_data[elm]
-        val = self._transfromed_data(val, self.property_data["VEC"])
-        return round(float(val), 2)
+        if not isinstance(elm, list):
+            elm = [elm]
+        val = torch.tensor([self.VEC_data[el] for el in elm])
 
-    def get_VEC_datas(self):
+        # val_normed = self.vec_normalizer.norm(val)
+        val_normed = self.normalizer["VEC"].norm(val)
+        return val_normed
+
+    def get_VEC_normalizer(self):
         """
         Valence electron concentration
         :param VEC: valence electron data
@@ -517,8 +463,155 @@ class Property:
         :return:
         """
 
-        datas = np.array([self.VEC_data[element] for element in list_of_elements])
-        return self._fitted_scaler(datas)
+        datas = torch.tensor([self.VEC_data[element] for element in list_of_elements])
+
+        return Normalizer(datas)
+
+    def get_atomic_radius(self, elm):
+        """
+        :param elm: str(atomic symbol)
+        :return:
+        """
+        if not isinstance(elm, list):
+            elm = [elm]
+        val = torch.tensor([Element(el).atomic_radius for el in elm])
+        val_normed = self.normalizer["atomic_radius"].norm(val)
+        # val_normed = self.radius.norm(val)
+
+        return val_normed
+
+    def get_atomic_radius_normalizer(self):
+        """
+        :param elm: str(atomic symbol)
+        :return:
+        """
+        datas = torch.tensor([Element(elemt).atomic_radius for elemt in list_of_elements])
+
+        return Normalizer(datas)
+
+    def get_atomic_mass(self, elm):
+        """
+        :param elm: str(atomic symbol)
+        :return:
+        """
+        if not isinstance(elm, list):
+            elm = [elm]
+        val = torch.tensor([Element(el).atomic_mass for el in elm])
+        val_normed = self.normalizer["atomic_mass"].norm(val)
+        # val_normed = self.mass_normalizer.norm(val)
+
+        return val_normed
+
+    def get_atomic_mass_normalizer(self):
+        """
+        :param elm: str(atomic symbol)
+        :return:
+        """
+        datas = torch.tensor([Element(elemt).atomic_mass for elemt in list_of_elements])
+        datas = torch.nan_to_num(datas)
+        return Normalizer(datas)
+
+    def get_atomic_volume(self, elm):
+        """
+        :param elm: str(atomic symbol)
+        :return:
+        """
+        if not isinstance(elm, list):
+            elm = [elm]
+        val = [mendeleev.element(el).atomic_volume for el in elm]
+        val = [i if i is not None else 0.0 for i in val]
+        val = torch.tensor(val)
+
+        val_normed = self.normalizer["atomic_volume"].norm(val)
+        # val_normed = self.volume_normalizer.norm(val)
+
+        return val_normed
+
+    def get_atomic_volume_normalizer(self):
+        """
+        :param elm: str(atomic symbol)
+        :return:
+        """
+        datas = [mendeleev.element(elemt).atomic_volume for elemt in list_of_elements]
+        datas = [i if i is not None else 0.0 for i in datas]
+        datas = torch.tensor(datas)
+        return Normalizer(datas)
+
+    def get_electron_affinity(self, elm):
+        """
+        :param elm: str(atomic symbol)
+        :return:
+        """
+        if not isinstance(elm, list):
+            elm = [elm]
+        val = [mendeleev.element(el).electron_affinity for el in elm]
+        val = [i if i is not None else 0.0 for i in val]
+        val = torch.tensor(val)
+        val_normed = self.normalizer["electron_affinity"].norm(val)
+        # val_normed = self.nea_normalizer.norm(val)
+
+        return val_normed
+
+    def get_electron_affinity_normalizer(self):
+        """
+        :param elm: str(atomic symbol)
+        :return:
+        """
+
+        datas = [mendeleev.element(elemt).electron_affinity for elemt in list_of_elements]
+        datas = [i if i is not None else 0.0 for i in datas]
+        datas = torch.tensor(datas)
+        return Normalizer(datas)
+
+    def get_ionenergies(self, elm):
+        """
+        :param elm: str(atomic symbol)
+        :return:
+        """
+        if not isinstance(elm, list):
+            elm = [elm]
+        val = [mendeleev.element(el).ionenergies[1] for el in elm]
+        val = [i if i is not None else 0.0 for i in val]
+        val = torch.tensor(val)
+        val_normed = self.normalizer["ionenergies"].norm(val)
+        # val_normed = self.io_normalizer.norm(val)
+
+        return val_normed
+
+    def get_ionenergies_normalizer(self):
+        """
+        :param elm: str(atomic symbol)
+        :return:
+        """
+        datas = [mendeleev.element(elemt).ionenergies[1] for elemt in list_of_elements]
+        datas = [i if i is not None else 0.0 for i in datas]
+        datas = torch.tensor(datas)
+        return Normalizer(datas)
+
+    def get_X(self, elm):
+        """
+        electronegativity
+        :param elm: str(atomic symbol)
+        :return:
+        """
+        if not isinstance(elm, list):
+            elm = [elm]
+        val = torch.tensor([Element(el).X for el in elm])
+        val = torch.nan_to_num(val)
+        val_normed = self.normalizer["X"].norm(val)
+        # val_normed = self.X_normalizer.norm(val)
+        return val_normed
+
+    def get_X_normalizer(self):
+        """
+        electronegativity
+        :param elm: str(atomic symbol)
+        :return:
+        """
+
+        datas = torch.tensor([Element(elemt).X for elemt in list_of_elements])
+        datas = torch.nan_to_num(datas)
+        return Normalizer(datas)
 
     # def get_is_metal(self, elm):
     #     """

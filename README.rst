@@ -18,16 +18,18 @@ Installation
 
     + osx / linux / bashonwindows install instructions
         .. sourcecode:: bash
-
+            recommended
             $ curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
-            or
+
+            other possibility
             $ pip install poetry
 
     + windows powershell install instructions
         .. sourcecode:: bash
-
+            recommended
             $ (Invoke-WebRequest -Uri https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py -UseBasicParsing).Content | python -
-            or
+
+other possibility
             $ pip install poetry
 
 - Once Poetry is installed you can execute the following:
@@ -48,18 +50,28 @@ Installation
 
 - Create a Virtual Environment
 
-    By default, Poetry create virtual environment in $HOME/.cache/pypoetry/virtualenvs for cahcing/sharing purpose
+    By default, Poetry create virtual environment in $HOME/.poetry/env or  $HOME/.cache/pypoetry/virtualenvs for cahcing/sharing purpose
+        - use poetry env use python_version to specify the Python version to use for the project.
+        .. sourcecode:: bash
+
+            $genheas poetry env use python3
+
+        - create virtual environment in default location
+        .. sourcecode:: bash
+
+            $genheas poetry config virtualenvs.create
 
         -   create virtual environment in th root directory of a Python project
         .. sourcecode:: bash
 
-            $genheas config virtualenvs.in-project true
+            $genheas poetry config virtualenvs.in-project true
 
-        - use poetry env use python_version to specify the Python version to use for the project.
 
+
+        -   To change or otherwise add a new configuration setting,
         .. sourcecode:: bash
 
-            $genheas poetry env use python3
+            $genheas poetry config virtualenvs.path /path/to/cache/directory/virtualenvs
 
 
 - install the packages

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "genheas"
-version = "0.2.2"
+version = "0.3"
 description = " genheas = Generate High Entropy Alloys(HEA) Strutures: a python packages using Neural Evolution approaches to gnerate HEA structure "
 authors = ["Feugmo <giresse.feugmo@gmail.com>"]
 readme ="README.rst"

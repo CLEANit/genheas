@@ -11,6 +11,7 @@ import multiprocessing as mp
 import os
 import pathlib
 import pickle
+import shutil
 import time
 
 import matplotlib.pyplot as plt
@@ -25,6 +26,7 @@ from genheas.tools.gencrystal import AlloysGen
 from genheas.tools.gencrystal import coordination_numbers
 from genheas.tools.properties import Property
 from genheas.tools.properties import atomic_properties
+from genheas.tools.properties import atomic_properties_categories
 from genheas.utilities.log import logger
 from pymatgen.io.ase import AseAtomsAdaptor
 
@@ -43,6 +45,16 @@ from pymatgen.io.ase import AseAtomsAdaptor
 
 # Set seed
 # torch.manual_seed(0)
+
+best_mae_error = 1e10
+best_fitness = 0.0
+
+
+def save_checkpoint(state, is_best, filename, best_name):
+    torch.save(state, filename)
+    if is_best:
+        shutil.copyfile(filename, best_name)
+
 
 sns.set()
 
@@ -135,7 +147,7 @@ def train_policy(
     nn_per_policy=1,
     nb_policies=8,
     nb_worker=1,
-    fitness_minimum=0,
+    best_fitness=0.5,
     patience=100,
     cubik=False,
 ):
@@ -143,7 +155,7 @@ def train_policy(
     :param nb_worker:
     :param cubik:
     :param patience: (int) nb generations to wait before early stop
-    :param fitness_minimum: (float) minimum fitness to reach
+    :param best_fitness: (float) minimum fitness to reach
     :param nb_generation: (int) number of generation to run
     :param nb_policies: (int) number of policies = input structures
     :param nn_per_policy: (int) number of network per policy
@@ -158,7 +170,7 @@ def train_policy(
     :return: list with the best weight
     """
     # ==========================  Initialization  ============================
-
+    global best_mae_error
     logger.info(f"Input parameters:: alpha [{alpha}]\t rate [{rate}] \t device [{device}]")
     # early_stop = False
     n_generations_stop = patience
@@ -178,20 +190,20 @@ def train_policy(
 
     pathlib.Path(output).mkdir(parents=True, exist_ok=True)
 
-    atom_props = Property()
-    atomproperties = {}
-    for atom in sorted(element_pool):
-        value = [atom_props.get_property(prop, atom) for prop in atomic_properties]
-        atomproperties[atom] = value
-    with open(f"{output}/atom_feature.json", "w") as fp:
-        json.dump(atomproperties, fp, indent=4)
-    logger.info("writing atom_feature.json")
+    # atom_props = Property()
+    # atomproperties = {}
+    # for atom in sorted(element_pool):
+    #     value = np.hstack([atom_props.get_property(prop, atom) for prop in atomic_properties])
+    #     atomproperties[atom] = value.tolist()
+    # with open(f"{output}/atom_feature.json", "w") as fp:
+    #     json.dump(atomproperties, fp, indent=4)
+    # logger.info("writing atom_feature.json")
 
     nn_in_shell1 = coordination_numbers[crystal_structure][0]
     nn_in_shell2 = coordination_numbers[crystal_structure][1]
     n_neighbours = nn_in_shell1 + 1 + nn_in_shell2
 
-    input_size = n_neighbours * len(atomic_properties)
+    input_size = n_neighbours * len(atomic_properties.values())
 
     output_size = len(element_pool)
 
@@ -362,38 +374,50 @@ def train_policy(
         # save the current training information
 
         step_time = time.time() - since
-        min_fitness.append([generation + 1, np.min(configurations_fitness), step_time])
+        mae_error = np.min(configurations_fitness)
+        min_fitness.append([generation + 1, mae_error, step_time])
 
         logger.info(
             "generation: {:6d}/{} |MAE {:10.6f} *** time/step: {:.1f}s".format(
                 generation + 1,
                 nb_generation,
-                np.min(configurations_fitness),
+                mae_error,
                 step_time,
             ),
         )
 
-        if min_fitness[generation][1] < fitness_minimum:
+        is_best = mae_error < best_mae_error
+
+        best_mae_error = min(mae_error, best_mae_error)
+        check_file = f"{output}/checkpoint.pth.tar"
+        best_file = f"{output}/model_{alpha}a-{nb_policies}p-{nb_network_per_policy}n.pth.tar"
+        save_checkpoint(
+            {
+                "generation": generation + 1,
+                "state_dict": [[network.state_dict() for network in networks] for networks in networks_list],
+                "nb_policies": nb_policies,
+                "alpha": alpha,
+                "nb_network_per_policy": nb_network_per_policy,
+                "best_mae_error": best_mae_error,
+            },
+            is_best,
+            check_file,
+            best_file,
+        )
+
+        if mae_error <= best_fitness:
 
             generations_no_improve = 0
-            min_fitness = min_fitness[generation][1]
-        # torch.save(my_model.state_dict(), PATH)
+            best_fitness = mae_error
         else:
             generations_no_improve += 1
 
         if generation > 5 and generations_no_improve == n_generations_stop:
             logger.warning("Early stopping!")
-            # early_stop = True
-            # PATH = f'{output}/early_model_{nb_generation}.pth'
-            logger.info("Weights Saved")
-            pickle.dump(
-                sorted_weights_list[0],
-                open(f"{output}/ES_weights_{alpha}a-{nb_policies}p-{nb_network_per_policy}n.pkl", "wb"),
-            )
+
             break
         else:
             continue
-        break
 
     logger.info("Optimization completed")
     best_policy = sorted_weights_list[0]

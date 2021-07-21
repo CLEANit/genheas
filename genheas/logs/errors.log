@@ -24,3 +24,24 @@ found unexpected end of stream
   in "./parameters.yml", line 38, column 1
 could not find expected ':'
   in "./parameters.yml", line 40, column 1[0m
+[96m05-28-2021 18:43:26[0m | [96mgenerate[0m - [96m__main__[0m | [91mERROR[0m: [97mwhile parsing a block mapping
+  in "/home/ctetsass/Work/HEAs/Gen_HEAs/parameters.yml", line 4, column 1
+expected <block end>, but found '<scalar>'
+  in "/home/ctetsass/Work/HEAs/Gen_HEAs/parameters.yml", line 45, column 16[0m
+[96m07-09-2021 20:20:10[0m | [96mtrain[0m - [96mgenheas.train[0m |[37m44[0m |[91mERROR[0m: [97mwhile parsing a flow sequence
+  in "/home/ctetsass/Work/HEAs/Gen_HEAs/parameters.yml", line 31, column 17
+expected ',' or ']', but got '<scalar>'
+  in "/home/ctetsass/Work/HEAs/Gen_HEAs/parameters.yml", line 32, column 20[0m
+[96m07-09-2021 20:21:22[0m | [96mtrain[0m - [96mgenheas.train[0m |[37m44[0m |[91mERROR[0m: [97mwhile parsing a flow sequence
+  in "/home/ctetsass/Work/HEAs/Gen_HEAs/parameters.yml", line 30, column 17
+expected ',' or ']', but got '<scalar>'
+  in "/home/ctetsass/Work/HEAs/Gen_HEAs/parameters.yml", line 31, column 20[0m
+[96m07-20-2021 16:40:12[0m | [96mproperties[0m - [96mgenheas.tools.properties[0m |[37m331[0m |[91mERROR[0m: [97m<class 'AttributeError'>[0m
+[96m07-20-2021 16:42:01[0m | [96mproperties[0m - [96mgenheas.tools.properties[0m |[37m331[0m |[91mERROR[0m: [97m<class 'AttributeError'>[0m
+[96m07-20-2021 16:44:10[0m | [96mproperties[0m - [96mgenheas.tools.properties[0m |[37m331[0m |[91mERROR[0m: [97m<class 'AttributeError'>[0m
+[96m07-20-2021 16:45:47[0m | [96mproperties[0m - [96mgenheas.tools.properties[0m |[37m331[0m |[91mERROR[0m: [97m<class 'AttributeError'>[0m
+[96m07-20-2021 16:46:39[0m | [96mproperties[0m - [96mgenheas.tools.properties[0m |[37m331[0m |[91mERROR[0m: [97m<class 'AttributeError'>[0m
+[96m07-20-2021 16:48:22[0m | [96mproperties[0m - [96mgenheas.tools.properties[0m |[37m331[0m |[91mERROR[0m: [97m<class 'AttributeError'>[0m
+[96m07-20-2021 16:51:57[0m | [96mproperties[0m - [96mgenheas.tools.properties[0m |[37m331[0m |[91mERROR[0m: [97m<class 'AttributeError'>[0m
+[96m07-20-2021 16:56:09[0m | [96mproperties[0m - [96mgenheas.tools.properties[0m |[37m331[0m |[91mERROR[0m: [97m<class 'AttributeError'>[0m
+[96m07-20-2021 16:57:20[0m | [96mproperties[0m - [96mgenheas.tools.properties[0m |[37m331[0m |[91mERROR[0m: [97m<class 'AttributeError'>[0m

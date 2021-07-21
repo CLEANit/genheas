@@ -1,4 +1,5 @@
 import copy
+import itertools
 import random
 import sys
 
@@ -38,11 +39,13 @@ from tqdm import tqdm
 # from pymatgen import Element
 
 
+# https://en.wikipedia.org/wiki/Terrace_ledge_kink_model
+
 coordination_numbers = {
     "fcc": [12, 6, 24],
     "bcc": [8, 6, 12],
-    "hpc": [12, 0, 0],
-    "fcc111": [12, 6, 0],
+    "hpc": [12, 6, 2],
+    "fcc111": [12, 6, 24],
     "fcc100": [12, 6, 24],
     "fcc110": [12, 6, 24],
     "bcc111": [4, 3, 0],
@@ -112,6 +115,10 @@ class AlloysGen:
             for j in range(len(element_pool)):
                 combinations.append(element_pool[i] + "-" + element_pool[j])
         return combinations
+        # pairs = []
+        # for i, j in itertools.combinations_with_replacement(element_pool, 2):
+        #     pairs.append(i + "-" + j)
+        # return pairs
 
     @staticmethod
     def gen_alloy_supercell(
@@ -361,11 +368,11 @@ class AlloysGen:
 
     def get_max_diff_elements(self, nb_atm):
         """
-        compute the maximun number of different element base on concentration
+        compute the maximum number of different element base on concentration
         and the total number of atoms
         """
 
-        logger.info("Cordination numbers Initialized ")
+        logger.info("Coordination numbers Initialized ")
         max_diff = {}
         for elm in self.element_pool:
             max_diff[elm] = round(nb_atm * self.concentrations[elm])

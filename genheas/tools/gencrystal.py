@@ -336,7 +336,7 @@ class AlloysGen(object):
                 nbr_idx.append([inbr] + list(map(lambda x: x.index, nbr)) + [0] * (max_num_nbr - len(nbr)))
                 types = list(map(lambda x: x.specie.name, nbr)) + [0] * (max_num_nbr - len(nbr))
                 nbr_type_shell1.append(types[: self.NN1])
-                nbr_type_shell2.append(types[self.NN1:])
+                nbr_type_shell2.append(types[self.NN1 :])
                 nbr_type.append(types)
                 # distances.append(
                 #     list(map(lambda x: x.nn_distance, nbr)) + [radius + 1.0] * (max_num_nbr - len(nbr))
@@ -346,7 +346,7 @@ class AlloysGen(object):
                 types = list(map(lambda x: x.specie.name, nbr[:max_num_nbr]))
                 nbr_type.append(types)  # add
                 nbr_type_shell1.append(types[: int(self.NN1)])
-                nbr_type_shell2.append(types[int(self.NN1):])
+                nbr_type_shell2.append(types[int(self.NN1) :])
                 # distances.append(list(map(lambda x: x.nn_distance, nbr[:max_num_nbr])))  # add dist 0
 
         nbr_type_shell1, nbr_type_shell2 = np.array(nbr_type_shell1), np.array(nbr_type_shell1)

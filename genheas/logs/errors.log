@@ -64,3 +64,11 @@ could not find expected ':'
 [96m11-29-2021 22:21:46[0m | [96mgenerate[0m - [96mgenheas.generate[0m |[37m57[0m |[91mERROR[0m: [97m'policy_0-nn_0'[0m
 [96m11-29-2021 22:22:06[0m | [96mgenerate[0m - [96mgenheas.generate[0m |[37m57[0m |[91mERROR[0m: [97m'_IncompatibleKeys' object has no attribute 'to'[0m
 [96m11-29-2021 22:22:44[0m | [96mgenerate[0m - [96mgenheas.generate[0m |[37m58[0m |[91mERROR[0m: [97m'_IncompatibleKeys' object has no attribute 'to'[0m
+[96m11-30-2021 13:17:31[0m | [96mgenerate[0m - [96mgenheas.generate[0m |[37m59[0m |[91mERROR[0m: [97mError(s) in loading state_dict for Feedforward:
+	size mismatch for l1.weight: copying a param with shape torch.Size([4, 143]) from checkpoint, the shape in current model is torch.Size([4, 209]).[0m
+[96m11-30-2021 14:14:17[0m | [96mgenerate[0m - [96m__main__[0m |[37m58[0m |[91mERROR[0m: [97mError(s) in loading state_dict for Feedforward:
+	size mismatch for l1.weight: copying a param with shape torch.Size([4, 143]) from checkpoint, the shape in current model is torch.Size([4, 209]).[0m
+[96m11-30-2021 14:15:33[0m | [96mgenerate[0m - [96m__main__[0m |[37m58[0m |[91mERROR[0m: [97mError(s) in loading state_dict for Feedforward:
+	size mismatch for l1.weight: copying a param with shape torch.Size([4, 143]) from checkpoint, the shape in current model is torch.Size([4, 209]).[0m
+[96m11-30-2021 14:19:31[0m | [96mgenerate[0m - [96m__main__[0m |[37m58[0m |[91mERROR[0m: [97mError(s) in loading state_dict for Feedforward:
+	size mismatch for l1.weight: copying a param with shape torch.Size([4, 143]) from checkpoint, the shape in current model is torch.Size([4, 209]).[0m

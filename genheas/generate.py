@@ -277,12 +277,13 @@ def main(root_dir, policy_path=None):
 
     NN_in_shell1 = coordination_numbers[crystal_structure][0]
     NN_in_shell2 = coordination_numbers[crystal_structure][1]
-    NNeighbours = NN_in_shell1 + 1 + NN_in_shell2
+    NNeighbours = NN_in_shell1 + 1  # + NN_in_shell2
 
     input_size = NNeighbours * len(atomic_properties)
 
     output_size = len(elements_pool)
 
+    print(NN_in_shell2, NN_in_shell2, output_size)
     # ==========================  Load the model  ============================
     best_model = laod_best_model(policy_path, input_size, output_size, device="cpu")
     output_dir = os.path.dirname(policy_path)

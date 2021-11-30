@@ -190,15 +190,6 @@ def train_policy(
 
     pathlib.Path(output).mkdir(parents=True, exist_ok=True)
 
-    # atom_props = Property()
-    # atomproperties = {}
-    # for atom in sorted(element_pool):
-    #     value = np.hstack([atom_props.get_property(prop, atom) for prop in atomic_properties])
-    #     atomproperties[atom] = value.tolist()
-    # with open(f"{output}/atom_feature.json", "w") as fp:
-    #     json.dump(atomproperties, fp, indent=4)
-    # logger.info("writing atom_feature.json")
-
     nn_in_shell1 = coordination_numbers[crystal_structure][0]
     nn_in_shell2 = coordination_numbers[crystal_structure][1]
     n_neighbours = nn_in_shell1 + 1  # + nn_in_shell2

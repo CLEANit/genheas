@@ -18,10 +18,10 @@ import torch
 import yaml
 
 from ase.io import write
-from genheas.tools.evolution import NnEa
 from genheas.tools.feedforward import Feedforward
 from genheas.tools.gencrystal import AlloysGen
 from genheas.tools.gencrystal import coordination_numbers
+from genheas.tools.neural_evolution import NeuralEvolution
 from genheas.tools.properties import atomic_properties
 from genheas.tools.properties import atomic_properties_categories
 from genheas.utilities.log import logger
@@ -38,68 +38,67 @@ parser.add_argument(
 )
 
 
-def read_model(path, element_pool, device, crystal_structure):
-    nn_in_shell1 = coordination_numbers[crystal_structure][0]
-    nn_in_shell2 = coordination_numbers[crystal_structure][1]
-    n_neighbours = nn_in_shell1 + 1 + nn_in_shell2
+def laod_best_model(path, inputsize, outputsize, device="cpu"):
+    assert os.path.exists(path), f"{path} does not exist!"
 
-    inputsize = n_neighbours * sum(atomic_properties_categories.values())
-
-    outputsize = len(element_pool)
-
-    my_model = Feedforward(inputsize, outputsize)
-    my_model.to(device)
+    net = Feedforward(inputsize, outputsize)  # random number
 
     # weights = read_policy()
     # model.l1.weight = torch.nn.parameter.Parameter(weights)
-
-    try:
-        my_model.load_state_dict(torch.load(path))
-    except Exception as err:
-        logger.error(f"{err}")
-        raise Exception(f"{err}")
-    return my_model
-
-
-def load_model(path, element_pool, device, crystal_structure):
-    nn_in_shell1 = coordination_numbers[crystal_structure][0]
-    nn_in_shell2 = coordination_numbers[crystal_structure][1]
-    n_neighbours = nn_in_shell1 + 1 + nn_in_shell2
-
-    inputsize = n_neighbours * sum(atomic_properties_categories.values())
-
-    outputsize = len(element_pool)
-
-    my_model = Feedforward(inputsize, outputsize)
-    my_model.to(device)
-    assert os.path.exists(path), f"{path} does not exist!"
     try:
         checkpoint = torch.load(path)
-        networks_list = checkpoint["state_dict"]
-        network_list = [[my_model.load_state_dict(network) for network in networks] for networks in networks_list]
-
+        nb_network_per_policy = checkpoint["nb_network_per_policy"]
+        networks = [net for _ in range(nb_network_per_policy)]
+        for j in range(nb_network_per_policy):
+            name = f"network_{j}"
+            networks[j].load_state_dict(checkpoint[name])
+            networks[j].to(device)
+        logger.info(f"Pretrained model  have been load   from  [{path}]")
+        return networks
     except Exception as err:
         logger.error(f"{err}")
         raise Exception(f"{err}")
-    return network_list
 
 
-def read_policy(file):
-    assert os.path.exists(file), f"{file} does not exist!"
-    try:
-        with open(file, "rb") as f:
-            weights = pickle.load(f)
-            return weights
-    except pickle.UnpicklingError as e:
-        # normal, somewhat expected
-        logger.error(f"{e}")
-    except (AttributeError, EOFError, ImportError, IndexError) as e:
-        # secondary errors
-        logger.error(f"{e}")
-    except Exception as e:
-        # everything else, possibly fatal
-        logger.error(f"{e}")
-        return
+# def load_model(path, element_pool, device, crystal_structure):
+#     nn_in_shell1 = coordination_numbers[crystal_structure][0]
+#     nn_in_shell2 = coordination_numbers[crystal_structure][1]
+#     n_neighbours = nn_in_shell1 + 1 + nn_in_shell2
+#
+#     inputsize = n_neighbours * sum(atomic_properties_categories.values())
+#
+#     outputsize = len(element_pool)
+#
+#     my_model = Feedforward(inputsize, outputsize)
+#     my_model.to(device)
+#     assert os.path.exists(path), f"{path} does not exist!"
+#     try:
+#         checkpoint = torch.load(path)
+#         networks_list = checkpoint["state_dict"]
+#         network_list = [[my_model.load_state_dict(network) for network in networks] for networks in networks_list]
+#
+#     except Exception as err:
+#         logger.error(f"{err}")
+#         raise Exception(f"{err}")
+#     return network_list
+
+
+# def read_policy(file):
+#     assert os.path.exists(file), f"{file} does not exist!"
+#     try:
+#         with open(file, "rb") as f:
+#             weights = pickle.load(f)
+#             return weights
+#     except pickle.UnpicklingError as e:
+#         # normal, somewhat expected
+#         logger.error(f"{e}")
+#     except (AttributeError, EOFError, ImportError, IndexError) as e:
+#         # secondary errors
+#         logger.error(f"{e}")
+#     except Exception as e:
+#         # everything else, possibly fatal
+#         logger.error(f"{e}")
+#         return
 
 
 def atom_to_cif(name, atom):
@@ -135,7 +134,7 @@ def generate_structure(
 
     pathlib.Path(output_name).mkdir(parents=True, exist_ok=True)
 
-    GaNn = NnEa(element_pool, conc, cryst_structure)
+    GaNn = NeuralEvolution(element_pool, conc, cryst_structure)
     AlloyGen = AlloysGen(element_pool, conc, cryst_structure)
 
     nb_atom = len(
@@ -155,7 +154,7 @@ def generate_structure(
     structureX = AlloyGen.gen_crystal(
         cryst_structure,
         cell_size,
-        max_diff_elem=None,
+        max_diff_elem=max_diff_elements,
         lattice_param=cell_param,
         name=element_pool[0],
         cubik=cubik,
@@ -268,6 +267,8 @@ def main(root_dir, policy_path=None):
     supercell_size = params["supercell_size"]
     cube = params["cubic_gen"]
 
+    # nb_network_per_policy = params["nb_network_per_policy"]
+    # nb_policies = params["nb_policies"]
     # ==========================  Analyse Parameters  ========================
 
     # cutoff, cell_parameters = get_cutoff(cell_parameters, elements_pool, crystal_structure)
@@ -283,22 +284,23 @@ def main(root_dir, policy_path=None):
     output_size = len(elements_pool)
 
     # ==========================  Load the model  ============================
+    best_model = laod_best_model(policy_path, input_size, output_size, device="cpu")
+    output_dir = os.path.dirname(policy_path)
+    #
+    # best_policy = read_policy(policy_path)
+    # # logger.info("Best ANNs weights have been read  from  pickle file")
 
-    output = os.path.dirname(policy_path)
-
-    best_policy = read_policy(policy_path)
-    logger.info("Best ANNs weights have been read  from  pickle file")
     # os.remove(outfile)
     scripts = []
     fitnesses = []
     for i in range(nb_structures):
-        networks = [Feedforward(input_size, output_size) for i in range(len(best_policy))]
-        networks = [network.to(device) for network in networks]
-        for j, w in enumerate(best_policy):
-            networks[j].l1.weight = torch.nn.Parameter(w)
+        # networks = [Feedforward(input_size, output_size) for i in range(len(best_policy))]
+        # networks = [network.to(device) for network in networks]
+        # for j, w in enumerate(best_policy):
+        #     networks[j].l1.weight = torch.nn.Parameter(w)
         scrip_t, formula, fitnes = generate_structure(
-            networks,
-            output,
+            best_model,
+            output_dir,
             elements_pool,
             concentrations,
             crystal_structure,
@@ -309,14 +311,14 @@ def main(root_dir, policy_path=None):
             verbose=True,
         )
 
-        shutil.move(os.path.join(output, formula + ".cif"), os.path.join(output, f"{i:06d}_{formula}.cif"))
+        shutil.move(os.path.join(output_dir, formula + ".cif"), os.path.join(output_dir, f"{i:06d}_{formula}.cif"))
 
         scripts.append(scrip_t)
         fitnesses.append(fitnes)
 
     fitnesses = np.array(fitnesses)
     indices = fitnesses.argsort()
-    ofile = os.path.join(output, "generation.log")
+    ofile = os.path.join(output_dir, "generation.log")
     ofile = open(ofile, "w")
     ofile.write("# Generated structures sorted by total fitness")
     ofile.write("\n\n")

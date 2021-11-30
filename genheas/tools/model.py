@@ -20,10 +20,10 @@ import seaborn as sns
 import torch
 import yaml
 
-from genheas.tools.evolution import NnEa
 from genheas.tools.feedforward import Feedforward
 from genheas.tools.gencrystal import AlloysGen
 from genheas.tools.gencrystal import coordination_numbers
+from genheas.tools.neural_evolution import NeuralEvolution
 from genheas.tools.properties import Property
 from genheas.tools.properties import atomic_properties
 from genheas.tools.properties import atomic_properties_categories
@@ -178,7 +178,7 @@ def train_policy(
 
     # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    NEs = NnEa(element_pool, concentrations, crystal_structure, rate=rate, alpha=alpha, device=device)
+    NEs = NeuralEvolution(element_pool, concentrations, crystal_structure, rate=rate, alpha=alpha, device=device)
 
     alloy_gen = AlloysGen(element_pool, concentrations, crystal_structure, radius=8.0)
 
@@ -201,7 +201,7 @@ def train_policy(
 
     nn_in_shell1 = coordination_numbers[crystal_structure][0]
     nn_in_shell2 = coordination_numbers[crystal_structure][1]
-    n_neighbours = nn_in_shell1 + 1 + nn_in_shell2
+    n_neighbours = nn_in_shell1 + 1  # + nn_in_shell2
 
     input_size = n_neighbours * len(atomic_properties.values())
 
@@ -277,16 +277,15 @@ def train_policy(
 
         if networks is None:  # first iteration
             # --------------------------------------------------------------------
-            network_weights_list = []
             configurations = []
             networks_list = []
 
             for _ in range(len(input_structures)):
                 networks = [Feedforward(input_size, output_size) for i in range(nb_network_per_policy)]
                 networks = [network.to(device) for network in networks]
-                network_weights = [network.l1.weight.data for network in networks]
+                # network_weights = [network.l1.weight.data for network in networks]
                 networks_list.append(networks)
-                network_weights_list.append(network_weights)
+                # network_weights_list.append(network_weights)
 
             assert 1 <= nb_worker <= mp.cpu_count(), "1 <= nb_worker <= max_cpu"
 
@@ -306,42 +305,14 @@ def train_policy(
 
             # Rank the policies
 
-            sorted_weights_list = NEs.sort_population_by_fitness(
-                network_weights_list,
+            sorted_policies = NEs.sort_policies_by_fitness(
+                networks_list,
                 configurations_fitness,
             )  # list of list
 
-            # sorted_configurations_fitness = NEs.sort_population_by_fitness(configurations_fitness,
-            #                                                                 configurations_fitness)
-
         else:
+            networks_list = NEs.update_policies(sorted_policies, rate=rate)
 
-            network_weights_list = NEs.make_next_generation(sorted_weights_list, rate=rate)  # list of list
-
-            for i, _ in enumerate(networks_list):
-                network_weights = network_weights_list[i]
-
-                for j, w in enumerate(network_weights):
-                    networks_list[i][j].l1.weight = torch.nn.Parameter(w)
-
-            # ------------------------------------------------------------------------
-            # configurations = [training(alloy_gen, net, struc, element_pool, cutoff) for net, struc, in
-            #                   zip(networks_list, input_structures)]
-            # configurations = []
-            # for i, structure in enumerate(input_structures):
-            #
-            #     network_weights = network_weights_list[i]
-            #
-            #     for j, w in enumerate(network_weights):
-            #         networks[j].l1.weight = torch.nn.Parameter(w)
-            #
-            #     structureX = AseAtomsAdaptor.get_structure(structure)
-            #
-            #     configuration = alloy_gen.generate_configuration(
-            #         structureX, element_pool, cutoff, networks, device=device
-            #     )
-            #
-            #     configurations.append(configuration)
             # ---------------------- multi process-----------------------------
             if nb_worker == 1:
                 configurations = serial_training(alloy_gen, networks_list, input_structures, element_pool)
@@ -354,22 +325,15 @@ def train_policy(
                     element_pool,
                 )
 
-            # configurations = multiprocessing_training(
-            #     nb_worker, alloy_gen, networks_list, input_structures, element_pool, cutoff
-            # )
-
             # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             configurations_fitness = NEs.get_population_fitness(configurations, max_diff_elements)
 
             # Rank the policies
 
-            sorted_weights_list = NEs.sort_population_by_fitness(
-                network_weights_list,
+            sorted_policies = NEs.sort_policies_by_fitness(
+                networks_list,
                 configurations_fitness,
             )  # list of list
-
-            # sorted_configurations_fitness = NEs.sort_population_by_fitness(configurations_fitness,
-            #                                                                 configurations_fitness)
 
         # save the current training information
 
@@ -390,20 +354,19 @@ def train_policy(
 
         best_mae_error = min(mae_error, best_mae_error)
         check_file = f"{output}/checkpoint.pth.tar"
-        best_file = f"{output}/model_{alpha}a-{nb_policies}p-{nb_network_per_policy}n.pth.tar"
-        save_checkpoint(
-            {
-                "generation": generation + 1,
-                "state_dict": [[network.state_dict() for network in networks] for networks in networks_list],
-                "nb_policies": nb_policies,
-                "alpha": alpha,
-                "nb_network_per_policy": nb_network_per_policy,
-                "best_mae_error": best_mae_error,
-            },
-            is_best,
-            check_file,
-            best_file,
-        )
+        best_file = f"{output}/best_model_{alpha}a-{nb_policies}p-{nb_network_per_policy}n.pth.tar"
+        state = {
+            "nb_network_per_policy": nb_network_per_policy,
+            "generation": generation + 1,
+            "best_mae_error": best_mae_error,
+            "alpha": alpha,
+            "device": device,
+        }
+
+        for j, network in enumerate(sorted_policies[0]):  # nb_network_per_policy
+            name = f"network_{j}"
+            state[name] = network.state_dict()
+        save_checkpoint(state, is_best, check_file, best_file)
 
         if mae_error <= best_fitness:
 
@@ -420,12 +383,13 @@ def train_policy(
             continue
 
     logger.info("Optimization completed")
-    best_policy = sorted_weights_list[0]
+    best_policy = sorted_policies[0]  # sorted_weights_list[0]
 
-    BestWeights_file = f"{output}/BestWeights_{alpha}a-{nb_policies}p-{nb_network_per_policy}n.pkl"
-    pickle.dump(best_policy, open(BestWeights_file, "wb"))
+    # BestWeights_file = f"{output}/BestWeights_{alpha}a-{nb_policies}p-{nb_network_per_policy}n.pkl"
+    # pickle.dump(best_policy, open(BestWeights_file, "wb"))
 
-    logger.info(f'Best policy saved in  "{BestWeights_file}"')
+    # logger.info(f'Best policy saved in  "{BestWeights_file}"')
+    logger.info(f'Best policy saved in  "{best_file}"')
     min_fitness = np.array(min_fitness)
     # mean_fitness = np.array(mean_fitness)
     opt_time = time.time() - since0
@@ -454,4 +418,5 @@ def train_policy(
     with open(f"{output}/opt_parameters_{alpha}a-{nb_policies}p-{nb_network_per_policy}n.yml", "w") as yaml_file:
         yaml.dump(opt_parameters, yaml_file, default_flow_style=False)
 
-    return sorted_weights_list[0], BestWeights_file
+    # return sorted_weights_list[0], BestWeights_file
+    return best_policy, best_file

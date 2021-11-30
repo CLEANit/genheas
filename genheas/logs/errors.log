@@ -45,3 +45,22 @@ expected ',' or ']', but got '<scalar>'
 [96m07-20-2021 16:51:57[0m | [96mproperties[0m - [96mgenheas.tools.properties[0m |[37m331[0m |[91mERROR[0m: [97m<class 'AttributeError'>[0m
 [96m07-20-2021 16:56:09[0m | [96mproperties[0m - [96mgenheas.tools.properties[0m |[37m331[0m |[91mERROR[0m: [97m<class 'AttributeError'>[0m
 [96m07-20-2021 16:57:20[0m | [96mproperties[0m - [96mgenheas.tools.properties[0m |[37m331[0m |[91mERROR[0m: [97m<class 'AttributeError'>[0m
+[96m10-12-2021 15:57:31[0m | [96mtrain[0m - [96mgenheas.train[0m |[37m43[0m |[91mERROR[0m: [97mwhile scanning a simple key
+  in "/home/ctetsass/python/genheas/genheas/parameters.yml", line 23, column 1
+could not find expected ':'
+  in "/home/ctetsass/python/genheas/genheas/parameters.yml", line 25, column 1[0m
+[96m10-12-2021 18:55:29[0m | [96mgenerate[0m - [96m__main__[0m |[37m94[0m |[91mERROR[0m: [97mA load persistent id instruction was encountered,
+but no persistent_load function was specified.[0m
+[96m11-29-2021 18:00:49[0m | [96mtrain[0m - [96mgenheas.train[0m |[37m43[0m |[91mERROR[0m: [97mwhile scanning a simple key
+  in "/home/ctetsass/python/genheas/genheas/parameters.yml", line 52, column 1
+could not find expected ':'
+  in "/home/ctetsass/python/genheas/genheas/parameters.yml", line 53, column 1[0m
+[96m11-29-2021 19:19:35[0m | [96mgenerate[0m - [96mgenheas.generate[0m |[37m59[0m |[91mERROR[0m: [97mInvalid magic number; corrupt file?[0m
+[96m11-29-2021 19:20:35[0m | [96mgenerate[0m - [96m__main__[0m |[37m59[0m |[91mERROR[0m: [97m[Errno 2] No such file or directory: 'Fe_Co_Ni_Zn_Ga/generations_750/best_model_0.1a-16p-4n.pth.tar'[0m
+[96m11-29-2021 19:20:53[0m | [96mgenerate[0m - [96m__main__[0m |[37m59[0m |[91mERROR[0m: [97mError(s) in loading state_dict for Feedforward:
+	size mismatch for l1.weight: copying a param with shape torch.Size([5, 110]) from checkpoint, the shape in current model is torch.Size([64, 32]).
+	size mismatch for l1.bias: copying a param with shape torch.Size([5]) from checkpoint, the shape in current model is torch.Size([64]).[0m
+[96m11-29-2021 22:18:59[0m | [96mgenerate[0m - [96mgenheas.generate[0m |[37m61[0m |[91mERROR[0m: [97m'nb_policies'[0m
+[96m11-29-2021 22:21:46[0m | [96mgenerate[0m - [96mgenheas.generate[0m |[37m57[0m |[91mERROR[0m: [97m'policy_0-nn_0'[0m
+[96m11-29-2021 22:22:06[0m | [96mgenerate[0m - [96mgenheas.generate[0m |[37m57[0m |[91mERROR[0m: [97m'_IncompatibleKeys' object has no attribute 'to'[0m
+[96m11-29-2021 22:22:44[0m | [96mgenerate[0m - [96mgenheas.generate[0m |[37m58[0m |[91mERROR[0m: [97m'_IncompatibleKeys' object has no attribute 'to'[0m

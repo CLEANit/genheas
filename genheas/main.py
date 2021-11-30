@@ -16,7 +16,7 @@ parser.add_argument(
 
 
 def main(root_dir):
-    _, best_policy_file = train.main(root_dir)
+    best_policy_file = train.main(root_dir)
     generate.main(root_dir, best_policy_file)
 
 

@@ -51,10 +51,10 @@ other possibility
 - Create a Virtual Environment
 
     By default, Poetry create virtual environment in $HOME/.poetry/env or  $HOME/.cache/pypoetry/virtualenvs for cahcing/sharing purpose
-        - use poetry env use python_version to specify the Python version to use for the project.
+        - to install install dependencies to current python interpreter/virtualenv
         .. sourcecode:: bash
 
-            $genheas poetry env use python3
+            $genheas poetry config virtualenvs.create false --local
 
         - create virtual environment in default location
         .. sourcecode:: bash

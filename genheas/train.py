@@ -68,7 +68,7 @@ def main(root_dir):
 
     nn_in_shell1 = coordination_numbers[crystal_structure][0]
     nn_in_shell2 = coordination_numbers[crystal_structure][1]
-    n_neighbours = nn_in_shell1 + 1 + nn_in_shell2
+    n_neighbours = nn_in_shell1 + 1  # + nn_in_shell2
 
     input_size = n_neighbours * len(atomic_properties)
 
@@ -96,12 +96,12 @@ def main(root_dir):
 
     # ============================  Generation  ==========================
 
-    networks = [Feedforward(input_size, output_size) for i in range(len(best_policy))]
-    networks = [network.to(device) for network in networks]
-
-    for j, w in enumerate(best_policy):
-        networks[j].l1.weight = torch.nn.Parameter(w)
-
+    # networks = [Feedforward(input_size, output_size) for _ in range(len(best_policy))]
+    # networks = [network.to(device) for network in networks]
+    #
+    # for j, w in enumerate(best_policy):
+    #     networks[j].l1.weight = torch.nn.Parameter(w)
+    networks = best_policy
     generate.generate_structure(
         networks,
         output,
@@ -113,7 +113,7 @@ def main(root_dir):
         constraints=False,
         cubik=cubic_train,
     )
-    return best_policy, best_policy_file
+    return best_policy_file
 
 
 if __name__ == "__main__":

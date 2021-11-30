@@ -45,18 +45,18 @@ coordination_numbers = {
     "fcc": [12, 6, 24],
     "bcc": [8, 6, 12],
     "hpc": [12, 6, 2],
-    "fcc111": [12, 6, 24],
-    "fcc100": [12, 6, 24],
-    "fcc110": [12, 6, 24],
-    "bcc111": [4, 3, 0],
-    "bcc100": [4, 3, 0],
-    "bcc110": [4, 3, 0],
-    "hcp0001": [12, 0, 0],
-    "hcp10m10": [12, 0, 0],
+    "fcc111": [9, 0, 0],
+    "fcc100": [8, 0, 0],
+    "fcc110": [7, 0, 0],
+    "bcc111": [4, 0, 0],
+    "bcc100": [4, 0, 0],
+    "bcc110": [6, 0, 0],
+    "hcp0001": [9, 0, 0],
+    "hcp10m10": [10, 0, 0],
 }
 
 
-class AlloysGen:
+class AlloysGen(object):
     """"""
 
     atom_properties = {}
@@ -70,6 +70,9 @@ class AlloysGen:
         self.peers = AlloysGen.get_peers(element_pool)
         self.radius = radius
         self.input_size = None
+        self.NN1 = int(coordination_numbers[self.crystalstructure][0])
+        self.NN2 = int(coordination_numbers[self.crystalstructure][1])
+        self.max_num_nbr = self.NN1
 
     # @staticmethod
     # def get_cutoff(name, crystalstructure, lattice_param=None):
@@ -213,9 +216,7 @@ class AlloysGen:
 
         clx_structure = sset.get_structures()
         alloyAtoms = [structure.get_atoms() for structure in clx_structure]  # ASE Atoms Class
-        # alloyStructure = AseAtomsAdaptor.get_structure(alloyAtoms)  # Pymatgen Structure
-        # alloyComposition = pmg.Composition(alloyAtoms.get_chemical_formula())
-        # # Pymatgen Composition
+
         return alloyAtoms, lattice_param
 
     @staticmethod
@@ -319,10 +320,8 @@ class AlloysGen:
 
     def get_sites_neighbor_list(self, crystal, max_num_nbr=None, radius=None, site_number=None):
 
-        NN1 = coordination_numbers[self.crystalstructure][0]
-        NN2 = coordination_numbers[self.crystalstructure][1]
         if max_num_nbr is None:
-            max_num_nbr = NN1 + NN2
+            max_num_nbr = int(self.max_num_nbr)
         if radius is None:
             radius = self.radius
         all_nbrs = crystal.get_all_neighbors(radius, include_index=True)
@@ -336,8 +335,8 @@ class AlloysGen:
                 logger.warning("not find enough neighbors please consider increase ")
                 nbr_idx.append([inbr] + list(map(lambda x: x.index, nbr)) + [0] * (max_num_nbr - len(nbr)))
                 types = list(map(lambda x: x.specie.name, nbr)) + [0] * (max_num_nbr - len(nbr))
-                nbr_type_shell1.append(types[:NN1])
-                nbr_type_shell2.append(types[NN1:])
+                nbr_type_shell1.append(types[: self.NN1])
+                nbr_type_shell2.append(types[self.NN1:])
                 nbr_type.append(types)
                 # distances.append(
                 #     list(map(lambda x: x.nn_distance, nbr)) + [radius + 1.0] * (max_num_nbr - len(nbr))
@@ -346,8 +345,8 @@ class AlloysGen:
                 nbr_idx.append([inbr] + list(map(lambda x: x.index, nbr[:max_num_nbr])))  # add
                 types = list(map(lambda x: x.specie.name, nbr[:max_num_nbr]))
                 nbr_type.append(types)  # add
-                nbr_type_shell1.append(types[:NN1])
-                nbr_type_shell2.append(types[NN1:])
+                nbr_type_shell1.append(types[: int(self.NN1)])
+                nbr_type_shell2.append(types[int(self.NN1):])
                 # distances.append(list(map(lambda x: x.nn_distance, nbr[:max_num_nbr])))  # add dist 0
 
         nbr_type_shell1, nbr_type_shell2 = np.array(nbr_type_shell1), np.array(nbr_type_shell1)

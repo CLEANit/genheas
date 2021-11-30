@@ -3,6 +3,7 @@ repos:
     rev: v3.4.0
     hooks:
     - id: check-yaml
+      exclude: "genheas/readthedocs.yml"
     #-   id: end-of-file-fixer
     - id: check-merge-conflict
     - id: trailing-whitespace
@@ -13,7 +14,6 @@ repos:
     - id: check-docstring-first
     - id: check-json
     - id: check-added-large-files
-    - id: check-yaml
     - id: debug-statements
     #- id: name-tests-test
 #    - id: double-quote-string-fixer
@@ -36,16 +36,16 @@ repos:
     hooks:
     -   id: add-trailing-comma
         args: [--py36-plus]
--   repo: https://github.com/pre-commit/mirrors-autopep8
-    rev: v1.5.4
-    hooks:
-    -   id: autopep8
-        args: [--in-place, --recursive, --aggressive, --aggressive]
--   repo: https://github.com/psf/black
-    rev: 20.8b1
-    hooks:
-    -   id: black
-        args: [--line-length=120]
+#-   repo: https://github.com/pre-commit/mirrors-autopep8
+#    rev: v1.5.4
+#    hooks:
+#    -   id: autopep8
+#        args: [--in-place, --recursive, --aggressive, --aggressive]
+#-   repo: https://github.com/psf/black
+#    rev: 20.8b1
+#    hooks:
+#    -   id: black
+#        args: [--line-length=120]
 -   repo: https://github.com/timothycrosley/isort
     rev: 5.7.0
     hooks:

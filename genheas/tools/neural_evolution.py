@@ -19,7 +19,7 @@ from torch.autograd import Variable
 from tqdm import tqdm
 
 
-class NnEa(AlloysGen):
+class NeuralEvolution(AlloysGen):
     """ """
 
     def __init__(self, element_pool, concentrations, crystalstructure, rate=0.25, alpha=0.1, device="cpu"):
@@ -39,9 +39,10 @@ class NnEa(AlloysGen):
         self.concentrations = concentrations
         self.crystalstructure = crystalstructure
         # self.peers = self.get_peers(element_pool)
-        # self.peers = super(NnEa, self).get_peers(element_pool)
+        # self.peers = super(NeuralEvolution, self).get_peers(element_pool)
         self.NN1 = float(coordination_numbers[self.crystalstructure][0])
         self.NN2 = float(coordination_numbers[self.crystalstructure][1])
+        self.max_num_nbr = self.NN1
         # self.max_diff_element = max_diff_element
 
     # @staticmethod
@@ -71,7 +72,7 @@ class NnEa(AlloysGen):
                 target_shell1[peer] = np.array([target], dtype="f")
 
         self.target_shell1 = target_shell1
-        logger.info("target_shell1 Initialized")
+        # logger.info(f"target_shell1 Initialized:  {target_shell1}")
         return target_shell1
 
     def get_target_shell2(self):
@@ -86,7 +87,7 @@ class NnEa(AlloysGen):
                 target_shell2[peer] = np.array([self.NN2], dtype="f")
             else:
                 target_shell2[peer] = np.array([0.0], dtype="f")
-        logger.info("target_shell2 Initialized")
+        # logger.info(f"target_shell2 Initialized: {target_shell2}")
         self.target_shell2 = target_shell2
         return target_shell2
 
@@ -172,9 +173,9 @@ class NnEa(AlloysGen):
         for key in pred_shell.keys():
             atm1, atm2 = key.split("-")
             if atm1 == atm2:
-                shell_AA[key] = NnEa.mae(pred_shell[key], target_shell[key])
+                shell_AA[key] = NeuralEvolution.mae(pred_shell[key], target_shell[key])
             else:
-                shell_AB[key] = NnEa.mae(pred_shell[key], target_shell[key])
+                shell_AB[key] = NeuralEvolution.mae(pred_shell[key], target_shell[key])
         return sum(shell_AA.values()) / float(len(shell_AA)), sum(shell_AB.values()) / float(len(shell_AB))
 
     @staticmethod
@@ -221,7 +222,7 @@ class NnEa(AlloysGen):
             else:
                 pred.append(0)
             target.append(max_diff_element[key])
-        fitness = NnEa.mae(np.array(pred), np.array(target))
+        fitness = NeuralEvolution.mae(np.array(pred), np.array(target))
 
         return fitness
 
@@ -256,9 +257,27 @@ class NnEa(AlloysGen):
 
     # @profile
     @staticmethod
-    def sort_population_by_fitness(population, key):
+    def sort_weights_by_fitness(population, key):
+        """
+
+        :param population: List of list of weight
+        :param key: list of fitness
+        :return:
+        """
         sorted_index = np.argsort(key)
         sorted_population = [population[idx] for idx in sorted_index]
+        return sorted_population
+
+    @staticmethod
+    def sort_policies_by_fitness(networks, key):
+        """
+        :param networks: list of list of network
+        :param key:
+        :return:
+        """
+
+        sorted_index = np.argsort(key)
+        sorted_population = [networks[idx] for idx in sorted_index]
         return sorted_population
 
     # @profile
@@ -276,22 +295,68 @@ class NnEa(AlloysGen):
         noised_individual = individual.add(noise)
         return noised_individual
 
+    @staticmethod
+    def get_weights(networks):
+        """
+        :param networks: list of network
+        :return:
+        """
+
+        return [network.l1.weight.data for network in networks]
+
+    # @staticmethod
+    def update_policies(self, networks_list, rate=None, key=None):
+        """
+        :param key: key to sort policies
+        :param rate: rate of top policies
+        :param networks_list: list of network
+        :return: policies woh updated  weights
+        """
+
+        top_size = int(np.ceil(len(networks_list) * rate))
+
+        if rate is None:
+            rate = self.rate
+
+        if key is not None:
+            sorted_policies = self.sort_policies_by_fitness(networks_list, key)
+        else:
+            sorted_policies = networks_list
+
+        weights_list = [NeuralEvolution.get_weights(networks) for networks in networks_list]
+
+        next_generation = self.make_next_generation(weights_list, rate=rate)
+
+        updated_policies = sorted_policies[:top_size]
+
+        for weight in next_generation:
+            idx = random.randint(0, top_size - 1)
+            nets = updated_policies[idx]
+            networks = []
+            for w, net in zip(weight, nets):
+                with torch.no_grad():
+                    net.l1.weight = torch.nn.Parameter(w)
+                networks.append(net)
+            updated_policies.append(networks)
+
+        return updated_policies
+
     # @profile
-    def make_next_generation(self, previous_population, rate=None, key=None):
+    def make_next_generation(self, previous_weights, rate=None, key=None):
         """
         population is supposed to be sorted by fitness
-        previous_population: list of list
+        previous_weights: list of list
         """
         # logger.info('Start Mutation')
         if rate is None:
             rate = self.rate
 
         if key is not None:
-            sorted_by_fitness_population = self.sort_population_by_fitness(previous_population, key)
+            sorted_by_fitness_population = self.sort_weights_by_fitness(previous_weights, key)
         else:
-            sorted_by_fitness_population = previous_population
+            sorted_by_fitness_population = previous_weights
 
-        population_size = len(previous_population)
+        population_size = len(previous_weights)
 
         top_size = int(np.ceil(population_size * rate))
 
@@ -313,4 +378,4 @@ class NnEa(AlloysGen):
         next_generation.extend(mutants)
 
         # logger.info('Mutation completed')
-        return next_generation
+        return mutants
